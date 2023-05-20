@@ -37,9 +37,15 @@ def main():
                                                         num_workers=args.num_workers,
                                                         target=args.target,
                                                         skew_ratio=args.skew_ratio,
-                                                        labelwise=args.labelwise
+                                                        labelwise=args.labelwise,
+                                                        num_aug=args.num_aug,
+                                                        tuning=args.tuning
                                                         )
-    num_classes, num_groups, train_loader, test_loader = tmp
+    val_loader = None
+    if args.tuning:
+        num_classes, num_groups, train_loader, val_loader, test_loader = tmp
+    else:
+        num_classes, num_groups, train_loader, test_loader = tmp
     
     ########################## get model ##################################
 
@@ -55,7 +61,11 @@ def main():
 
     teacher = None
     if (args.method.startswith('kd') or args.teacher_path is not None) and args.mode != 'eval':
-        teacher = networks.ModelFactory.get_model(args.model, train_loader.dataset.num_classes, args.img_size)
+        if args.method == 'kd_Junyi' and args.model == 'resnet':
+            teacher_model = 'resnet152'
+            teacher = networks.ModelFactory.get_model(teacher_model, train_loader.dataset.num_classes, args.img_size)
+        else:
+            teacher = networks.ModelFactory.get_model(args.model, train_loader.dataset.num_classes, args.img_size)
         if args.parallel:
             teacher = nn.DataParallel(teacher)
         teacher.load_state_dict(torch.load(args.teacher_path))
@@ -75,7 +85,10 @@ def main():
     
     if args.mode == 'train':
         start_t = time.time()
-        trainer_.train(train_loader, test_loader, args.epochs)
+        if args.tuning:
+            trainer_.train(train_loader, val_loader, test_loader, args.epochs)
+        else:
+            trainer_.train(train_loader, test_loader, test_loader, args.epochs)
         end_t = time.time()
         train_t = int((end_t - start_t)/60)  # to minutes
         print('Training Time : {} hours {} minutes'.format(int(train_t/60), (train_t % 60)))
@@ -89,8 +102,10 @@ def main():
 
     if args.evalset == 'all':
         trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
+        if args.tuning:
+            trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
         trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-
+    
     elif args.evalset == 'train':
         trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
     else:

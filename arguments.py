@@ -19,9 +19,10 @@ def get_args():
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10'])
+    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
+    parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')
@@ -29,18 +30,21 @@ def get_args():
     parser.add_argument('--seed', default=0, type=int, help='seed for randomness')
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
-                        choices=['scratch', 'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing'])
+                        choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
+                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam'],
                         help='(default=%(default)s)')
 
+    parser.add_argument('--tuning', default=False, action='store_true', help='tuning mode for cifar-10s-indiv')
+
+    parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
     parser.add_argument('--lambh', default=4, type=float, help='kd strength hyperparameter')
     parser.add_argument('--lambf', default=1, type=float, help='feature distill strength hyperparameter')
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
 
-    parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net'])
+    parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
     parser.add_argument('--teacher-type', default=None, choices=['resnet', 'shufflenet', 'cifar_net'])
     parser.add_argument('--teacher-path', default=None, help='teacher model path')

@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from networks.resnet import resnet18
+from networks.resnet import resnet18, resnet152
 from networks.shufflenet import shufflenet_v2_x1_0
 from networks.cifar_net import Net
 from networks.mlp import MLP
@@ -22,6 +22,10 @@ class ModelFactory():
                 model.fc = nn.Linear(in_features=512, out_features=num_classes, bias=True)
             else:
                 model = resnet18(pretrained=False, num_classes=num_classes)
+            return model
+        
+        elif target_model == 'resnet152':
+            model = resnet152(pretrained=False, num_classes=num_classes)
             return model
 
         elif target_model == 'cifar_net':

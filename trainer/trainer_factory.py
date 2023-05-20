@@ -17,6 +17,8 @@ class TrainerFactory:
             import trainer.vanilla_train as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
+        elif method == 'kd_Junyi':
+            import trainer.kd_Junyi as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
         elif method == 'kd_at':
@@ -25,6 +27,8 @@ class TrainerFactory:
             import trainer.kd_nst as trainer
         elif method == 'kd_mfd':
             import trainer.kd_mfd as trainer
+        elif method == 'kd_mfd_indiv':
+            import trainer.kd_mfd_indiv as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
         elif method == 'adv_debiasing':

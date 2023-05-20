@@ -36,6 +36,18 @@ def compute_hinton_loss(outputs, t_outputs=None, teacher=None, t_inputs=None, kd
 
     return kd_loss
 
+def compute_Junyi_loss(outputs, t_outputs=None, teacher=None, t_inputs=None, kd_temp=3, device=0):
+    if t_outputs is None:
+        if (t_inputs is not None and teacher is not None):
+            t_outputs = teacher(t_inputs)
+        else:
+            Exception('Nothing is given to compute hinton loss')
+
+    soft_label = F.softmax(t_outputs / kd_temp, dim=1).to(device).detach()
+    kd_loss = nn.KLDivLoss(reduction='batchmean')(F.log_softmax(outputs, dim=1),
+                                                  soft_label)
+
+    return kd_loss
 
 def compute_at_loss(inputs, t_inputs, student, teacher, device=0, for_cifar=False):
     stu_outputs = student(inputs, get_inter=True) if not for_cifar else student(inputs, get_inter=True, before_fc=True)
