@@ -84,14 +84,17 @@ class Trainer(trainer.GenericTrainer):
             tot_index = index_.repeat(num_aug*num_groups)
 
             if self.cuda:
-                inputs = inputs.cuda(self.device)
-                int_inputs = int_inputs.cuda(self.device)
+                # inputs = inputs.cuda(self.device)
+                # int_inputs = int_inputs.cuda(self.device)
                 tot_inputs = tot_inputs.cuda(self.device)
+
                 org_labels = org_labels.long().cuda(self.device)
                 tot_labels = tot_labels.long().cuda(self.device)
-                groups = groups.long().cuda(self.device)
-                int_groups = int_groups.long().cuda(self.device)
+
+                # groups = groups.long().cuda(self.device)
+                # int_groups = int_groups.long().cuda(self.device)
                 tot_groups = tot_groups.long().cuda(self.device)
+                
                 tot_index = tot_index.cuda(self.device)
 
             # t_inputs = inputs.to(self.t_device)
@@ -99,16 +102,16 @@ class Trainer(trainer.GenericTrainer):
 
             # outputs = model(inputs, get_inter=True)
             outputs_tot = model(tot_inputs, get_inter=True)
-            stu_logits_hinton = outputs_tot[-1]
+            logits_tot = outputs_tot[-1]
 
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(stu_logits_hinton, t_outputs=tea_logits,
+            kd_loss = compute_hinton_loss(logits_tot, t_outputs=tea_logits,
                                           kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
-            outputs = model(inputs, get_inter=True)
-            stu_logits = outputs[-1]
+            #outputs = model(inputs, get_inter=True)
+            stu_logits = logits_tot[:len(logits_tot)//2]
 
             loss = self.criterion(stu_logits, org_labels)
             loss = loss + self.lambh * kd_loss
@@ -118,7 +121,7 @@ class Trainer(trainer.GenericTrainer):
             f_t = t_outputs[-2]
 
             # mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature)
-            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=tot_labels, jointfeature=self.jointfeature, index=index_, tot_index=tot_index)
+            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=tot_labels, jointfeature=self.jointfeature, index=index_, tot_index=tot_index) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
