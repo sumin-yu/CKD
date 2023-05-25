@@ -94,8 +94,6 @@ class Trainer(trainer.GenericTrainer):
                 # groups = groups.long().cuda(self.device)
                 # int_groups = int_groups.long().cuda(self.device)
                 tot_groups = tot_groups.long().cuda(self.device)
-                
-                tot_index = tot_index.cuda(self.device)
 
             # t_inputs = inputs.to(self.t_device)
             t_inputs = tot_inputs.to(self.t_device)
@@ -121,7 +119,7 @@ class Trainer(trainer.GenericTrainer):
             f_t = t_outputs[-2]
 
             # mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature)
-            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=tot_labels, jointfeature=self.jointfeature, index=index_, tot_index=tot_index) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=tot_labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
@@ -280,7 +278,7 @@ class MMDLoss(nn.Module):
         self.num_classes = num_classes
         self.kernel = kernel
 
-    def forward(self, f_s, f_t, groups, labels, jointfeature=False, index=None, tot_index=None):
+    def forward(self, f_s, f_t, groups, labels, jointfeature=False):
         if self.kernel == 'poly':
             student = F.normalize(f_s.view(f_s.shape[0], -1), dim=1)
             teacher = F.normalize(f_t.view(f_t.shape[0], -1), dim=1).detach()

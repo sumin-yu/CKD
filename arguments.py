@@ -25,6 +25,7 @@ def get_args():
     parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
+    parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')
     parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')
     parser.add_argument('--batch-size', default=128, type=int, help='mini batch size')
     parser.add_argument('--seed', default=0, type=int, help='seed for randomness')
@@ -34,13 +35,13 @@ def get_args():
                                  'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
-                        choices=['SGD', 'SGD_momentum_decay', 'Adam'],
+                        choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
                         help='(default=%(default)s)')
 
     parser.add_argument('--tuning', default=False, action='store_true', help='tuning mode for cifar-10s-indiv')
 
     parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
-    parser.add_argument('--lambh', default=4, type=float, help='kd strength hyperparameter')
+    parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')
     parser.add_argument('--lambf', default=1, type=float, help='feature distill strength hyperparameter')
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
 

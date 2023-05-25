@@ -67,6 +67,8 @@ class GenericTrainer:
 
         if self.optim_type == 'Adam' and self.optimizer is not None:
             self.scheduler = ReduceLROnPlateau(self.optimizer)
+        elif self.optim_type == 'AdamW' and self.optimizer is not None:
+            self.scheduler = ReduceLROnPlateau(self.optimizer)
         else: 
             self.scheduler = MultiStepLR(self.optimizer, [30, 60, 90], gamma=0.1)
 

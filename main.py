@@ -77,6 +77,8 @@ def main():
         optimizer = optim.Adam(model.parameters(), lr=args.lr, )
     elif 'SGD' in args.optimizer:
         optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    elif args.optimizer == 'AdamW':
+        optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
 
     trainer_ = trainer.TrainerFactory.get_trainer(args.method, model=model, args=args,
                                                   optimizer=optimizer, teacher=teacher)
