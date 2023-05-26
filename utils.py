@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import random
 import os
+import torch.nn.functional as F
 
 
 def list_files(root, suffix, prefix=False):
@@ -50,6 +51,51 @@ def check_log_dir(log_dir):
     except OSError:
         print("Failed to create directory!!")
 
+
+def get_bmr(model, dataset):
+    kwargs = {'num_workers': 4, 'pin_memory': True}
+
+    bs = 2
+    dataloader = torch.utils.data.DataLoader(dataset, bs, drop_last=False,
+                                             shuffle=False, **kwargs)
+    num_classes = dataset.num_classes
+    model.eval()
+
+    with torch.no_grad():
+        pred_dist = 0.
+        num_as = 0.
+        num_hits = 0.
+        for data in dataloader:
+            input, group, label, _, _ = data
+
+            input = input.cuda()
+            label = label.cuda()
+
+            output = model(input)[t]
+
+            preds = torch.argmax(output, 1)
+            # if label[0] < 5:
+            #     if (preds[0] == label[0]):
+            #         num_hits += 1
+            #         if preds[1] != label[1]:
+            #             num_as += 1
+            # else:
+            #     if (preds[1] == label[1]):
+            #         num_hits += 1
+            #         if preds[0] != label[0]:
+            #             num_as += 1
+
+            num_hits += (preds == label).sum()
+            num_as += 1 if (preds == label).sum() == 1 else 0
+            output = F.log_softmax(output, dim=1)
+
+            # pred_dist += (F.kl_div(output[0], output[1], log_target=True, reduction='sum') +
+            #               F.kl_div(output[1], output[0], log_target=True, reduction='sum')) / 2
+
+        bmr = 0. if num_hits == 0. else num_as / num_hits
+        # pred_dist /= len(dataloader)
+
+    return bmr
 
 def make_log_name(args):
     log_name = args.model
@@ -105,4 +151,5 @@ def make_log_name(args):
             log_name += '_{}'.format(args.target)
                
     return log_name
+
 

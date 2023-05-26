@@ -117,12 +117,14 @@ class CIFAR_10S(VisionDataset):
             img, target = data
 
             if split == 'test' or split == 'val':
-                imgs[i] = rgb_to_grayscale(img)
-                imgs[i+10000] = np.array(img)
-                labels[i] = target
-                labels[i+10000] = target
-                colors[i] = 0
-                colors[i+10000] = 1
+                gray_image = rgb_to_grayscale(img)
+                color_image = np.array(img)
+                imgs[2*i] = gray_image
+                imgs[2*i+1] = color_image
+                labels[2*i] = target
+                labels[2*i+1] = target
+                colors[2*i] = 0
+                colors[2*i+1] = 1
                 data_count[0, target] += 1
                 data_count[1, target] += 1
             else:

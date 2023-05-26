@@ -10,9 +10,9 @@ from utils import check_log_dir, make_log_name, set_seed
 from arguments import get_args
 import time
 import os 
+from utils import get_bmr
 
 args = get_args()
-
 
 def main():
 
@@ -84,7 +84,6 @@ def main():
                                                   optimizer=optimizer, teacher=teacher)
 
     ####################### start training or evaluating ####################
-    
     if args.mode == 'train':
         start_t = time.time()
         if args.tuning:
@@ -115,6 +114,8 @@ def main():
 
     print('Done!')
 
+    bmr = get_bmr(model, test_loader.dataset)
+    print(f'BMR : {bmr}')
 
 if __name__ == '__main__':
     main()

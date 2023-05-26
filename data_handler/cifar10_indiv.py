@@ -89,15 +89,16 @@ class CIFAR_10S(VisionDataset):
         for i in range(self.num_aug):
             img_list.append(self.transform(image))
             intervened_img_list.append(self.transform(intervened_image))
-        # if self.transform:
-        #     image = self.transform(image)
 
         if self.target_transform:
             label = self.target_transform(label)
 
         # return image, intervened_image, 0, np.float32(color), np.int64(label), (index, 0)
-        return img_list, intervened_img_list, 0, np.float32(color), np.int64(label), index
-
+        if self.split == 'train' :
+            return img_list, intervened_img_list, 0, np.float32(color), np.int64(label), index
+        else:
+            return img_list, 0, np.float32(color), np.int64(label), index
+        
     def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10, tuning=False):
 
         train = False if split =='test' else True
@@ -130,12 +131,14 @@ class CIFAR_10S(VisionDataset):
             img, target = data
 
             if split == 'test' or split == 'val':
-                imgs[i] = rgb_to_grayscale(img)
-                imgs[i+10000] = np.array(img)
-                labels[i] = target
-                labels[i+10000] = target
-                colors[i] = 0
-                colors[i+10000] = 1
+                gray_image = rgb_to_grayscale(img)
+                color_image = np.array(img)
+                imgs[2*i] = gray_image
+                imgs[2*i+1] = color_image
+                labels[2*i] = target
+                labels[2*i+1] = target
+                colors[2*i] = 0
+                colors[2*i+1] = 1
                 data_count[0, target] += 1
                 data_count[1, target] += 1
             else:

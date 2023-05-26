@@ -144,129 +144,68 @@ class Trainer(trainer.GenericTrainer):
         if not self.no_annealing:
             self.lambh = self.lambh - 3 / (self.epochs - 1)
     
+    # def compute_confusion_matix(self, dataset='test', num_classes=2,
+    #                             dataloader=None, log_dir="", log_name=""):
+    #     from scipy.io import savemat
+    #     from collections import defaultdict
+    #     self.model.eval()
+    #     confu_mat = defaultdict(lambda: np.zeros((num_classes, num_classes)))
+    #     print('# of {} data : {}'.format(dataset, len(dataloader.dataset)))
 
-    def evaluate(self, model, loader, criterion, device=None, groupwise=False):
-        model.eval()
-        num_groups = loader.dataset.num_groups
-        num_classes = loader.dataset.num_classes
-        device = self.device if device is None else device
-
-        eval_acc = 0 if not groupwise else torch.zeros(num_groups, num_classes).cuda(device)
-        eval_loss = 0 if not groupwise else torch.zeros(num_groups, num_classes).cuda(device)
-        eval_eopp_list = torch.zeros(num_groups, num_classes).cuda(device)
-        eval_data_count = torch.zeros(num_groups, num_classes).cuda(device)
+    #     predict_mat = {}
+    #     output_set = torch.tensor([])
+    #     group_set = torch.tensor([], dtype=torch.long)
+    #     target_set = torch.tensor([], dtype=torch.long)
+    #     intermediate_feature_set = torch.tensor([])
         
-        if 'Custom' in type(loader).__name__:
-            loader = loader.generate()
-        with torch.no_grad():
-            for j, eval_data in enumerate(loader):
-                # Get the inputs
-                inputs_, _, _, groups, classes, _ = eval_data
-                #
-                labels = classes 
-                inputs = inputs_[0]
-
-                if self.cuda:
-                    inputs = inputs.cuda(device)
-                    labels = labels.cuda(device)
-                    groups = groups.cuda(device)
-
-                outputs = model(inputs)
-
-                if groupwise:
-                    if self.cuda:
-                        groups = groups.cuda(device)
-                    loss = nn.CrossEntropyLoss(reduction='none')(outputs, labels)
-                    preds = torch.argmax(outputs, 1)
-                    acc = (preds == labels).float().squeeze()
-                    for g in range(num_groups):
-                        for l in range(num_classes):
-                            eval_loss[g, l] += loss[(groups == g) * (labels == l)].sum()
-                            eval_acc[g, l] += acc[(groups == g) * (labels == l)].sum()
-                            eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
-
-                else:
-                    loss = criterion(outputs, labels)
-                    eval_loss += loss.item() * len(labels)
-                    preds = torch.argmax(outputs, 1)
-                    acc = (preds == labels).float().squeeze()
-                    eval_acc += acc.sum()
-
-                    for g in range(num_groups):
-                        for l in range(num_classes):
-                            eval_eopp_list[g, l] += acc[(groups == g) * (labels == l)].sum()
-                            eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
-
-            eval_loss = eval_loss / eval_data_count.sum() if not groupwise else eval_loss / eval_data_count
-            eval_acc = eval_acc / eval_data_count.sum() if not groupwise else eval_acc / eval_data_count
-            eval_eopp_list = eval_eopp_list / eval_data_count
-            eval_max_eopp = torch.max(eval_eopp_list, dim=0)[0] - torch.min(eval_eopp_list, dim=0)[0]
-            eval_max_eopp = torch.max(eval_max_eopp).item()
-        model.train()
-        return eval_loss, eval_acc, eval_max_eopp
-    
-    def compute_confusion_matix(self, dataset='test', num_classes=2,
-                                dataloader=None, log_dir="", log_name=""):
-        from scipy.io import savemat
-        from collections import defaultdict
-        self.model.eval()
-        confu_mat = defaultdict(lambda: np.zeros((num_classes, num_classes)))
-        print('# of {} data : {}'.format(dataset, len(dataloader.dataset)))
-
-        predict_mat = {}
-        output_set = torch.tensor([])
-        group_set = torch.tensor([], dtype=torch.long)
-        target_set = torch.tensor([], dtype=torch.long)
-        intermediate_feature_set = torch.tensor([])
-        
-        with torch.no_grad():
-            for i, data in enumerate(dataloader):
-                # Get the inputs
-                inputs_, _,  _, groups, targets, _ = data
-                labels = targets
-                groups = groups.long()
-                inputs = inputs_[0]
+    #     with torch.no_grad():
+    #         for i, data in enumerate(dataloader):
+    #             # Get the inputs
+    #             inputs_, _,  _, groups, targets, _ = data
+    #             labels = targets
+    #             groups = groups.long()
+    #             inputs = inputs_[0]
                 
-                if self.cuda:
-                    inputs = inputs.cuda(self.device)
-                    labels = labels.cuda(self.device)
+    #             if self.cuda:
+    #                 inputs = inputs.cuda(self.device)
+    #                 labels = labels.cuda(self.device)
 
-                # forward
+    #             # forward
 
-                outputs = self.model(inputs)
-                if self.get_inter:
-                    intermediate_feature = self.model.forward(inputs, get_inter=True)[-2]
+    #             outputs = self.model(inputs)
+    #             if self.get_inter:
+    #                 intermediate_feature = self.model.forward(inputs, get_inter=True)[-2]
 
-                group_set = torch.cat((group_set, groups))
-                target_set = torch.cat((target_set, targets))
-                output_set = torch.cat((output_set, outputs.cpu()))
-                if self.get_inter:
-                    intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
+    #             group_set = torch.cat((group_set, groups))
+    #             target_set = torch.cat((target_set, targets))
+    #             output_set = torch.cat((output_set, outputs.cpu()))
+    #             if self.get_inter:
+    #                 intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
 
-                pred = torch.argmax(outputs, 1)
-                group_element = list(torch.unique(groups).numpy())
-                for i in group_element:
-                    mask = groups == i
-                    if len(labels[mask]) != 0:
-                        confu_mat[str(i)] += confusion_matrix(
-                            labels[mask].cpu().numpy(), pred[mask].cpu().numpy(),
-                            labels=[i for i in range(num_classes)])
+    #             pred = torch.argmax(outputs, 1)
+    #             group_element = list(torch.unique(groups).numpy())
+    #             for i in group_element:
+    #                 mask = groups == i
+    #                 if len(labels[mask]) != 0:
+    #                     confu_mat[str(i)] += confusion_matrix(
+    #                         labels[mask].cpu().numpy(), pred[mask].cpu().numpy(),
+    #                         labels=[i for i in range(num_classes)])
 
-        predict_mat['group_set'] = group_set.numpy()
-        predict_mat['target_set'] = target_set.numpy()
-        predict_mat['output_set'] = output_set.numpy()
-        if self.get_inter:
-            predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
+    #     predict_mat['group_set'] = group_set.numpy()
+    #     predict_mat['target_set'] = target_set.numpy()
+    #     predict_mat['output_set'] = output_set.numpy()
+    #     if self.get_inter:
+    #         predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
             
-        savepath = os.path.join(log_dir, log_name + '_{}_confu'.format(dataset))
-        print('savepath', savepath)
-        savemat(savepath, confu_mat, appendmat=True)
+    #     savepath = os.path.join(log_dir, log_name + '_{}_confu'.format(dataset))
+    #     print('savepath', savepath)
+    #     savemat(savepath, confu_mat, appendmat=True)
 
-        savepath_pred = os.path.join(log_dir, log_name + '_{}_pred'.format(dataset))
-        savemat(savepath_pred, predict_mat, appendmat=True)
+    #     savepath_pred = os.path.join(log_dir, log_name + '_{}_pred'.format(dataset))
+    #     savemat(savepath_pred, predict_mat, appendmat=True)
 
-        print('Computed confusion matrix for {} dataset successfully!'.format(dataset))
-        return confu_mat
+    #     print('Computed confusion matrix for {} dataset successfully!'.format(dataset))
+    #     return confu_mat
 
 class MMDLoss(nn.Module):
     def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, num_aug, kernel):
