@@ -24,14 +24,14 @@ class DataloaderFactory:
                              ]
         elif name == 'cifar10_indiv':
             transform_list = [transforms.ToPILImage(),
-                              transforms.Resize((38,38)),
-                              transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
-                              transforms.RandomHorizontalFlip(),
-                              transforms.Resize((32,32)),
+                            #   transforms.Resize((38,38)),
+                            #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
+                            #   transforms.RandomHorizontalFlip(),
+                            #   transforms.Resize((32,32)),
                               transforms.ToTensor()]
         elif name == 'cifar10':
             transform_list = [transforms.ToPILImage(),
-                              transforms.RandomHorizontalFlip(),
+                            #   transforms.RandomHorizontalFlip(),
                               transforms.ToTensor()
                               ]
         else:

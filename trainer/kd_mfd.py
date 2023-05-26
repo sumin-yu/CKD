@@ -18,7 +18,7 @@ class Trainer(hinton_Trainer):
         self.kernel = args.kernel
         self.jointfeature = args.jointfeature
 
-    def train(self, train_loader, test_loader, epochs):
+    def train(self, train_loader, val_loader, test_loader, epochs):
 
         num_classes = train_loader.dataset.num_classes
         num_groups = train_loader.dataset.num_groups
@@ -28,6 +28,13 @@ class Trainer(hinton_Trainer):
 
         for epoch in range(self.epochs):
             self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller)
+
+            val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
+            print('[{}/{}] Method: {} '
+                    'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
+                    (epoch + 1, epochs, self.method,
+                    val_loss, val_acc, val_deopp))
+
             eval_start_time = time.time()
             eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
             eval_end_time = time.time()

@@ -9,13 +9,19 @@ class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
 
-    def train(self, train_loader, test_loader, epochs):
+    def train(self, train_loader, val_loader, test_loader, epochs):
         model = self.model
         model.train()
 
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, model)
 
+            val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
+            print('[{}/{}] Method: {} '
+                    'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
+                    (epoch + 1, epochs, self.method,
+                    val_loss, val_acc, val_deopp))
+                    
             eval_start_time = time.time()
             eval_loss, eval_acc, eval_deopp = self.evaluate(model, test_loader, self.criterion)
             eval_end_time = time.time()

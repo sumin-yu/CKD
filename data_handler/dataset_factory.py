@@ -20,7 +20,7 @@ class DatasetFactory:
             from data_handler.cifar10 import CIFAR_10S
             root = './data/cifar10'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                             labelwise=labelwise)
+                             labelwise=labelwise, tuning=tuning)
         elif name == "cifar10_indiv":
             from data_handler.cifar10_indiv import CIFAR_10S
             root = './data/cafar10'

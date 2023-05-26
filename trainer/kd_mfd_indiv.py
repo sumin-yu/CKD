@@ -112,6 +112,7 @@ class Trainer(trainer.GenericTrainer):
             stu_logits = logits_tot[:len(logits_tot)//2]
 
             loss = self.criterion(stu_logits, org_labels)
+            # loss = self.criterion(logits_tot, tot_labels)
             loss = loss + self.lambh * kd_loss
 
 
