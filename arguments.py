@@ -17,7 +17,7 @@ def get_args():
 
     parser.add_argument('--mode', default='train', choices=['train', 'eval'])
     parser.add_argument('--modelpath', default=None)
-    parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test'])
+    parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
     parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
@@ -74,7 +74,7 @@ def get_args():
         if args.teacher_path is None:
             raise Exception('A teacher model path is not specified.')
 
-    if args.mode == 'eval' and args.model_path is None:
+    if args.mode == 'eval' and args.modelpath is None:
         raise Exception('Model path to load is not specified!')
     
     return args

@@ -84,20 +84,24 @@ class CIFAR_10S(VisionDataset):
         color = self.dataset['color'][index]
         intervened_image = self.dataset['intervened_image'][index]  
 
-        img_list = []
-        intervened_img_list = []
-        for i in range(self.num_aug):
-            img_list.append(self.transform(image))
-            intervened_img_list.append(self.transform(intervened_image))
-
-        if self.target_transform:
-            label = self.target_transform(label)
-
-        # return image, intervened_image, 0, np.float32(color), np.int64(label), (index, 0)
         if self.split == 'train' :
+            img_list = []
+            intervened_img_list = []
+            for i in range(self.num_aug):
+                img_list.append(self.transform(image))
+                intervened_img_list.append(self.transform(intervened_image))
+
+            if self.target_transform:
+                label = self.target_transform(label)
+
             return img_list, intervened_img_list, 0, np.float32(color), np.int64(label), index
-        else:
+        else: # val or test
+            img_list = self.transform(image)
+            intervened_img_list = self.transform(intervened_image)
+
             return img_list, 0, np.float32(color), np.int64(label), index
+        
+        # return image, intervened_image, 0, np.float32(color), np.int64(label), (index, 0)
         
     def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10, tuning=False):
 
