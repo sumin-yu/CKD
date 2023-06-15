@@ -26,3 +26,8 @@ class DatasetFactory:
             root = './data/cafar10'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
                              labelwise=labelwise, num_aug=num_aug, tuning=tuning)
+        elif name == "cifar10_all":
+            from data_handler.cifar10_all import CIFAR_10S
+            root = './data/cifar10'
+            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
+                                labelwise=labelwise, tuning=tuning)

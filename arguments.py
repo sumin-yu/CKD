@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv'])
+    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv', 'cifar10_all'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
     parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')
@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
-                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv'])
+                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
@@ -67,6 +67,7 @@ def get_args():
     parser.add_argument('--jointfeature', default=False, action='store_true', help='mmd with both joint')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
+    parser.add_argument('--with-perturbed', default=False, action='store_true', help='CE loss with perturbed images and no mmd loss')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

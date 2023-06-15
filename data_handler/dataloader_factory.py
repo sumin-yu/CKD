@@ -29,7 +29,7 @@ class DataloaderFactory:
                             #   transforms.RandomHorizontalFlip(),
                             #   transforms.Resize((32,32)),
                               transforms.ToTensor()]
-        elif name == 'cifar10':
+        elif name == 'cifar10' or name == 'cifar10_all':
             transform_list = [transforms.ToPILImage(),
                             #   transforms.RandomHorizontalFlip(),
                               transforms.ToTensor()
@@ -55,7 +55,7 @@ class DataloaderFactory:
             train_dataset = DatasetFactory.get_dataset(name, transform=preprocessing, split='train', target=target,
                                                        seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
             val_dataset = DatasetFactory.get_dataset(name, transform=test_preprocessing, split='val', target=target,
-                                                        seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
+                                                        seed=seed, skew_ratio=skew_ratio, tuning=tuning)
         else:
             train_dataset = DatasetFactory.get_dataset(name, transform=preprocessing, split='train', target=target,
                                                        seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug)

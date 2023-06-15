@@ -22,6 +22,7 @@ class Trainer(trainer.GenericTrainer):
         self.batch_size = args.batch_size
         self.jointfeature = args.jointfeature
         self.no_annealing = args.no_annealing
+        self.with_perturbed = args.with_perturbed
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
@@ -64,7 +65,7 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs_, int_inputs_, _, groups_, targets_, index_ = data
+            inputs_, int_inputs_, _, groups_, targets_, _ = data
             labels_ = targets_
             inputs_ = torch.stack(inputs_)
             int_inputs_ = torch.stack(int_inputs_)
@@ -81,13 +82,10 @@ class Trainer(trainer.GenericTrainer):
             int_groups = int_groups_.repeat(num_aug)
             tot_groups = torch.cat((groups, int_groups), dim=0)
 
-            tot_index = index_.repeat(num_aug*num_groups)
-
             if self.cuda:
                 # inputs = inputs.cuda(self.device)
                 # int_inputs = int_inputs.cuda(self.device)
                 tot_inputs = tot_inputs.cuda(self.device)
-
                 org_labels = org_labels.long().cuda(self.device)
                 tot_labels = tot_labels.long().cuda(self.device)
 
@@ -105,16 +103,18 @@ class Trainer(trainer.GenericTrainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(logits_tot, t_outputs=tea_logits,
-                                          kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
+            # kd_loss = compute_hinton_loss(logits_tot, t_outputs=tea_logits,
+            #                               kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
             #outputs = model(inputs, get_inter=True)
             stu_logits = logits_tot[:len(logits_tot)//2]
 
-            loss = self.criterion(stu_logits, org_labels)
+            if self.with_perturbed :
+                loss = self.criterion(logits_tot, tot_labels)
+            else:
+                loss = self.criterion(stu_logits, org_labels)
             # loss = self.criterion(logits_tot, tot_labels)
-            loss = loss + self.lambh * kd_loss
-
+            # loss = loss + self.lambh * kd_loss
 
             f_s = outputs_tot[-2]
             f_t = t_outputs[-2]
@@ -124,7 +124,10 @@ class Trainer(trainer.GenericTrainer):
 
             loss = loss + mmd_loss
             running_loss += loss.item()
-            running_acc += get_accuracy(stu_logits, org_labels)
+            if self.with_perturbed:
+                running_acc += get_accuracy(logits_tot, tot_labels)
+            else:
+                running_acc += get_accuracy(stu_logits, org_labels)
 
             self.optimizer.zero_grad()
             loss.backward()

@@ -63,7 +63,6 @@ def get_bmr(model, dataset):
     model.eval()
 
     with torch.no_grad():
-        pred_dist = 0.
         num_as = 0.
         num_hits = 0.
         for data in dataloader:

@@ -15,12 +15,18 @@ class TrainerFactory:
     def get_trainer(method, **kwargs):
         if method == 'scratch':
             import trainer.vanilla_train as trainer
+        elif method == 'scratch_perturbed':
+            import trainer.vanilla_train as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'kd_Junyi':
             import trainer.kd_Junyi as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
+        elif method == 'kd_hinton_perturbed':
+            import trainer.kd_hinton_perturbed as trainer
+        elif method == 'kd_fitnet_perturbed':
+            import trainer.kd_fitnet_perturbed as trainer
         elif method == 'kd_at':
             import trainer.kd_at as trainer
         elif method == 'kd_nst':
