@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv', 'cifar10_all'])
+    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv', 'cifar10_all', 'celeba_aug'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
     parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')
@@ -32,13 +32,12 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
-                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed'])
+                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed',
+                                 'scratch_aug'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
                         help='(default=%(default)s)')
-
-    parser.add_argument('--tuning', default=False, action='store_true', help='tuning mode for cifar-10s-indiv')
 
     parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
     parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')

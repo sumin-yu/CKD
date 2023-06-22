@@ -19,6 +19,12 @@ class DatasetFactory:
             root='./data/'
             return CelebA(root=root, split=split, transform=transform, target_attr=target)
         
+        elif name == "celeba_aug":
+            from data_handler.celeba_aug import CelebA_aug
+            root='./data/'
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target)
+
+        
         elif name == "cifar10":
             from data_handler.cifar10 import CIFAR_10S
             root = './data/cifar10'
@@ -87,7 +93,7 @@ class GenericDataset(data.Dataset):
         return train_data, test_data
     
 
-    def make_weights(self, method):
+    def make_weights(self, method='kd_mfd'):
         if self.root != './data/jigsaw':
             if method == 'fairhsic':
                 group_weights = len(self) / self.n_data.sum(axis=0)

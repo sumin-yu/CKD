@@ -18,7 +18,8 @@ def custom_transform(img_list,
         img_list = [TF.to_pil_image(img) for img in img_list]
 
     if resize:
-        img_list = [TF.resize(img,img_size) for img in img_list]
+        resize = transforms.Resize(size=img_size)
+        img_list = [resize(img) for img in img_list]
 
     if rand_crop:
         i, j, h, w = transforms.RandomCrop.get_params(
@@ -42,12 +43,12 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Smiling', skew_ratio=1., labelwise=False, num_aug=1, tuning=False):
+                       target='Smiling', skew_ratio=1., labelwise=False, num_aug=1):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
         
-        if name == 'celeba':
+        if 'celeba' in name:
             mean = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]
 
@@ -100,9 +101,9 @@ class DataloaderFactory:
         # test_preprocessing = transforms.Compose(test_transform_list)
 
         val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target,
-                                                    seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
+                                                    seed=seed, skew_ratio=skew_ratio, num_aug=num_aug)
         train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target,
-                                                    seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug)
+                                                    seed=seed, skew_ratio=skew_ratio, num_aug=num_aug)
             
         test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target,
                                                 seed=seed, skew_ratio=skew_ratio)
@@ -114,10 +115,9 @@ class DataloaderFactory:
         n_groups = test_dataset.n_groups
 
         if labelwise:
-            from data_handler.custom_loader import Customsampler
-            sampler = Customsampler(train_dataset, replacement=False, batch_size=batch_size)
-            train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
-                                          num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
+            from torch.utils.data.sampler import WeightedRandomSampler
+            weights = train_dataset.make_weights()
+            sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
         else:
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

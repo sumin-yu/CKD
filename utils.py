@@ -133,7 +133,6 @@ def make_log_name(args):
 
         if args.method == 'kd_mfd_indiv':
             log_name += '_num_aug{}'.format(args.num_aug)
-            log_name += '_tuning' if args.tuning else ''
 
         # if args.dataset == 'celeba' and args.target != 'Attractive':
         #     log_name += '_{}'.format(args.target)

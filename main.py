@@ -39,13 +39,9 @@ def main():
                                                         skew_ratio=args.skew_ratio,
                                                         labelwise=args.labelwise,
                                                         num_aug=args.num_aug,
-                                                        tuning=args.tuning
                                                         )
     val_loader = None
-    # if args.tuning:
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp
-    # else:
-        # num_classes, num_groups, train_loader, test_loader = tmp
     
     ########################## get model ##################################
 
@@ -100,10 +96,9 @@ def main():
 
     if args.evalset == 'all':
         # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
-        if args.tuning:
-            acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-            bmr = get_bmr(model, val_loader.dataset)
-            save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
+        bmr = get_bmr(model, val_loader.dataset)
+        save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
         bmr = get_bmr(model, test_loader.dataset)
         save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
