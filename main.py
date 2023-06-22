@@ -42,10 +42,10 @@ def main():
                                                         tuning=args.tuning
                                                         )
     val_loader = None
-    if args.tuning:
-        num_classes, num_groups, train_loader, val_loader, test_loader = tmp
-    else:
-        num_classes, num_groups, train_loader, test_loader = tmp
+    # if args.tuning:
+    num_classes, num_groups, train_loader, val_loader, test_loader = tmp
+    # else:
+        # num_classes, num_groups, train_loader, test_loader = tmp
     
     ########################## get model ##################################
 
@@ -86,10 +86,7 @@ def main():
     ####################### start training or evaluating ####################
     if args.mode == 'train':
         start_t = time.time()
-        if args.tuning:
-            trainer_.train(train_loader, val_loader, test_loader, args.epochs)
-        else:
-            trainer_.train(train_loader, test_loader, args.epochs)
+        trainer_.train(train_loader, val_loader, test_loader, args.epochs)
         end_t = time.time()
         train_t = int((end_t - start_t)/60)  # to minutes
         print('Training Time : {} hours {} minutes'.format(int(train_t/60), (train_t % 60)))

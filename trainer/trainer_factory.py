@@ -74,8 +74,8 @@ class GenericTrainer:
 
     def evaluate(self, model, loader, criterion, device=None, groupwise=False):
         model.eval()
-        num_groups = loader.dataset.num_groups
-        num_classes = loader.dataset.num_classes
+        num_groups = loader.dataset.n_groups
+        num_classes = loader.dataset.n_classes
         device = self.device if device is None else device
 
         eval_acc = 0 if not groupwise else torch.zeros(num_groups, num_classes).cuda(device)

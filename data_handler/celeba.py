@@ -1,16 +1,17 @@
 import torch
 import os
 from os.path import join
-from torchvision.datasets.vision import VisionDataset
 import PIL
+from PIL import ImageOps, Image
 import pandas
 import numpy as np
 import zipfile
 from functools import partial
 from torchvision.datasets.utils import download_file_from_google_drive, check_integrity, verify_str_arg
+from data_handler.dataset_factory import GenericDataset
 
 
-class CelebA(VisionDataset):
+class CelebA(GenericDataset):
     base_folder = "celeba"
     # There currently does not appear to be a easy way to extract 7z in python (without introducing additional
     # dependencies). The "in-the-wild" (not aligned+cropped) images are only in 7z, so they are not available
@@ -29,9 +30,8 @@ class CelebA(VisionDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Attractive', labelwise=False):
-        super(CelebA, self).__init__(root, transform=transform,
-                                     target_transform=target_transform)
+                 target_transform=None, download=False, target_attr='Attractive'):
+        super(CelebA, self).__init__(root, transform=transform)
         self.split = split
         if isinstance(target_type, list):
             self.target_type = target_type
@@ -43,13 +43,12 @@ class CelebA(VisionDataset):
 
         if download:
             self.download()
-
         if not self._check_integrity():
             raise RuntimeError('Dataset not found or corrupted.' +
                                ' You can use download=True to download it')
         # SELECT the features
-        self.sensitive_attr = 'Male'
-        self.target_attr = target_attr       
+        self.sensitive_attr = 'Blond_Hair'
+        self.target_attr = 'Male'
         split_map = {
             "train": 0,
             "valid": 1,
@@ -69,31 +68,16 @@ class CelebA(VisionDataset):
         self.attr = torch.as_tensor(attr[mask].values)
         self.attr = (self.attr + 1) // 2  # map from {-1, 1} to {0, 1}
         self.attr_names = list(attr.columns)
-        print(self.attr_names)
         self.target_idx = self.attr_names.index(self.target_attr)
         self.sensi_idx = self.attr_names.index(self.sensitive_attr)
         self.feature_idx = [i for i in range(len(self.attr_names)) if i != self.target_idx and i!=self.sensi_idx]
-        self.num_classes = 2
-        self.num_groups =2 
-        print('num classes is {}'.format(self.num_classes))
-        self.num_data = self._data_count()
-        if self.split == "test":
-            self._balance_test_data()
-        self.labelwise = labelwise
-        if self.labelwise:
-            self.idx_map = self._make_idx_map()
-            
-    def _make_idx_map(self):
-        idx_map = [[] for i in range(self.num_groups * self.num_classes)]
-        for j, i in enumerate(self.attr):
-            y = self.attr[j, self.target_idx]
-            s = self.attr[j, self.sensi_idx]
-            pos = s*self.num_classes + y
-            idx_map[pos].append(j)
-        final_map = []
-        for l in idx_map:
-            final_map.extend(l)
-        return final_map            
+        self.n_classes = 2
+        self.n_groups =2         
+        print('num classes is {}'.format(self.n_classes))
+
+        self.features = [[int(s), int(l), filename] for s, l, filename in \
+                            zip(self.attr[:, self.sensi_idx], self.attr[:, self.target_idx], self.filename)]
+        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
         
     def _check_integrity(self):
         for (_, md5, filename) in self.file_list:
@@ -119,53 +103,38 @@ class CelebA(VisionDataset):
             f.extractall(os.path.join(self.root, self.base_folder))
 
     def __getitem__(self, index):
-        if self.labelwise:
-            index = self.idx_map[index]
         img_name = self.filename[index]
-        X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name))
+        X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
+        X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
 
         target = self.attr[index, self.target_idx]
         sensitive = self.attr[index, self.sensi_idx]
         feature = self.attr[index, self.feature_idx]
         if self.transform is not None:
-            X = self.transform(X)
+            X = self.transform([X])
 
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-
-        return X, feature, sensitive, target, (index, img_name)
+        return X[0], feature, sensitive, target, (index, img_name)
 
     def __len__(self):
         return len(self.attr)
-    
-    def _data_count(self):
-        data_count = np.zeros((self.num_groups, self.num_classes), dtype=int)
-        print('<data_count> %s mode'%self.split)
-        for index in range(len(self.attr)):
-            target = self.attr[index, self.target_idx]
-            sensitive = self.attr[index, self.sensi_idx]
-            data_count[sensitive, target] += 1
-        for i in range(self.num_groups):
-            print('# of %d groups data : '%i, data_count[i, :])
-        return data_count
 
-    def _balance_test_data(self):
-        num_data_min = np.min(self.num_data)
-        print('min : ', num_data_min)
-        data_count = np.zeros((self.num_groups, self.num_classes), dtype=int)
-        new_filename = []
-        new_attr = []
-        print(len(self.attr))        
-        for index in range(len(self.attr)):
-            target=self.attr[index, self.target_idx]
-            sensitive = self.attr[index, self.sensi_idx]
-            if data_count[sensitive, target] < num_data_min:
-                new_filename.append(self.filename[index])
-                new_attr.append(self.attr[index])
-                data_count[sensitive, target] += 1
+    # def _balance_test_data(self):
+    #     num_data_min = np.min(self.num_data)
+    #     print('min : ', num_data_min)
+    #     data_count = np.zeros((self.num_groups, self.num_classes), dtype=int)
+    #     new_filename = []
+    #     new_attr = []
+    #     print(len(self.attr))        
+    #     for index in range(len(self.attr)):
+    #         target=self.attr[index, self.target_idx]
+    #         sensitive = self.attr[index, self.sensi_idx]
+    #         if data_count[sensitive, target] < num_data_min:
+    #             new_filename.append(self.filename[index])
+    #             new_attr.append(self.attr[index])
+    #             data_count[sensitive, target] += 1
             
-        for i in range(self.num_groups):
-            print('# of balanced %d\'s groups data : '%i, data_count[i, :])
+    #     for i in range(self.num_groups):
+    #         print('# of balanced %d\'s groups data : '%i, data_count[i, :])
             
-        self.filename = new_filename
-        self.attr = torch.stack(new_attr)
+    #     self.filename = new_filename
+    #     self.attr = torch.stack(new_attr)

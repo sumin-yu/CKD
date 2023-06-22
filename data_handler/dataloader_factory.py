@@ -3,71 +3,117 @@ from data_handler.dataset_factory import DatasetFactory
 import numpy as np
 from torchvision import transforms
 from torch.utils.data import DataLoader
+import torchvision.transforms.functional as TF
 
+import random 
+from functools import partial
+
+def custom_transform(img_list, 
+                        arr2img=False, 
+                        resize=False, img_resize=256,
+                        rand_crop=False, img_size=(224,224),
+                        flip_horizon=False, prob=0.5,
+                        normalize=False, mean=None, std=None):
+    if arr2img:
+        img_list = [TF.to_pil_image(img) for img in img_list]
+
+    if resize:
+        img_list = [TF.resize(img,img_size) for img in img_list]
+
+    if rand_crop:
+        i, j, h, w = transforms.RandomCrop.get_params(
+        img_list[0], output_size=(img_size, img_size))
+        img_list = [TF.crop(img, i, j, h, w) for img in img_list]
+
+    if flip_horizon:
+        if random.random() > prob:
+            img_list = [TF.hflip(img) for img in img_list]
+
+    img_list =  [TF.to_tensor(img) for img in img_list]
+
+    if normalize:
+        img_list = [TF.normalize(img, mean=mean, std=std) for img in img_list]
+    
+    return img_list
 
 class DataloaderFactory:
     def __init__(self):
         pass
 
+
+
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
                        target='Smiling', skew_ratio=1., labelwise=False, num_aug=1, tuning=False):
 
-        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+        # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                    #  std=[0.229, 0.224, 0.225])
         
         if name == 'celeba':
-            transform_list = [transforms.RandomResizedCrop(img_size),
-                              transforms.RandomHorizontalFlip(),
-                              transforms.ToTensor(),
-                              normalize
-                             ]
-        elif name == 'cifar10_indiv':
-            transform_list = [transforms.ToPILImage(),
-                            #   transforms.Resize((38,38)),
-                            #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
-                            #   transforms.RandomHorizontalFlip(),
-                            #   transforms.Resize((32,32)),
-                              transforms.ToTensor()]
-        elif name == 'cifar10':
-            transform_list = [transforms.ToPILImage(),
-                            #   transforms.RandomHorizontalFlip(),
-                              transforms.ToTensor()
-                              ]
-        else:
-            transform_list = [transforms.Resize((256,256)),
-                              transforms.RandomCrop(img_size),
-                              transforms.RandomHorizontalFlip(),
-                              transforms.ToTensor(),
-                              normalize
-                             ]
+            mean = [0.485, 0.456, 0.406]
+            std = [0.229, 0.224, 0.225]
 
-        if 'cifar10' in name:
-            test_transform_list = [transforms.ToTensor()]
-        else:
-            test_transform_list = [transforms.Resize((img_size,img_size)),
-                                  transforms.ToTensor(),
-                                  normalize]
-        preprocessing = transforms.Compose(transform_list)
-        test_preprocessing = transforms.Compose(test_transform_list)
+            train_transform = partial(custom_transform, 
+                                      rand_crop=True, img_size=224,
+                                      flip_horizon=True,
+                                      normalize=True, mean=mean, std=std)
+            
+            test_transform = partial(custom_transform, 
+                                     resize=True, 
+                                     normalize=True, mean=mean, std=std)
 
-        if tuning:
-            train_dataset = DatasetFactory.get_dataset(name, transform=preprocessing, split='train', target=target,
-                                                       seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
-            val_dataset = DatasetFactory.get_dataset(name, transform=test_preprocessing, split='val', target=target,
-                                                        seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
-        else:
-            train_dataset = DatasetFactory.get_dataset(name, transform=preprocessing, split='train', target=target,
-                                                       seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug)
+            valid_transform = test_transform
+            # transform_list = [transforms.RandomResizedCrop(img_size),
+            #                   transforms.RandomHorizontalFlip(),
+            #                   transforms.ToTensor(),
+            #                   normalize
+            #                  ]
+            
+        # elif name == 'cifar10_indiv':
+        #     transform_list = [transforms.ToPILImage(),
+        #                     #   transforms.Resize((38,38)),
+        #                     #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
+        #                     #   transforms.RandomHorizontalFlip(),
+        #                     #   transforms.Resize((32,32)),
+        #                       transforms.ToTensor()]
+            
+        # elif name == 'cifar10':
+        #     transform_list = [transforms.ToPILImage(),
+        #                     #   transforms.RandomHorizontalFlip(),
+        #                       transforms.ToTensor()
+        #                       ]
         
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_preprocessing, split='test', target=target,
-                                                  seed=seed, skew_ratio=skew_ratio)
+        # else:
+        #     transform_list = [transforms.Resize((256,256)),
+        #                       transforms.RandomCrop(img_size),
+        #                       transforms.RandomHorizontalFlip(),
+        #                       transforms.ToTensor(),
+        #                       normalize
+        #                      ]
+
+        # if 'cifar10' in name:
+        #     test_transform_list = [transforms.ToTensor()]
+        # else:
+        #     test_transform_list = [transforms.Resize((img_size,img_size)),
+        #                           transforms.ToTensor(),
+        #                           normalize]
+            
+        # preprocessing = transforms.Compose(transform_list)
+        # test_preprocessing = transforms.Compose(test_transform_list)
+
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target,
+                                                    seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug, tuning=tuning)
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target,
+                                                    seed=seed, skew_ratio=skew_ratio, labelwise=labelwise, num_aug=num_aug)
+            
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target,
+                                                seed=seed, skew_ratio=skew_ratio)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))
             
-        num_classes = test_dataset.num_classes
-        num_groups = test_dataset.num_groups
+        n_classes = test_dataset.n_classes
+        n_groups = test_dataset.n_groups
 
         if labelwise:
             from data_handler.custom_loader import Customsampler
@@ -80,11 +126,6 @@ class DataloaderFactory:
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                                      num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True)
         
-        if tuning:
-            val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False,
-                                        num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True)
-            return num_classes, num_groups, train_dataloader, val_dataloader, test_dataloader
-        else:
-            return num_classes, num_groups, train_dataloader, test_dataloader
-        # print('Dataset loaded.')
-
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False,
+                                    num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True)
+        return n_classes, n_groups, train_dataloader, val_dataloader, test_dataloader

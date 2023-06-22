@@ -114,42 +114,29 @@ def make_log_name(args):
         if args.method == 'adv_debiasing':
             log_name += '_advlamb{}_eta{}'.format(args.adv_lambda, args.eta)
 
-        elif args.method == 'scratch_mmd' or args.method == 'kd_mfd':
+        elif args.method == 'scratch_mmd':
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
-            log_name += '_jointfeature' if args.jointfeature else ''
-            log_name += '_lambf{}'.format(args.lambf) if args.method == 'scratch_mmd' else ''
-        elif args.method == 'kd_mfd_indiv':
+            log_name += '_lambf{}'.format(args.lambf)
+
+        elif args.method == 'kd_mfd' or args.method=='kd_mfd_indiv':
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
-            log_name += '_jointfeature' if args.jointfeature else ''
-            log_name += '_lambf{}'.format(args.lambf) if args.method == 'scratch_mmd' else ''
-
-
-        if args.labelwise:
-            log_name += '_labelwise'
+            log_name += '_lambf{}'.format(args.lambf)
 
         if args.teacher_path is not None and args.method != 'kd_Junyi':
             log_name += '_temp{}'.format(args.kd_temp)
-            log_name += '_lambh{}_lambf{}'.format(args.lambh, args.lambf)
+            log_name += '_lambh{}'.format(args.lambh)
 
-            if args.no_annealing:
-                log_name += '_fixedlamb'
-
-        if args.method == 'kd_Junyi':
-            log_name += '_temp{}'.format(args.kd_temp)
-            log_name += '_alpha{}'.format(args.alpha_J)
-
-            if args.no_annealing:
-                log_name += '_fixedalpha'
+        if args.labelwise:
+            log_name += '_labelwise'
 
         if args.method == 'kd_mfd_indiv':
             log_name += '_num_aug{}'.format(args.num_aug)
             log_name += '_tuning' if args.tuning else ''
 
-        if args.dataset == 'celeba' and args.target != 'Attractive':
-            log_name += '_{}'.format(args.target)
-               
+        # if args.dataset == 'celeba' and args.target != 'Attractive':
+        #     log_name += '_{}'.format(args.target)
     return log_name
 
 

@@ -6,6 +6,7 @@ import pickle
 
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+from data_handler.dataset_factory import GenericDataset
 
 
 def rgb_to_grayscale(img):
@@ -19,7 +20,7 @@ def rgb_to_grayscale(img):
 
 class CIFAR_10S(VisionDataset):
     def __init__(self, root, split='train', transform=None, target_transform=None,
-                 seed=0, skewed_ratio=0.8, labelwise=False, num_aug=1, tuning=False):
+                 seed=0, skewed_ratio=0.8, num_aug=1, tuning=False):
         super(CIFAR_10S, self).__init__(root, transform=transform, target_transform=target_transform)
 
         self.split = split
@@ -41,24 +42,10 @@ class CIFAR_10S(VisionDataset):
         self.dataset['intervened_image'] = np.array(intervened_imgs)
 
         self._get_label_list()
-        self.labelwise = labelwise
 
         self.num_data = data_count
 
-        if self.labelwise:
-            self.idx_map = self._make_idx_map()
-
-    def _make_idx_map(self):
-        idx_map = [[] for i in range(self.num_groups * self.num_classes)]
-        for j, i in enumerate(self.dataset['image']):
-            y = self.dataset['label'][j]
-            s = self.dataset['color'][j]
-            pos = s * self.num_classes + y
-            idx_map[int(pos)].append(j)
-        final_map = []
-        for l in idx_map:
-            final_map.extend(l)
-        return final_map
+        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
 
     def _get_label_list(self):
         self.label_list = []
@@ -77,8 +64,6 @@ class CIFAR_10S(VisionDataset):
         return len(self.dataset['image'])
 
     def __getitem__(self, index):
-        if self.labelwise:
-            index = self.idx_map[index]
         image = self.dataset['image'][index]
         label = self.dataset['label'][index]
         color = self.dataset['color'][index]
