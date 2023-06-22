@@ -10,7 +10,7 @@ from utils import check_log_dir, make_log_name, set_seed
 from arguments import get_args
 import time
 import os 
-from utils import get_bmr
+from utils import get_bmr, save_anal
 
 args = get_args()
 
@@ -99,20 +99,28 @@ def main():
         print('Trained model loaded successfully')
 
     if args.evalset == 'all':
-        trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
+        # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         if args.tuning:
-            trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
+            acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
+            bmr = get_bmr(model, val_loader.dataset)
+            save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
+        bmr = get_bmr(model, test_loader.dataset)
+        save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
     
-    elif args.evalset == 'train':
-        trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
-    else:
-        trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
+    # elif args.evalset == 'train':
+    #     deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
+    # elif args.evalset == 'val':
+    #     deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
+    # else:
+    #     deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
 
     print('Done!')
 
-    bmr = get_bmr(model, test_loader.dataset)
-    print(f'BMR : {bmr}')
+    
+    # print('Start Analysis!')
+    # bmr = get_bmr(model, test_loader.dataset)
+    # print(f'BMR : {bmr}')
 
 if __name__ == '__main__':
     main()

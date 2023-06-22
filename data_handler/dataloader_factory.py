@@ -40,8 +40,6 @@ class DataloaderFactory:
     def __init__(self):
         pass
 
-
-
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
                        target='Smiling', skew_ratio=1., labelwise=False, num_aug=1, tuning=False):

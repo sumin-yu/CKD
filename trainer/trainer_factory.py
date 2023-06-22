@@ -15,12 +15,18 @@ class TrainerFactory:
     def get_trainer(method, **kwargs):
         if method == 'scratch':
             import trainer.vanilla_train as trainer
+        elif method == 'scratch_perturbed':
+            import trainer.vanilla_train as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'kd_Junyi':
             import trainer.kd_Junyi as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
+        elif method == 'kd_hinton_perturbed':
+            import trainer.kd_hinton_perturbed as trainer
+        elif method == 'kd_fitnet_perturbed':
+            import trainer.kd_fitnet_perturbed as trainer
         elif method == 'kd_at':
             import trainer.kd_at as trainer
         elif method == 'kd_nst':
@@ -197,4 +203,16 @@ class GenericTrainer:
         savemat(savepath_pred, predict_mat, appendmat=True)
 
         print('Computed confusion matrix for {} dataset successfully!'.format(dataset))
-        return confu_mat
+
+        group0 = confu_mat['0']
+        group1 = confu_mat['1']
+        all = group0 + group1
+        acc = np.sum(np.diag(all)) / np.sum(all)
+
+        group0_acc_classwise = np.diag(group0) / np.sum(group0, axis=1)
+        group1_acc_classwise = np.diag(group1) / np.sum(group1, axis=1)
+
+        DEO_A = np.sum(abs(group0_acc_classwise - group1_acc_classwise)) / 10
+        DEO_M = np.max(abs(group0_acc_classwise - group1_acc_classwise))
+
+        return acc, DEO_A, DEO_M

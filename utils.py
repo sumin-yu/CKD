@@ -3,6 +3,7 @@ import numpy as np
 import random
 import os
 import torch.nn.functional as F
+import pickle
 
 
 def list_files(root, suffix, prefix=False):
@@ -62,16 +63,15 @@ def get_bmr(model, dataset):
     model.eval()
 
     with torch.no_grad():
-        pred_dist = 0.
         num_as = 0.
         num_hits = 0.
         for data in dataloader:
-            input, group, label, _, _ = data
+            input, _, group, label , _ = data
 
             input = input.cuda()
             label = label.cuda()
 
-            output = model(input)[t]
+            output = model(input)
 
             preds = torch.argmax(output, 1)
             # if label[0] < 5:
@@ -139,4 +139,15 @@ def make_log_name(args):
         #     log_name += '_{}'.format(args.target)
     return log_name
 
+def save_anal(dataset='test', args=None, acc=0, bmr=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
 
+    savepath = os.path.join(log_dir, log_name + '_{}_result'.format(dataset))
+    result = {}
+    result['acc'] = acc
+    result['BMR'] = bmr
+    result['DEO_A'] = deo_a
+    result['DEO_M'] = deo_m
+    result['args'] = args
+    # save result as pickle
+    with open(savepath, 'wb') as f:
+        pickle.dump(result, f)

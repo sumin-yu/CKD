@@ -6,7 +6,6 @@ import pickle
 
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
-from data_handler.dataset_factory import GenericDataset
 
 
 def rgb_to_grayscale(img):
@@ -20,7 +19,7 @@ def rgb_to_grayscale(img):
 
 class CIFAR_10S(VisionDataset):
     def __init__(self, root, split='train', transform=None, target_transform=None,
-                 seed=0, skewed_ratio=0.8, num_aug=1, tuning=False):
+                 seed=0, skewed_ratio=0.8, labelwise=False, tuning=False):
         super(CIFAR_10S, self).__init__(root, transform=transform, target_transform=target_transform)
 
         self.split = split
@@ -29,23 +28,32 @@ class CIFAR_10S(VisionDataset):
         self.num_classes = 10
         self.num_groups = 2
 
-        self.num_aug = num_aug
-        # self.intervened_data = None
-        self.transform = transform
-
-        imgs, intervened_imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes, tuning)
+        imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes, tuning)
 
         self.dataset = {}
         self.dataset['image'] = np.array(imgs)
         self.dataset['label'] = np.array(labels)
         self.dataset['color'] = np.array(colors)
-        self.dataset['intervened_image'] = np.array(intervened_imgs)
 
         self._get_label_list()
+        self.labelwise = labelwise
 
         self.num_data = data_count
 
-        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        if self.labelwise:
+            self.idx_map = self._make_idx_map()
+
+    def _make_idx_map(self):
+        idx_map = [[] for i in range(self.num_groups * self.num_classes)]
+        for j, i in enumerate(self.dataset['image']):
+            y = self.dataset['label'][j]
+            s = self.dataset['color'][j]
+            pos = s * self.num_classes + y
+            idx_map[int(pos)].append(j)
+        final_map = []
+        for l in idx_map:
+            final_map.extend(l)
+        return final_map
 
     def _get_label_list(self):
         self.label_list = []
@@ -64,30 +72,20 @@ class CIFAR_10S(VisionDataset):
         return len(self.dataset['image'])
 
     def __getitem__(self, index):
+        if self.labelwise:
+            index = self.idx_map[index]
         image = self.dataset['image'][index]
         label = self.dataset['label'][index]
         color = self.dataset['color'][index]
-        intervened_image = self.dataset['intervened_image'][index]  
 
-        if self.split == 'train' :
-            img_list = []
-            intervened_img_list = []
-            for i in range(self.num_aug):
-                img_list.append(self.transform(image))
-                intervened_img_list.append(self.transform(intervened_image))
+        if self.transform:
+            image = self.transform(image)
 
-            if self.target_transform:
-                label = self.target_transform(label)
+        if self.target_transform:
+            label = self.target_transform(label)
 
-            return img_list, intervened_img_list, 0, np.float32(color), np.int64(label), index
-        else: # val or test
-            img_list = self.transform(image)
-            intervened_img_list = self.transform(intervened_image)
+        return image, 0, np.float32(color), np.int64(label), (index, 0)
 
-            return img_list, 0, np.float32(color), np.int64(label), index
-        
-        # return image, intervened_image, 0, np.float32(color), np.int64(label), (index, 0)
-        
     def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10, tuning=False):
 
         train = False if split =='test' else True
@@ -96,19 +94,18 @@ class CIFAR_10S(VisionDataset):
         if split == 'train' and tuning == False:
             num_data = 50000
         elif split == 'train' and tuning == True:
-            num_data = 40000
+            num_data = 80000
         elif split == 'val':
             num_data = 20000
         elif split == 'test':
             num_data = 20000
-        # num_data = 50000 if (split =='train')&(tuning==False) else 20000
+        # num_data = 50000 if split =='train' else 20000
 
         imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
-        intervened_imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
         labels = np.zeros(num_data)
         colors = np.zeros(num_data)
         data_count = np.zeros((2, 10), dtype=int)
-        
+
         if tuning == False:
             num_total_train_data = int((50000 // num_classes))
             num_skewed_train_data = int((50000 * skewed_ratio) // num_classes)
@@ -131,35 +128,21 @@ class CIFAR_10S(VisionDataset):
                 data_count[0, target] += 1
                 data_count[1, target] += 1
             else:
-                if target < 5:
-                    if data_count[0, target] < (num_skewed_train_data):
-                        imgs[i] = rgb_to_grayscale(img)
-                        intervened_imgs[i] = np.array(img)
-                        colors[i] = 0
-                        data_count[0, target] += 1
-                    else:
-                        imgs[i] = np.array(img)
-                        intervened_imgs[i] = rgb_to_grayscale(img)
-                        colors[i] = 1
-                        data_count[1, target] += 1
-                    labels[i] = target
-                else:
-                    if data_count[0, target] < (num_total_train_data - num_skewed_train_data):
-                        imgs[i] = rgb_to_grayscale(img)
-                        intervened_imgs[i] = np.array(img)
-                        colors[i] = 0
-                        data_count[0, target] += 1
-                    else:
-                        imgs[i] = np.array(img)
-                        intervened_imgs[i] = rgb_to_grayscale(img)
-                        colors[i] = 1
-                        data_count[1, target] += 1
-                    labels[i] = target
-    
+                gray_image = rgb_to_grayscale(img)
+                color_image = np.array(img)
+                imgs[2*i] = gray_image
+                imgs[2*i+1] = color_image
+                labels[2*i] = target
+                labels[2*i+1] = target
+                colors[2*i] = 0
+                colors[2*i+1] = 1
+                data_count[0, target] += 1
+                data_count[1, target] += 1
+
         print('<# of Skewed data>')
         print(data_count)
 
-        return imgs, intervened_imgs, labels, colors, data_count
+        return imgs, labels, colors, data_count
 
 
 class CIFAR10(VisionDataset):
@@ -221,7 +204,6 @@ class CIFAR10(VisionDataset):
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self.targets = np.array(self.targets)
-
 
         if tuning:
             self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
