@@ -28,7 +28,7 @@ class Trainer(trainer.GenericTrainer):
 
         num_classes = train_loader.dataset.num_classes
         num_groups = train_loader.dataset.num_groups
-        num_aug = train_loader.dataset.num_aug
+        num_aug = 1
 
         distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
                             num_classes=num_classes, num_groups=num_groups, num_aug=num_aug, kernel=self.kernel)
@@ -65,69 +65,46 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs_, int_inputs_, _, groups_, targets_, _ = data
-            labels_ = targets_
-            inputs_ = torch.stack(inputs_)
-            int_inputs_ = torch.stack(int_inputs_)
+            inputs, _, groups, targets, _ = data 
+            inputs = inputs.view(-1, *inputs.shape[2:])
+            # targets = targets.repeat(num_aug*num_groups)
+            targets = torch.stack((targets,targets),dim=1).view(-1)
 
-            inputs = torch.reshape(inputs_, (-1, inputs_.shape[-3], inputs_.shape[-2], inputs_.shape[-1]))
-            int_inputs = torch.reshape(int_inputs_, (-1, int_inputs_.shape[-3], int_inputs_.shape[-2], int_inputs_.shape[-1]))
-            tot_inputs = torch.cat((inputs, int_inputs), dim=0)
+            labels = targets 
 
-            org_labels = labels_.repeat(num_aug)
-            tot_labels = labels_.repeat(num_aug*num_groups)
-
-            groups = groups_.repeat(num_aug)
-            int_groups_ = torch.where(groups_ == 0, 1, 0)
-            int_groups = int_groups_.repeat(num_aug)
+            groups = groups.repeat(num_aug)
+            int_groups = torch.where(groups == 0, 1, 0)
+            int_groups = int_groups.repeat(num_aug)
             tot_groups = torch.cat((groups, int_groups), dim=0)
 
             if self.cuda:
-                # inputs = inputs.cuda(self.device)
-                # int_inputs = int_inputs.cuda(self.device)
-                tot_inputs = tot_inputs.cuda(self.device)
-                org_labels = org_labels.long().cuda(self.device)
-                tot_labels = tot_labels.long().cuda(self.device)
-
-                # groups = groups.long().cuda(self.device)
-                # int_groups = int_groups.long().cuda(self.device)
+                inputs = inputs.cuda(self.device)
+                labels = labels.long().cuda(self.device)
                 tot_groups = tot_groups.long().cuda(self.device)
 
-            # t_inputs = inputs.to(self.t_device)
-            t_inputs = tot_inputs.to(self.t_device)
+            t_inputs = inputs.to(self.t_device)
 
-            # outputs = model(inputs, get_inter=True)
-            outputs_tot = model(tot_inputs, get_inter=True)
-            logits_tot = outputs_tot[-1]
+            s_outputs = model(inputs, get_inter=True)
+            logits_tot = s_outputs[-1]
 
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            # kd_loss = compute_hinton_loss(logits_tot, t_outputs=tea_logits,
-            #                               kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
-
-            #outputs = model(inputs, get_inter=True)
-            stu_logits = logits_tot[:len(logits_tot)//2]
-
             if self.with_perturbed :
-                loss = self.criterion(logits_tot, tot_labels)
+                loss = self.criterion(logits_tot, labels)
             else:
-                loss = self.criterion(stu_logits, org_labels)
-            # loss = self.criterion(logits_tot, tot_labels)
-            # loss = loss + self.lambh * kd_loss
+                loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
 
-            f_s = outputs_tot[-2]
+            f_s = s_outputs[-2]
             f_t = t_outputs[-2]
-
-            # mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature)
-            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=tot_labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
             if self.with_perturbed:
-                running_acc += get_accuracy(logits_tot, tot_labels)
+                running_acc += get_accuracy(logits_tot, labels)
             else:
-                running_acc += get_accuracy(stu_logits, org_labels)
+                running_acc += get_accuracy(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
 
             self.optimizer.zero_grad()
             loss.backward()

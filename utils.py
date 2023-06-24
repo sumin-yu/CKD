@@ -130,9 +130,9 @@ def make_log_name(args):
 
         if args.labelwise:
             log_name += '_labelwise'
-
-        if args.method == 'kd_mfd_indiv':
-            log_name += '_num_aug{}'.format(args.num_aug)
+        
+        if args.method == 'kd_mfd_indiv' and args.with_perturbed:
+            log_name+= '_wperturbed'
 
         # if args.dataset == 'celeba' and args.target != 'Attractive':
         #     log_name += '_{}'.format(args.target)
@@ -147,6 +147,7 @@ def save_anal(dataset='test', args=None, acc=0, bmr=0, deo_a=0, deo_m=0, log_dir
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
     result['args'] = args
+
     # save result as pickle
     with open(savepath, 'wb') as f:
         pickle.dump(result, f)

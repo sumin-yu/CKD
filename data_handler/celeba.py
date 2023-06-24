@@ -71,13 +71,13 @@ class CelebA(GenericDataset):
         self.target_idx = self.attr_names.index(self.target_attr)
         self.sensi_idx = self.attr_names.index(self.sensitive_attr)
         self.feature_idx = [i for i in range(len(self.attr_names)) if i != self.target_idx and i!=self.sensi_idx]
-        self.n_classes = 2
-        self.n_groups =2         
-        print('num classes is {}'.format(self.n_classes))
+        self.num_classes = 2
+        self.num_groups =2         
+        print('num classes is {}'.format(self.num_classes))
 
         self.features = [[int(s), int(l), filename] for s, l, filename in \
                             zip(self.attr[:, self.sensi_idx], self.attr[:, self.target_idx], self.filename)]
-        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
         
     def _check_integrity(self):
         for (_, md5, filename) in self.file_list:

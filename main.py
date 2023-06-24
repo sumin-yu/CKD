@@ -93,7 +93,7 @@ def main():
         model_to_load = args.modelpath
         trainer_.model.load_state_dict(torch.load(model_to_load))
         print('Trained model loaded successfully')
-
+    bmr=0
     if args.evalset == 'all':
         # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
@@ -103,12 +103,16 @@ def main():
         bmr = get_bmr(model, test_loader.dataset)
         save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
     
-    # elif args.evalset == 'train':
-    #     deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
-    # elif args.evalset == 'val':
-    #     deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-    # else:
-    #     deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
+    elif args.evalset == 'train':
+        acc, deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
+        save_anal('train' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+    elif args.evalset == 'val':
+        acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
+        save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+    else:
+        acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
+        save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+
 
     print('Done!')
 

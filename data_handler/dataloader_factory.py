@@ -111,13 +111,15 @@ class DataloaderFactory:
         def _init_fn(worker_id):
             np.random.seed(int(seed))
             
-        n_classes = test_dataset.n_classes
-        n_groups = test_dataset.n_groups
+        n_classes = test_dataset.num_classes
+        n_groups = test_dataset.num_groups
 
         if labelwise:
             from torch.utils.data.sampler import WeightedRandomSampler
             weights = train_dataset.make_weights()
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
+            train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
+                                          num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
         else:
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
