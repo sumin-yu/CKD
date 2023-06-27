@@ -102,7 +102,7 @@ def main():
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
         bmr = get_bmr(model, test_loader.dataset)
         save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
-    
+        print('here') 
     elif args.evalset == 'train':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         save_anal('train' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)

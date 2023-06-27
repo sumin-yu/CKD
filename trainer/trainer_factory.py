@@ -19,6 +19,8 @@ class TrainerFactory:
             import trainer.vanilla_train_aug as trainer
         elif method == 'scratch_perturbed':
             import trainer.vanilla_train as trainer
+        elif method == 'logit_pairing':
+            import trainer.logit_pairing as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'kd_Junyi':

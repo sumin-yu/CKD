@@ -147,7 +147,7 @@ def save_anal(dataset='test', args=None, acc=0, bmr=0, deo_a=0, deo_m=0, log_dir
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
     result['args'] = args
-
+    print('success', savepath)
     # save result as pickle
     with open(savepath, 'wb') as f:
         pickle.dump(result, f)

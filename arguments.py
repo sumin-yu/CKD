@@ -33,7 +33,7 @@ def get_args():
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
                                  'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed',
-                                 'scratch_aug'])
+                                 'scratch_aug','logit_pairing'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
