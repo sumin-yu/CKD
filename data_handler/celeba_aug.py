@@ -17,7 +17,10 @@ class CelebA_aug(CelebA):
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.split == 'train':
-            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited", img_name)).convert('RGB')
+            if self.sensitive_attr == 'Male':
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
+            elif self.sensitive_attr == 'Blond_Hair':
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited", img_name)).convert('RGB')
             X =  [X, X_edited]
         else:
             X = [X]

@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Attractive', seed=0, skew_ratio=1., labelwise=False, num_aug=1, tuning=False):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, num_aug=1, tuning=False):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -17,12 +17,12 @@ class DatasetFactory:
         elif name == "celeba":
             from data_handler.celeba import CelebA
             root='./data/'
-            return CelebA(root=root, split=split, transform=transform, target_attr=target)
+            return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
         
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
 
         
         elif name == "cifar10":

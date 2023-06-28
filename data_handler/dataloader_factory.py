@@ -43,7 +43,7 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Smiling', skew_ratio=1., labelwise=False, num_aug=1):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., labelwise=False, num_aug=1):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -100,12 +100,12 @@ class DataloaderFactory:
         # preprocessing = transforms.Compose(transform_list)
         # test_preprocessing = transforms.Compose(test_transform_list)
 
-        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target,
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive,
                                                     seed=seed, skew_ratio=skew_ratio, num_aug=num_aug)
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target,
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive,
                                                     seed=seed, skew_ratio=skew_ratio, num_aug=num_aug)
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target,
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive,
                                                 seed=seed, skew_ratio=skew_ratio)
 
         def _init_fn(worker_id):

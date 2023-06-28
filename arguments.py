@@ -52,7 +52,8 @@ def get_args():
     parser.add_argument('--pretrained', default=False, action='store_true', help='load imagenet pretrained model')
     parser.add_argument('--num-workers', default=2, type=int, help='the number of thread used in dataloader')
     parser.add_argument('--term', default=20, type=int, help='the period for recording train acc')
-    parser.add_argument('--target', default='Attractive', type=str, help='target attribute for celeba')
+    parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
+    parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
 
     parser.add_argument('--no-annealing', action='store_true', default=False, help='do not anneal lamb during training')
     parser.add_argument('--fitnet-simul', default=False, action='store_true', help='no hint-training')

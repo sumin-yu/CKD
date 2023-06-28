@@ -36,6 +36,7 @@ def main():
                                                         batch_size=args.batch_size, seed=args.seed,
                                                         num_workers=args.num_workers,
                                                         target=args.target,
+                                                        sensitive=args.sensitive,
                                                         skew_ratio=args.skew_ratio,
                                                         labelwise=args.labelwise,
                                                         num_aug=args.num_aug,
