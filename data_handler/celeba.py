@@ -30,7 +30,7 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Attractive'):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male'):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
         if isinstance(target_type, list):
@@ -47,8 +47,8 @@ class CelebA(GenericDataset):
             raise RuntimeError('Dataset not found or corrupted.' +
                                ' You can use download=True to download it')
         # SELECT the features
-        self.sensitive_attr = 'Male'
-        self.target_attr = 'Blond_Hair'
+        self.sensitive_attr = sen_attr
+        self.target_attr = target_attr
         split_map = {
             "train": 0,
             "valid": 1,
