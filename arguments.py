@@ -55,7 +55,7 @@ def get_args():
     parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
     parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
 
-    parser.add_argument('--no-annealing', action='store_true', default=False, help='do not anneal lamb during training')
+    parser.add_argument('--no-annealing', action='store_true', default=True, help='do not anneal lamb during training')
     parser.add_argument('--fitnet-simul', default=False, action='store_true', help='no hint-training')
 
     parser.add_argument('--eta', default=0.0003, type=float, help='adversary training learning rate')
