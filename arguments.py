@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_indiv', 'cifar10_all', 'celeba_aug'])
+    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
     parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')

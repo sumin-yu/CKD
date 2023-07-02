@@ -3,6 +3,7 @@ import os.path
 from PIL import Image
 import numpy as np
 import pickle
+import torch
 
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
@@ -18,13 +19,14 @@ def rgb_to_grayscale(img):
     return np_gray_img
 
 
-class CIFAR_10S(VisionDataset):
-    def __init__(self, root, split='train', transform=None, target_transform=None,
-                 seed=0, skewed_ratio=0.8, num_aug=1, tuning=False):
-        super(CIFAR_10S, self).__init__(root, transform=transform, target_transform=target_transform)
+class CIFAR_10S(GenericDataset):
+    def __init__(self, root, split='train', transform=None,
+                 seed=0, skewed_ratio=0.8, num_aug=1):
+        super(CIFAR_10S, self).__init__(root, transform=transform)
 
         self.split = split
         self.seed = seed
+        self.test_pair = False
 
         self.num_classes = 10
         self.num_groups = 2
@@ -33,7 +35,7 @@ class CIFAR_10S(VisionDataset):
         # self.intervened_data = None
         self.transform = transform
 
-        imgs, intervened_imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes, tuning)
+        imgs, intervened_imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes)
 
         self.dataset = {}
         self.dataset['image'] = np.array(imgs)
@@ -45,7 +47,7 @@ class CIFAR_10S(VisionDataset):
 
         self.num_data = data_count
 
-        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        # self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
 
     def _get_label_list(self):
         self.label_list = []
@@ -72,54 +74,53 @@ class CIFAR_10S(VisionDataset):
         if self.split == 'train' :
             img_list = []
             intervened_img_list = []
-            for i in range(self.num_aug):
+            for _ in range(self.num_aug):
                 img_list.append(self.transform(image))
                 intervened_img_list.append(self.transform(intervened_image))
-
             if self.target_transform:
                 label = self.target_transform(label)
+            input = torch.stack([img_list, intervened_img_list])
 
-            return img_list, intervened_img_list, 0, np.float32(color), np.int64(label), index
-        else: # val or test
+        elif self.test_pair:
+            img = self.transform(image)
+            int_img = self.dataset['image'][int(index+1-2*(index%2))]
+            int_img = self.transform(int_img)
+            input = [img, int_img]
+            input = torch.stack(input)
+
+        else: # valid or test
             img_list = self.transform(image)
-            intervened_img_list = self.transform(intervened_image)
+            input = img_list
 
-            return img_list, 0, np.float32(color), np.int64(label), index
+        return input, 0, np.float32(color), np.int64(label), index
         
         # return image, intervened_image, 0, np.float32(color), np.int64(label), (index, 0)
         
-    def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10, tuning=False):
+    def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10):
 
         train = False if split =='test' else True
-        cifardata = CIFAR10('./data', train=train, shuffle=True, seed=seed, download=True, tuning=tuning, split=split)
+        cifardata = CIFAR10('./data_cifar', train=train, shuffle=True, seed=seed, download=True, split=split)
 
-        if split == 'train' and tuning == False:
-            num_data = 50000
-        elif split == 'train' and tuning == True:
+        if split == 'train':
             num_data = 40000
-        elif split == 'val':
+        elif split == 'valid':
             num_data = 20000
         elif split == 'test':
             num_data = 20000
-        # num_data = 50000 if (split =='train')&(tuning==False) else 20000
 
         imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
         intervened_imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
         labels = np.zeros(num_data)
         colors = np.zeros(num_data)
         data_count = np.zeros((2, 10), dtype=int)
-        
-        if tuning == False:
-            num_total_train_data = int((50000 // num_classes))
-            num_skewed_train_data = int((50000 * skewed_ratio) // num_classes)
-        else:
-            num_total_train_data = int((40000 // num_classes))
-            num_skewed_train_data = int((40000 * skewed_ratio) // num_classes)
+
+        num_total_train_data = int((40000 // num_classes))
+        num_skewed_train_data = int((40000 * skewed_ratio) // num_classes)
 
         for i, data in enumerate(cifardata):
             img, target = data
 
-            if split == 'test' or split == 'val':
+            if split == 'test' or split == 'valid':
                 gray_image = rgb_to_grayscale(img)
                 color_image = np.array(img)
                 imgs[2*i] = gray_image
@@ -185,7 +186,7 @@ class CIFAR10(VisionDataset):
     }
 
     def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, shuffle=False, seed=0, tuning=False, split='train'):
+                 download=False, shuffle=False, seed=0, split='train'):
 
         super(CIFAR10, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
@@ -222,8 +223,7 @@ class CIFAR10(VisionDataset):
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self.targets = np.array(self.targets)
 
-
-        if tuning:
+        if split == 'train' or split == 'valid':
             self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
             for i in range(10):
                 self.data_per_class[i] = self.data[self.targets == i]
@@ -231,7 +231,7 @@ class CIFAR10(VisionDataset):
                 self.data_per_class = self.data_per_class[:, :4000]
                 self.targets = np.repeat(np.arange(10), 4000)
                 self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
-            elif split == 'val':
+            elif split == 'valid':
                 self.data_per_class = self.data_per_class[:, 4000:]
                 self.targets = np.repeat(np.arange(10), 1000)
                 self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))

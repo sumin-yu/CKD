@@ -33,6 +33,7 @@ class CelebA(GenericDataset):
                  target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male'):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
+        self.test_pair = False
         if isinstance(target_type, list):
             self.target_type = target_type
         else:

@@ -68,19 +68,19 @@ class DataloaderFactory:
             #                   normalize
             #                  ]
             
-        # elif name == 'cifar10_indiv':
-        #     transform_list = [transforms.ToPILImage(),
-        #                     #   transforms.Resize((38,38)),
-        #                     #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
-        #                     #   transforms.RandomHorizontalFlip(),
-        #                     #   transforms.Resize((32,32)),
-        #                       transforms.ToTensor()]
+        elif name == 'cifar10_aug':
+            train_transform = transforms.Compose([transforms.ToPILImage(),
+                            #   transforms.Resize((38,38)),
+                            #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
+                            #   transforms.RandomHorizontalFlip(),
+                            #   transforms.Resize((32,32)),
+                              transforms.ToTensor()])
             
-        # elif name == 'cifar10':
-        #     transform_list = [transforms.ToPILImage(),
-        #                     #   transforms.RandomHorizontalFlip(),
-        #                       transforms.ToTensor()
-        #                       ]
+        elif name == 'cifar10':
+            train_transform = transforms.Compose([transforms.ToPILImage(),
+                            #   transforms.RandomHorizontalFlip(),
+                              transforms.ToTensor()
+                              ])
         
         # else:
         #     transform_list = [transforms.Resize((256,256)),
@@ -90,8 +90,9 @@ class DataloaderFactory:
         #                       normalize
         #                      ]
 
-        # if 'cifar10' in name:
-        #     test_transform_list = [transforms.ToTensor()]
+        if 'cifar10' in name:
+            test_transform = transforms.Compose([transforms.ToTensor()])
+            valid_transform = test_transform
         # else:
         #     test_transform_list = [transforms.Resize((img_size,img_size)),
         #                           transforms.ToTensor(),

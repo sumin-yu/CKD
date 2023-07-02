@@ -12,7 +12,7 @@ class Trainer(trainer.GenericTrainer):
         self.lambh = args.lambh
         self.kd_temp = args.kd_temp
         self.seed = args.seed
-        self.no_annealing = args.no_annealing
+        # self.no_annealing = args.no_annealing
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
@@ -95,5 +95,5 @@ class Trainer(trainer.GenericTrainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-        if not self.no_annealing:
-            self.lambh = self.lambh - 3/(self.epochs-1)
+        # if not self.no_annealing:
+        #     self.lambh = self.lambh - 3/(self.epochs-1)

@@ -21,7 +21,7 @@ class Trainer(trainer.GenericTrainer):
         self.kernel = args.kernel
         self.batch_size = args.batch_size
         self.jointfeature = args.jointfeature
-        self.no_annealing = args.no_annealing
+        # self.no_annealing = args.no_annealing
         self.with_perturbed = args.with_perturbed
 
     def train(self, train_loader, val_loader, test_loader, epochs):
@@ -121,8 +121,8 @@ class Trainer(trainer.GenericTrainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-        if not self.no_annealing:
-            self.lambh = self.lambh - 3 / (self.epochs - 1)
+        # if not self.no_annealing:
+        #     self.lambh = self.lambh - 3 / (self.epochs - 1)
     
     # def compute_confusion_matix(self, dataset='test', num_classes=2,
     #                             dataloader=None, log_dir="", log_name=""):

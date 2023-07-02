@@ -216,7 +216,7 @@ class GenericTrainer:
         group0_acc_classwise = np.diag(group0) / np.sum(group0, axis=1)
         group1_acc_classwise = np.diag(group1) / np.sum(group1, axis=1)
 
-        DEO_A = np.sum(abs(group0_acc_classwise - group1_acc_classwise)) / 10
+        DEO_A = np.sum(abs(group0_acc_classwise - group1_acc_classwise)) / num_classes
         DEO_M = np.max(abs(group0_acc_classwise - group1_acc_classwise))
 
         return acc, DEO_A, DEO_M

@@ -18,17 +18,18 @@ def rgb_to_grayscale(img):
 
 
 class CIFAR_10S(GenericDataset):
-    def __init__(self, root, split='train', transform=None, target_transform=None,
-                 seed=0, skewed_ratio=0.8,  tuning=False):
-        super(CIFAR_10S, self).__init__(root, transform=transform, target_transform=target_transform)
+    def __init__(self, root, split='train', transform=None,
+                 seed=0, skewed_ratio=0.8):
+        super(CIFAR_10S, self).__init__(root, transform=transform)
 
         self.split = split
         self.seed = seed
+        self.test_pair = False
 
         self.num_classes = 10
         self.num_groups = 2
 
-        imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes, tuning)
+        imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes)
 
         self.dataset = {}
         self.dataset['image'] = np.array(imgs)
@@ -39,7 +40,7 @@ class CIFAR_10S(GenericDataset):
 
         self.num_data = data_count
 
-        self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        # self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
 
 
     # def _make_idx_map(self):
@@ -83,16 +84,14 @@ class CIFAR_10S(GenericDataset):
 
         return image, 0, np.float32(color), np.int64(label), (index, 0)
 
-    def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10, tuning=False):
+    def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10):
 
         train = False if split =='test' else True
-        cifardata = CIFAR10('./data', train=train, shuffle=True, seed=seed, download=True, tuning=tuning, split=split)
+        cifardata = CIFAR10('./data_cifar', train=train, shuffle=True, seed=seed, download=True, split=split)
 
-        if split == 'train' and tuning == False:
-            num_data = 50000
-        elif split == 'train' and tuning == True:
+        if split == 'train':
             num_data = 40000
-        elif split == 'val':
+        elif split == 'valid':
             num_data = 20000
         elif split == 'test':
             num_data = 20000
@@ -103,17 +102,13 @@ class CIFAR_10S(GenericDataset):
         colors = np.zeros(num_data)
         data_count = np.zeros((2, 10), dtype=int)
 
-        if tuning == False:
-            num_total_train_data = int((50000 // num_classes))
-            num_skewed_train_data = int((50000 * skewed_ratio) // num_classes)
-        else:
-            num_total_train_data = int((40000 // num_classes))
-            num_skewed_train_data = int((40000 * skewed_ratio) // num_classes)
+        num_total_train_data = int((40000 // num_classes))
+        num_skewed_train_data = int((40000 * skewed_ratio) // num_classes)
 
         for i, data in enumerate(cifardata):
             img, target = data
 
-            if split == 'test' or split == 'val':
+            if split == 'test' or split == 'valid':
                 gray_image = rgb_to_grayscale(img)
                 color_image = np.array(img)
                 imgs[2*i] = gray_image
@@ -174,11 +169,10 @@ class CIFAR10(VisionDataset):
         'md5': '5ff9c542aee3614f3951f8cda6e48888',
     }
 
-    def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, shuffle=False, seed=0, tuning=False, split='train'):
+    def __init__(self, root, train=True, transform=None,
+                 download=False, shuffle=False, seed=0, split='train'):
 
-        super(CIFAR10, self).__init__(root, transform=transform,
-                                      target_transform=target_transform)
+        super(CIFAR10, self).__init__(root, transform=transform)
 
         self.train = train  # training set or test set
 
@@ -212,18 +206,17 @@ class CIFAR10(VisionDataset):
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self.targets = np.array(self.targets)
 
-        if tuning:
-            self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
-            for i in range(10):
-                self.data_per_class[i] = self.data[self.targets == i]
-            if split == 'train':
-                self.data_per_class = self.data_per_class[:, :4000]
-                self.targets = np.repeat(np.arange(10), 4000)
-                self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
-            elif split == 'val':
-                self.data_per_class = self.data_per_class[:, 4000:]
-                self.targets = np.repeat(np.arange(10), 1000)
-                self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
+        self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
+        for i in range(10):
+            self.data_per_class[i] = self.data[self.targets == i]
+        if split == 'train':
+            self.data_per_class = self.data_per_class[:, :4000]
+            self.targets = np.repeat(np.arange(10), 4000)
+            self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
+        elif split == 'valid':
+            self.data_per_class = self.data_per_class[:, 4000:]
+            self.targets = np.repeat(np.arange(10), 1000)
+            self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
 
         if shuffle: # always True
             np.random.seed(seed)

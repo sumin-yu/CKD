@@ -23,7 +23,7 @@ class Trainer(trainer.GenericTrainer):
 
         self.adv_lambda = args.adv_lambda
         self.adv_lr = args.eta
-        self.no_annealing = args.no_annealing
+        # self.no_annealing = args.no_annealing
 
     def train(self, train_loader, test_loader, epochs):
         model = self.model
@@ -125,8 +125,8 @@ class Trainer(trainer.GenericTrainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-        if not self.no_annealing and teacher is not None:
-            self.lambh = self.lambh - 3/(self.epochs-1)
+        # if not self.no_annealing and teacher is not None:
+        #     self.lambh = self.lambh - 3/(self.epochs-1)
 
     def evaluate(self, model, adversary, loader, criterion, adv_criterion, device=None):
         model.eval()

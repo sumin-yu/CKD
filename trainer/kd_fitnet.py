@@ -124,6 +124,6 @@ class Trainer(hinton_Trainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-        if not self.no_annealing:
-            self.lambh = self.lambh - 3/(self.epochs-1)
+        # if not self.no_annealing:
+        #     self.lambh = self.lambh - 3/(self.epochs-1)
 

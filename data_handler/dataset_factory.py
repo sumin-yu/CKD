@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, num_aug=1, tuning=False):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, num_aug=1):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -27,20 +27,19 @@ class DatasetFactory:
         
         elif name == "cifar10":
             from data_handler.cifar10 import CIFAR_10S
-            root = './data/cifar10'
+            root = './data_cifar'
+            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+        elif name == "cifar10_aug":
+            from data_handler.cifar10_aug import CIFAR_10S
+            root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                              tuning=tuning)
-        elif name == "cifar10_indiv":
-            from data_handler.cifar10_indiv import CIFAR_10S
-            root = './data/cafar10'
-            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                             num_aug=num_aug, tuning=tuning)
+                             num_aug=num_aug)
         
         elif name == "cifar10_all":
             from data_handler.cifar10_all import CIFAR_10S
-            root = './data/cifar10'
+            root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                                labelwise=labelwise, tuning=tuning)
+                                labelwise=labelwise)
 
 
 

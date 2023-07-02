@@ -16,7 +16,7 @@ class CelebA_aug(CelebA):
         img_name = self.filename[index]
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
-        if self.split == 'train':
+        if self.split == 'train' or self.test_pair:
             if self.sensitive_attr == 'Male':
                 X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
             elif self.sensitive_attr == 'Blond_Hair':
@@ -31,7 +31,7 @@ class CelebA_aug(CelebA):
 
         if self.transform is not None:
             X = self.transform(X)
-            X = torch.stack(X) if self.split == 'train' else X[0]
+            X = torch.stack(X) if (self.split == 'train' or self.test_pair) else X[0]
             
         return X, feature, sensitive, target, (index, img_name)
 

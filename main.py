@@ -10,7 +10,7 @@ from utils import check_log_dir, make_log_name, set_seed
 from arguments import get_args
 import time
 import os 
-from utils import get_bmr, save_anal
+from utils import get_metric, get_bmr, get_pc, save_anal
 
 args = get_args()
 
@@ -94,33 +94,31 @@ def main():
         model_to_load = args.modelpath
         trainer_.model.load_state_dict(torch.load(model_to_load))
         print('Trained model loaded successfully')
-    bmr=0
+    bmr, pc, pred_dist = 0., 0., 0.
     if args.evalset == 'all':
         # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        bmr = get_bmr(model, val_loader.dataset)
-        save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        # pred_dist, pc, bmr = get_metric(model, val_loader.dataset)
+        save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        bmr = get_bmr(model, test_loader.dataset)
-        save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        # pred_dist, pc, bmr = get_metric(model, test_loader.dataset)
+        save_anal('test' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
         print('here') 
     elif args.evalset == 'train':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
-        save_anal('train' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        # pred_dist, pc, bmr = get_metric(model, train_loader.dataset)
+        save_anal('train' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
     elif args.evalset == 'val':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        save_anal('val' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
-    else:
+        # pred_dist, pc, bmr = get_metric(model, val_loader.dataset)
+        save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
+    else: # evalset == 'test'
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        save_anal('test' ,args, acc, bmr, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, bmr = get_metric(model, test_loader.dataset)
+        save_anal('test' ,args, acc, bmr, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
 
 
     print('Done!')
-
-    
-    # print('Start Analysis!')
-    # bmr = get_bmr(model, test_loader.dataset)
-    # print(f'BMR : {bmr}')
 
 if __name__ == '__main__':
     main()
