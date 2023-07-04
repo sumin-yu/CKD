@@ -3,6 +3,7 @@ import os.path
 from PIL import Image
 import numpy as np
 import pickle
+import torch
 
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
@@ -39,8 +40,9 @@ class CIFAR_10S(GenericDataset):
         self._get_label_list()
 
         self.num_data = data_count
-
-        # self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        
+        self.features = [[int(s), int(l)] for s, l in zip(self.dataset['color'], self.dataset['label'])]
+        self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
 
 
     # def _make_idx_map(self):
@@ -76,13 +78,18 @@ class CIFAR_10S(GenericDataset):
         label = self.dataset['label'][index]
         color = self.dataset['color'][index]
 
-        if self.transform:
-            image = self.transform(image)
+        if self.test_pair:
+            img = self.transform(image)
+            int_img = self.dataset['image'][int(index+1-2*(index%2))]
+            int_img = self.transform(int_img)
+            input = [img, int_img]
+            input = torch.stack(input)
 
-        if self.target_transform:
-            label = self.target_transform(label)
+        else: 
+            img_list = self.transform(image)
+            input = img_list
 
-        return image, 0, np.float32(color), np.int64(label), (index, 0)
+        return input, 0, np.float32(color), np.int64(label), (index, 0)
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10):
 
@@ -206,17 +213,18 @@ class CIFAR10(VisionDataset):
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self.targets = np.array(self.targets)
 
-        self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
-        for i in range(10):
-            self.data_per_class[i] = self.data[self.targets == i]
-        if split == 'train':
-            self.data_per_class = self.data_per_class[:, :4000]
-            self.targets = np.repeat(np.arange(10), 4000)
-            self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
-        elif split == 'valid':
-            self.data_per_class = self.data_per_class[:, 4000:]
-            self.targets = np.repeat(np.arange(10), 1000)
-            self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
+        if split == 'train' or split == 'valid':
+            self.data_per_class = np.zeros((10, 5000, 32, 32, 3)).astype(np.uint8)
+            for i in range(10):
+                self.data_per_class[i] = self.data[self.targets == i]
+            if split == 'train':
+                self.data_per_class = self.data_per_class[:, :4000]
+                self.targets = np.repeat(np.arange(10), 4000)
+                self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
+            elif split == 'valid':
+                self.data_per_class = self.data_per_class[:, 4000:]
+                self.targets = np.repeat(np.arange(10), 1000)
+                self.data = np.reshape(self.data_per_class, (-1, 32, 32, 3))
 
         if shuffle: # always True
             np.random.seed(seed)

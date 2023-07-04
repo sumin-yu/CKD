@@ -46,8 +46,9 @@ class CIFAR_10S(GenericDataset):
         self._get_label_list()
 
         self.num_data = data_count
-
-        # self.n_data, self.idxs_per_group = self._data_count(self.features, self.n_groups, self.n_classes)
+        
+        self.features = [[int(s), int(l)] for s, l in zip(self.dataset['color'], self.dataset['label'])]
+        self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
 
     def _get_label_list(self):
         self.label_list = []
@@ -77,9 +78,10 @@ class CIFAR_10S(GenericDataset):
             for _ in range(self.num_aug):
                 img_list.append(self.transform(image))
                 intervened_img_list.append(self.transform(intervened_image))
-            if self.target_transform:
-                label = self.target_transform(label)
-            input = torch.stack([img_list, intervened_img_list])
+            # if self.target_transform:
+            #     label = self.target_transform(label)
+            input = torch.stack(img_list + intervened_img_list)
+            print(input.size())
 
         elif self.test_pair:
             img = self.transform(image)
@@ -272,8 +274,8 @@ class CIFAR10(VisionDataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+        # if self.target_transform is not None:
+        #     target = self.target_transform(target)
 
         return img, target
 

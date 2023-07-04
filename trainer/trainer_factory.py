@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import os
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau, MultiStepLR
 from sklearn.metrics import confusion_matrix
 from utils import make_log_name
@@ -21,6 +22,8 @@ class TrainerFactory:
             import trainer.vanilla_train as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
+        elif method == 'group_dro':
+            import trainer.group_dro as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'kd_Junyi':
@@ -68,7 +71,10 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        self.criterion=torch.nn.CrossEntropyLoss()
+        if args.method == 'group_dro':
+            self.criterion = nn.CrossEntropyLoss(reduction='none')
+        else:
+            self.criterion=nn.CrossEntropyLoss()
         self.scheduler = None
 
         self.log_name = make_log_name(args)
@@ -82,7 +88,7 @@ class GenericTrainer:
         else: 
             self.scheduler = MultiStepLR(self.optimizer, [30, 60, 90], gamma=0.1)
 
-    def evaluate(self, model, loader, criterion, device=None, groupwise=False):
+    def evaluate(self, model, loader, criterion, device=None, groupwise=False, q_update=False):
         model.eval()
         num_groups = loader.dataset.num_groups
         num_classes = loader.dataset.num_classes
@@ -92,6 +98,9 @@ class GenericTrainer:
         eval_loss = 0 if not groupwise else torch.zeros(num_groups, num_classes).cuda(device)
         eval_eopp_list = torch.zeros(num_groups, num_classes).cuda(device)
         eval_data_count = torch.zeros(num_groups, num_classes).cuda(device)
+        n_subgroups = num_classes * num_groups
+        group_count = torch.zeros(n_subgroups).cuda()
+        group_acc = torch.zeros(num_groups, num_classes).cuda(device)
         
         if 'Custom' in type(loader).__name__:
             loader = loader.generate()
@@ -106,8 +115,8 @@ class GenericTrainer:
                     labels = labels.cuda(device)
                     groups = groups.cuda(device)
 
-                outputs = model(inputs)
-
+                outputs = model(inputs)    
+                
                 if groupwise:
                     if self.cuda:
                         groups = groups.cuda(device)
@@ -119,7 +128,6 @@ class GenericTrainer:
                             eval_loss[g, l] += loss[(groups == g) * (labels == l)].sum()
                             eval_acc[g, l] += acc[(groups == g) * (labels == l)].sum()
                             eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
-
                 else:
                     loss = criterion(outputs, labels)
                     eval_loss += loss.item() * len(labels)
@@ -131,6 +139,25 @@ class GenericTrainer:
                         for l in range(num_classes):
                             eval_eopp_list[g, l] += acc[(groups == g) * (labels == l)].sum()
                             eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
+
+                if q_update:
+                    loss = nn.CrossEntropyLoss(reduction='none')(outputs, labels)
+                    predictions = torch.argmax(outputs, 1)
+                    hits = (predictions == labels).float().squeeze()
+                    subgroups = groups * self.num_classes + labels      
+                    group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
+                    group_count += group_map.sum(1)
+
+                    group_loss += (group_map @ loss.view(-1))
+                    group_acc += group_map @ hits
+
+            if q_update:
+                group_loss = group_loss / group_count
+                group_acc = group_acc / group_count
+                group_loss = group_loss.reshape((self.num_groups, self.num_classes))            
+                group_acc = group_acc.reshape((self.num_groups, self.num_classes))
+                return group_acc, group_loss
+
 
             eval_loss = eval_loss / eval_data_count.sum() if not groupwise else eval_loss / eval_data_count
             eval_acc = eval_acc / eval_data_count.sum() if not groupwise else eval_acc / eval_data_count
