@@ -33,9 +33,8 @@ class Trainer(trainer.vanilla_train.Trainer):
                 inputs = inputs.cuda(device=self.device)
                 labels = labels.cuda(device=self.device)
             
-            ce_inputs = inputs[:int(inputs.shape[0]/2)]
-            outputs = model(ce_inputs)
-            celoss = self.criterion(outputs, labels)
+            outputs = model(inputs)
+            celoss = self.criterion(outputs[:int(outputs.shape[0]/2)], labels[:int(labels.shape[0]/2)])
 
             ft_batch_size = int(inputs.shape[0] / 2)
             ft_logit = outputs[:ft_batch_size]

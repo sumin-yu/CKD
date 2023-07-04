@@ -81,7 +81,7 @@ class CIFAR_10S(GenericDataset):
             # if self.target_transform:
             #     label = self.target_transform(label)
             input = torch.stack(img_list + intervened_img_list)
-            print(input.size())
+            # print(input.size())
 
         elif self.test_pair:
             img = self.transform(image)
