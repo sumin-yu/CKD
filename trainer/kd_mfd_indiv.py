@@ -272,6 +272,8 @@ class MMDLoss(nn.Module):
                 res = torch.exp(-res / (2*(sigma_base)*sigma_avg))
             elif kernel == 'poly':
                 res = torch.matmul(e1, e2.t()).pow(2)
+            elif kernel == 'linear':
+                res = torch.matmul(e1, e2.t())
 
         return res, sigma_avg
 

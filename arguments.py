@@ -63,7 +63,7 @@ def get_args():
     parser.add_argument('--adv-lambda', default=2.0, type=float, help='adversary loss strength')
 
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
-    parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly'], help='kernel for mmd')
+    parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
     parser.add_argument('--labelwise', default=False, action='store_true', help='labelwise loader')
     parser.add_argument('--jointfeature', default=False, action='store_true', help='mmd with both joint')
     parser.add_argument('--get-inter', default=False, action='store_true',
