@@ -16,8 +16,8 @@ class CelebA_aug(CelebA):
         img_name = self.filename[index]
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
-        ver = random.randint(0,2)
-        ver = str(ver) if ver != 0 else ''
+        ver = random.randint(1,3)
+        ver = str(ver) if ver != 1 else ''
         if self.split == 'train' or self.test_pair:
             if self.sensitive_attr == 'Male':
                 folder_name = f"img_align_celeba_edited_gender{ver}"
