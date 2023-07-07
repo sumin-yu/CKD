@@ -11,7 +11,7 @@ from torchvision.datasets.utils import download_file_from_google_drive, check_in
 from data_handler.dataset_factory import GenericDataset
 from data_handler.celeba import CelebA
 
-class CelebA_aug3(CelebA):
+class CelebA_aug(CelebA):
     def __init__(self, root, split="train", target_type="attr", transform=None, target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male', method='kd_mfd_indiv'):
         super().__init__(root, split, target_type, transform, target_transform, download, target_attr, sen_attr)
         self.method = method
@@ -21,12 +21,12 @@ class CelebA_aug3(CelebA):
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.split == 'train':
-            X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender1", img_name)).convert('RGB')
+            X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
             X_edited2 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender2", img_name)).convert('RGB')
             X_edited3 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender3", img_name)).convert('RGB')
             X = [X, X_edited1, X_edited2, X_edited3]
         elif self.test_pair:
-            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender1", img_name)).convert('RGB')
+            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
             X = [X, X_edited] 
         else:
             X = [X]
