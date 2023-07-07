@@ -58,7 +58,7 @@ class Trainer(trainer.Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data 
-            inputs = torch.permute(inputs, (1,0,2,3,4))
+            inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             # targets = targets.repeat(2)
             targets = torch.stack((targets,targets),dim=0).view(-1)
