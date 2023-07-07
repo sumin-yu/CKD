@@ -22,10 +22,14 @@ class DatasetFactory:
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-        elif name == "celeba_aug3":
-            from data_handler.celeba_aug3 import CelebA_aug3
+        elif name == "celeba_aug2":
+            from data_handler.celeba_aug2 import CelebA_aug
             root='./data/'
-            return CelebA_aug3(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, method=method)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == "celeba_aug3":
+            from data_handler.celeba_aug3 import CelebA_aug
+            root='./data/'
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
 
         
         elif name == "cifar10":
