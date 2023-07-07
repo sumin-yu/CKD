@@ -8,34 +8,25 @@ import time
 from utils import get_accuracy
 from trainer.loss_utils import compute_hinton_loss
 from sklearn.metrics import confusion_matrix
-import trainer
+import trainer.kd_mfd_indiv as trainer
 import os
 
 
-class Trainer(trainer.GenericTrainer):
+class Trainer(trainer.Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lambh = args.lambh
-        self.lambf = args.lambf
-        self.sigma = args.sigma
-        self.kernel = args.kernel
-        self.batch_size = args.batch_size
-        self.jointfeature = args.jointfeature
-        # self.no_annealing = args.no_annealing
-        self.with_perturbed = args.with_perturbed
-        # self.num_aug = args.num_aug
+        self.cf_aug = 3
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
         num_classes = train_loader.dataset.num_classes
         num_groups = train_loader.dataset.num_groups
-        num_aug = 1
 
         distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
-                            num_classes=num_classes, num_groups=num_groups, num_aug=num_aug, kernel=self.kernel)
+                            num_classes=num_classes, num_groups=num_groups, kernel=self.kernel)
 
         for epoch in range(self.epochs):
-            self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_aug=num_aug, num_groups=num_groups)
+            self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_groups=num_groups)
 
             val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
             print('[{}/{}] Method: {} '
@@ -56,7 +47,7 @@ class Trainer(trainer.GenericTrainer):
 
         print('Training Finished!')
 
-    def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_aug=1, num_groups=2):
+    def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_groups=2):
         model.train()
         teacher.eval()
 
@@ -69,15 +60,14 @@ class Trainer(trainer.GenericTrainer):
             inputs, _, groups, targets, _ = data 
             inputs = torch.permute(inputs, (1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            # targets = targets.repeat(2)
-            targets = torch.stack((targets,targets),dim=0).view(-1)
+            targets = targets.repeat(1 + self.cf_aug).view(-1)
+            # targets = torch.stack((targets,targets),dim=1).view(-1)
 
             labels = targets 
 
-            groups = groups.repeat(num_aug)
             int_groups = torch.where(groups == 0, 1, 0)
-            int_groups = int_groups.repeat(num_aug)
-            tot_groups = torch.cat((groups, int_groups), dim=0)
+            int_groups = int_groups.repeat(self.cf_aug) # cf_aug = 3
+            tot_groups = torch.cat((groups, int_groups), dim=0) # [org_group, int_group, int_group, int_group]
 
             if self.cuda:
                 inputs = inputs.cuda(self.device)
@@ -95,7 +85,7 @@ class Trainer(trainer.GenericTrainer):
             if self.with_perturbed :
                 loss = self.criterion(logits_tot, labels)
             else:
-                loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+                loss = self.criterion(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
 
             f_s = s_outputs[-2]
             f_t = t_outputs[-2]
@@ -106,7 +96,7 @@ class Trainer(trainer.GenericTrainer):
             if self.with_perturbed:
                 running_acc += get_accuracy(logits_tot, labels)
             else:
-                running_acc += get_accuracy(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+                running_acc += get_accuracy(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -123,80 +113,14 @@ class Trainer(trainer.GenericTrainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-        # if not self.no_annealing:
-        #     self.lambh = self.lambh - 3 / (self.epochs - 1)
-    
-    # def compute_confusion_matix(self, dataset='test', num_classes=2,
-    #                             dataloader=None, log_dir="", log_name=""):
-    #     from scipy.io import savemat
-    #     from collections import defaultdict
-    #     self.model.eval()
-    #     confu_mat = defaultdict(lambda: np.zeros((num_classes, num_classes)))
-    #     print('# of {} data : {}'.format(dataset, len(dataloader.dataset)))
-
-    #     predict_mat = {}
-    #     output_set = torch.tensor([])
-    #     group_set = torch.tensor([], dtype=torch.long)
-    #     target_set = torch.tensor([], dtype=torch.long)
-    #     intermediate_feature_set = torch.tensor([])
-        
-    #     with torch.no_grad():
-    #         for i, data in enumerate(dataloader):
-    #             # Get the inputs
-    #             inputs_, _,  _, groups, targets, _ = data
-    #             labels = targets
-    #             groups = groups.long()
-    #             inputs = inputs_[0]
-                
-    #             if self.cuda:
-    #                 inputs = inputs.cuda(self.device)
-    #                 labels = labels.cuda(self.device)
-
-    #             # forward
-
-    #             outputs = self.model(inputs)
-    #             if self.get_inter:
-    #                 intermediate_feature = self.model.forward(inputs, get_inter=True)[-2]
-
-    #             group_set = torch.cat((group_set, groups))
-    #             target_set = torch.cat((target_set, targets))
-    #             output_set = torch.cat((output_set, outputs.cpu()))
-    #             if self.get_inter:
-    #                 intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
-
-    #             pred = torch.argmax(outputs, 1)
-    #             group_element = list(torch.unique(groups).numpy())
-    #             for i in group_element:
-    #                 mask = groups == i
-    #                 if len(labels[mask]) != 0:
-    #                     confu_mat[str(i)] += confusion_matrix(
-    #                         labels[mask].cpu().numpy(), pred[mask].cpu().numpy(),
-    #                         labels=[i for i in range(num_classes)])
-
-    #     predict_mat['group_set'] = group_set.numpy()
-    #     predict_mat['target_set'] = target_set.numpy()
-    #     predict_mat['output_set'] = output_set.numpy()
-    #     if self.get_inter:
-    #         predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
-            
-    #     savepath = os.path.join(log_dir, log_name + '_{}_confu'.format(dataset))
-    #     print('savepath', savepath)
-    #     savemat(savepath, confu_mat, appendmat=True)
-
-    #     savepath_pred = os.path.join(log_dir, log_name + '_{}_pred'.format(dataset))
-    #     savemat(savepath_pred, predict_mat, appendmat=True)
-
-    #     print('Computed confusion matrix for {} dataset successfully!'.format(dataset))
-    #     return confu_mat
-
 class MMDLoss(nn.Module):
-    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, num_aug, kernel):
+    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel):
         super(MMDLoss, self).__init__()
         self.w_m = w_m
         self.sigma = sigma
         self.num_groups = num_groups
         self.batch_size = batch_size
-        self.num_aug = num_aug
+        self.cf_aug = 3 # number of augmented samples per counterfactual sample
         self.num_classes = num_classes
         self.kernel = kernel
 
@@ -223,29 +147,62 @@ class MMDLoss(nn.Module):
             with torch.no_grad():
                 _, sigma_avg = self.pdist(teacher, student, sigma_base=self.sigma, kernel=self.kernel)
 
-            t_order = torch.arange(self.batch_size*self.num_aug*self.num_groups)
-            s_order = torch.arange(self.batch_size*self.num_aug)
-            t_order = t_order.reshape(-1, self.batch_size).transpose(0,1).flatten()
-            s_order = s_order.reshape(-1, self.batch_size).transpose(0,1).flatten()
+            t_tot_order = torch.arange(self.batch_size*(1 + self.cf_aug)).reshape(-1, self.batch_size) # .transpose(0,1).flatten()
+            num_ind = (1 + self.cf_aug)**2
 
-            t_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug*self.num_groups, dtype=torch.int).cuda()
-            s_ref = torch.ones(self.batch_size, self.num_aug,self.num_aug, dtype=torch.int).cuda()
-            ts_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug, dtype=torch.int).cuda()
-            t_ref = torch.block_diag(*t_ref)
-            s_ref = torch.block_diag(*s_ref)
-            ts_ref = torch.block_diag(*ts_ref)
-            num_ind = (self.num_groups*self.num_aug)**2
-            num_ind_s = self.num_aug**2
-            num_ind_ts = self.num_groups*self.num_aug*self.num_aug
-
-            for g in range(self.num_groups): # assume num_groups = 2 !!! # student 는 num_aug 개씩 같이 계산해야함 # teacher 는 num_aug * num_group 개씩 같이 계산해야함
-                if len(student[(groups == g)]) == 0:
+            num_ind_s = self.cf_aug**2
+            num_ind_ts = (1 + self.cf_aug)*self.cf_aug
+            stu_cf = student[len(student)//(1 + self.cf_aug):].cuda()
+            group_cf = groups[len(groups)//(1 + self.cf_aug):].cuda()
+            for g in range(self.num_groups): 
+                if len(stu_cf[(group_cf == g)]) == 0:
                     continue
-                K_TS, _ = self.pdist(teacher, student[(groups == g)],
+                stu_num = len(stu_cf[(group_cf == g)])
+                tea_cf = teacher[t_tot_order[:,torch.split((group_cf == g).nonzero(as_tuple=True)[0],stu_num//self.cf_aug)[0]].flatten()].cuda()
+                t_order = torch.arange(stu_num//self.cf_aug*(self.cf_aug+1)).reshape(self.cf_aug + 1, -1).transpose(0,1).flatten()
+                s_order = torch.arange(stu_num).reshape(self.cf_aug, -1).transpose(0,1).flatten()
+                t_ref = torch.ones(stu_num//self.cf_aug, 1 + self.cf_aug, 1 + self.cf_aug, dtype=torch.int).cuda()
+                t_ref = torch.block_diag(*t_ref)
+                s_ref = torch.ones(stu_num//self.cf_aug, self.cf_aug, self.cf_aug, dtype=torch.int).cuda()
+                s_ref = torch.block_diag(*s_ref)
+                ts_ref = torch.ones(stu_num//self.cf_aug, 1 + self.cf_aug, self.cf_aug, dtype=torch.int).cuda()
+                ts_ref = torch.block_diag(*ts_ref)
+                K_TS, _ = self.pdist(tea_cf, stu_cf[(group_cf == g)],
                                             sigma_base=self.sigma, sigma_avg=sigma_avg,  kernel=self.kernel)
-                K_SS, _ = self.pdist(student[(groups == g)], student[(groups == g)],
+                K_SS, _ = self.pdist(stu_cf[(group_cf == g)], stu_cf[(group_cf == g)],
                                     sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
-                K_TT, _ = self.pdist(teacher, teacher, sigma_base=self.sigma,
+                K_TT, _ = self.pdist(tea_cf, tea_cf, sigma_base=self.sigma,
+                                    sigma_avg=sigma_avg, kernel=self.kernel)
+                K_TS = K_TS[t_order][:, s_order]
+                K_SS = K_SS[s_order][:, s_order]
+                K_TT = K_TT[t_order][:, t_order]
+                K_TS = K_TS * ts_ref
+                K_SS = K_SS * s_ref
+                K_TT = K_TT * t_ref
+                mmd_loss += K_TT.sum()/num_ind + K_SS.sum()/num_ind_s - 2 * K_TS.sum()/num_ind_ts
+
+            num_ind_s = 1
+            num_ind_ts =(1 + self.cf_aug) * 1
+            stu_cf = student[:len(student)//(1 + self.cf_aug)].cuda()
+            group_cf = groups[:len(groups)//(1 + self.cf_aug)].cuda()
+            for g in range(self.num_groups): 
+                if len(stu_cf[(group_cf == g)]) == 0:
+                    continue
+                stu_num = len(stu_cf[(group_cf == g)])
+                tea_cf = teacher[t_tot_order[:,(group_cf == g).nonzero(as_tuple=True)[0]].flatten()].cuda()
+                t_order = torch.arange(stu_num*(self.cf_aug+1)).reshape(self.cf_aug + 1, -1).transpose(0,1).flatten()
+                s_order = torch.arange(stu_num).reshape(1, -1).transpose(0,1).flatten()
+                t_ref = torch.ones(stu_num, 1 + self.cf_aug, 1 + self.cf_aug, dtype=torch.int).cuda()
+                t_ref = torch.block_diag(*t_ref)
+                s_ref = torch.ones(stu_num, 1, 1, dtype=torch.int).cuda()
+                s_ref = torch.block_diag(*s_ref)
+                ts_ref = torch.ones(stu_num, 1 + self.cf_aug, 1, dtype=torch.int).cuda()
+                ts_ref = torch.block_diag(*ts_ref)
+                K_TS, _ = self.pdist(tea_cf, stu_cf[(group_cf == g)],
+                                            sigma_base=self.sigma, sigma_avg=sigma_avg,  kernel=self.kernel)
+                K_SS, _ = self.pdist(stu_cf[(group_cf == g)], stu_cf[(group_cf == g)],
+                                    sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
+                K_TT, _ = self.pdist(tea_cf, tea_cf, sigma_base=self.sigma,
                                     sigma_avg=sigma_avg, kernel=self.kernel)
                 K_TS = K_TS[t_order][:, s_order]
                 K_SS = K_SS[s_order][:, s_order]

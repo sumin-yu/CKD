@@ -42,6 +42,8 @@ class TrainerFactory:
             import trainer.kd_mfd as trainer
         elif method == 'kd_mfd_indiv':
             import trainer.kd_mfd_indiv as trainer
+        elif method == 'kd_mfd_indiv_multi':
+            import trainer.kd_mfd_indiv_multi as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
         elif method == 'adv_debiasing':

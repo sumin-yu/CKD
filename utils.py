@@ -210,7 +210,7 @@ def make_log_name(args):
         elif args.method == 'logit_pairing': 
             log_name += '_lambf{}'.format(args.lambf)
         
-        if args.teacher_path is not None and args.method != 'kd_Junyi':
+        if args.teacher_path is not None:
             log_name += '_temp{}'.format(args.kd_temp)
             log_name += '_lambh{}'.format(args.lambh)
 

@@ -19,10 +19,10 @@ def get_args():
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug'])
+    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug','celeba_aug3'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
-    parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for cifar-10s-indiv')
+    # parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for kd-mfd-indiv')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')
@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
-                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed',
+                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_mfd_indiv_multi','kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed',
                                  'scratch_aug','logit_pairing', 'group_dro'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,

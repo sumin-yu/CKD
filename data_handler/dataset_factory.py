@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, num_aug=1):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -18,11 +18,14 @@ class DatasetFactory:
             from data_handler.celeba import CelebA
             root='./data/'
             return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-        
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == "celeba_aug3":
+            from data_handler.celeba_aug3 import CelebA_aug3
+            root='./data/'
+            return CelebA_aug3(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, method=method)
 
         
         elif name == "cifar10":
@@ -32,8 +35,7 @@ class DatasetFactory:
         elif name == "cifar10_aug":
             from data_handler.cifar10_aug import CIFAR_10S
             root = './data_cifar'
-            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                             num_aug=num_aug)
+            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
         
         elif name == "cifar10_all":
             from data_handler.cifar10_all import CIFAR_10S

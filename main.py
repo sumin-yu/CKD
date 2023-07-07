@@ -39,7 +39,7 @@ def main():
                                                         sensitive=args.sensitive,
                                                         skew_ratio=args.skew_ratio,
                                                         labelwise=args.labelwise,
-                                                        num_aug=args.num_aug,
+                                                        method=args.method,
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

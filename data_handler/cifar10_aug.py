@@ -21,7 +21,7 @@ def rgb_to_grayscale(img):
 
 class CIFAR_10S(GenericDataset):
     def __init__(self, root, split='train', transform=None,
-                 seed=0, skewed_ratio=0.8, num_aug=1):
+                 seed=0, skewed_ratio=0.8):
         super(CIFAR_10S, self).__init__(root, transform=transform)
 
         self.split = split
@@ -31,7 +31,7 @@ class CIFAR_10S(GenericDataset):
         self.num_classes = 10
         self.num_groups = 2
 
-        self.num_aug = num_aug
+        self.num_aug = 1
         # self.intervened_data = None
         self.transform = transform
 
