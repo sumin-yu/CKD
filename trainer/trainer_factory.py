@@ -18,36 +18,36 @@ class TrainerFactory:
             import trainer.vanilla_train as trainer
         elif method == 'scratch_aug':
             import trainer.vanilla_train_aug as trainer
-        elif method == 'scratch_perturbed':
-            import trainer.vanilla_train as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
+        elif method == 'logit_pairing_aug':
+            import trainer.logit_pairing_aug as trainer
         elif method == 'group_dro':
             import trainer.group_dro as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
-        elif method == 'kd_Junyi':
-            import trainer.kd_Junyi as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
-        elif method == 'kd_hinton_perturbed':
-            import trainer.kd_hinton_perturbed as trainer
-        elif method == 'kd_fitnet_perturbed':
-            import trainer.kd_fitnet_perturbed as trainer
-        elif method == 'kd_at':
-            import trainer.kd_at as trainer
-        elif method == 'kd_nst':
-            import trainer.kd_nst as trainer
+        elif method == 'kd_hinton_aug':
+            import trainer.kd_hinton_aug as trainer
+        elif method == 'kd_fitnet_aug':
+            import trainer.kd_fitnet_aug as trainer
         elif method == 'kd_mfd':
             import trainer.kd_mfd as trainer
-        elif method == 'kd_mfd_indiv':
-            import trainer.kd_mfd_indiv as trainer
-        elif method == 'kd_mfd_indiv_multi':
-            import trainer.kd_mfd_indiv_multi as trainer
+        elif method == 'kd_indiv':
+            import trainer.kd_indiv as trainer
+        elif method == 'kd_indiv_aug':
+            import trainer.kd_indiv_aug as trainer
+        elif method == 'kd_indiv_multi':
+            import trainer.kd_indiv_multi as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
         elif method == 'adv_debiasing':
             import trainer.adv_debiasing as trainer
+        elif method == 'kd_at':
+            import trainer.kd_at as trainer
+        elif method == 'kd_nst':
+            import trainer.kd_nst as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)

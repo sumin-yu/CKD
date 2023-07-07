@@ -21,21 +21,17 @@ class Trainer(trainer.GenericTrainer):
         self.kernel = args.kernel
         self.batch_size = args.batch_size
         self.jointfeature = args.jointfeature
-        # self.no_annealing = args.no_annealing
-        self.with_perturbed = args.with_perturbed
-        # self.num_aug = args.num_aug
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
         num_classes = train_loader.dataset.num_classes
         num_groups = train_loader.dataset.num_groups
-        num_aug = 1
 
         distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
-                            num_classes=num_classes, num_groups=num_groups, num_aug=num_aug, kernel=self.kernel)
+                            num_classes=num_classes, num_groups=num_groups, kernel=self.kernel)
 
         for epoch in range(self.epochs):
-            self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_aug=num_aug, num_groups=num_groups)
+            self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_groups=num_groups)
 
             val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
             print('[{}/{}] Method: {} '
@@ -56,7 +52,7 @@ class Trainer(trainer.GenericTrainer):
 
         print('Training Finished!')
 
-    def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_aug=1, num_groups=2):
+    def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_groups=2):
         model.train()
         teacher.eval()
 
@@ -74,9 +70,7 @@ class Trainer(trainer.GenericTrainer):
 
             labels = targets 
 
-            groups = groups.repeat(num_aug)
             int_groups = torch.where(groups == 0, 1, 0)
-            int_groups = int_groups.repeat(num_aug)
             tot_groups = torch.cat((groups, int_groups), dim=0)
 
             if self.cuda:
@@ -92,10 +86,7 @@ class Trainer(trainer.GenericTrainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            if self.with_perturbed :
-                loss = self.criterion(logits_tot, labels)
-            else:
-                loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+            loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
 
             f_s = s_outputs[-2]
             f_t = t_outputs[-2]
@@ -103,10 +94,7 @@ class Trainer(trainer.GenericTrainer):
 
             loss = loss + mmd_loss
             running_loss += loss.item()
-            if self.with_perturbed:
-                running_acc += get_accuracy(logits_tot, labels)
-            else:
-                running_acc += get_accuracy(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+            running_acc += get_accuracy(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -190,13 +178,13 @@ class Trainer(trainer.GenericTrainer):
     #     return confu_mat
 
 class MMDLoss(nn.Module):
-    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, num_aug, kernel):
+    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel):
         super(MMDLoss, self).__init__()
         self.w_m = w_m
         self.sigma = sigma
         self.num_groups = num_groups
         self.batch_size = batch_size
-        self.num_aug = num_aug
+        self.num_aug = 1
         self.num_classes = num_classes
         self.kernel = kernel
 

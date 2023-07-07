@@ -62,13 +62,13 @@ class Trainer(hinton_Trainer):
 
             inputs = torch.reshape(inputs_, (-1, inputs_.shape[-3], inputs_.shape[-2], inputs_.shape[-1]))
             int_inputs = torch.reshape(int_inputs_, (-1, int_inputs_.shape[-3], int_inputs_.shape[-2], int_inputs_.shape[-1]))
-            tot_inputs = torch.cat((inputs, int_inputs), dim=0)
+            inputs = torch.cat((inputs, int_inputs), dim=0)
 
             if self.cuda:
-                tot_inputs = tot_inputs.cuda(self.device)
-            t_inputs = tot_inputs.to(self.t_device)
+                inputs = inputs.cuda(self.device)
+            t_inputs = inputs.to(self.t_device)
 
-            fitnet_loss, _, _, _, _ = compute_feature_loss(tot_inputs, t_inputs, model, teacher, device=self.device)
+            fitnet_loss, _, _, _, _ = compute_feature_loss(inputs, t_inputs, model, teacher, device=self.device)
             running_loss += fitnet_loss.item()
 
             self.optimizer.zero_grad()
@@ -97,40 +97,34 @@ class Trainer(hinton_Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs_, int_inputs_,  _, _, targets, _ = data
-            labels_ = targets
-            inputs_ = torch.stack(inputs_)
-            int_inputs_ = torch.stack(int_inputs_)
-
-            inputs = torch.reshape(inputs_, (-1, inputs_.shape[-3], inputs_.shape[-2], inputs_.shape[-1]))
-            int_inputs = torch.reshape(int_inputs_, (-1, int_inputs_.shape[-3], int_inputs_.shape[-2], int_inputs_.shape[-1]))
-            tot_inputs = torch.cat((inputs, int_inputs), dim=0)
-
-            org_labels = labels_.repeat(num_aug)
-            tot_labels = labels_.repeat(num_aug*num_groups)
+            inputs = inputs.view(-1, *inputs.shape[2:])
+            targets = torch.stack((targets,targets),dim=1).view(-1)
+            
+            labels = targets
 
             if self.cuda:
-                tot_inputs = tot_inputs.cuda(self.device)
-                tot_labels = tot_labels.cuda(self.device)
-            t_inputs = tot_inputs.to(self.t_device)
+                inputs = inputs.cuda(self.device)
+                labels = labels.cuda(self.device)
+            t_inputs = inputs.to(self.t_device)
 
             if self.fitnet_simul:
-                feature_loss, stu_logits, tea_logits, _, _ = compute_feature_loss(tot_inputs, t_inputs, model, teacher,
+                feature_loss, stu_logits, tea_logits, _, _ = compute_feature_loss(inputs, t_inputs, model, teacher,
                                                                                   device=self.device)
                 kd_loss = compute_hinton_loss(stu_logits, t_outputs=tea_logits,
                                               kd_temp=self.kd_temp, device=self.device)
             else:
-                stu_logits = model(tot_inputs)
+                stu_logits = model(inputs)
                 kd_loss = compute_hinton_loss(stu_logits, t_inputs=t_inputs, teacher=teacher,
                                               kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
                 feature_loss = 0
 
-            loss = self.criterion(stu_logits, tot_labels)
+            loss = self.criterion(stu_logits, labels)
 
             loss = loss + self.lambh * kd_loss
             loss = loss + feature_loss if self.fitnet_simul else loss
 
             running_loss += loss.item()
-            running_acc += get_accuracy(stu_logits, tot_labels)
+            running_acc += get_accuracy(stu_logits, labels)
 
             self.optimizer.zero_grad()
             loss.backward()

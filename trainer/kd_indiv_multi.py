@@ -8,7 +8,7 @@ import time
 from utils import get_accuracy
 from trainer.loss_utils import compute_hinton_loss
 from sklearn.metrics import confusion_matrix
-import trainer.kd_mfd_indiv as trainer
+import trainer.kd_indiv as trainer
 import os
 
 
@@ -17,35 +17,35 @@ class Trainer(trainer.Trainer):
         super().__init__(args=args, **kwargs)
         self.cf_aug = 3
 
-    def train(self, train_loader, val_loader, test_loader, epochs):
+    # def train(self, train_loader, val_loader, test_loader, epochs):
 
-        num_classes = train_loader.dataset.num_classes
-        num_groups = train_loader.dataset.num_groups
+    #     num_classes = train_loader.dataset.num_classes
+    #     num_groups = train_loader.dataset.num_groups
 
-        distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
-                            num_classes=num_classes, num_groups=num_groups, kernel=self.kernel)
+    #     distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
+    #                         num_classes=num_classes, num_groups=num_groups, kernel=self.kernel)
 
-        for epoch in range(self.epochs):
-            self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_groups=num_groups)
+    #     for epoch in range(self.epochs):
+    #         self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_groups=num_groups)
 
-            val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
-            print('[{}/{}] Method: {} '
-                    'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
-                    (epoch + 1, epochs, self.method,
-                    val_loss, val_acc, val_deopp))
+    #         val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
+    #         print('[{}/{}] Method: {} '
+    #                 'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
+    #                 (epoch + 1, epochs, self.method,
+    #                 val_loss, val_acc, val_deopp))
             
-            eval_start_time = time.time()
-            eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
-            eval_end_time = time.time()
-            print('[{}/{}] Method: {} '
-                  'Test Loss: {:.3f} Test Acc: {:.2f} Test DEopp {:.2f} [{:.2f} s]'.format
-                  (epoch + 1, epochs, self.method,
-                   eval_loss, eval_acc, eval_deopp, (eval_end_time - eval_start_time)))
+    #         eval_start_time = time.time()
+    #         eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
+    #         eval_end_time = time.time()
+    #         print('[{}/{}] Method: {} '
+    #               'Test Loss: {:.3f} Test Acc: {:.2f} Test DEopp {:.2f} [{:.2f} s]'.format
+    #               (epoch + 1, epochs, self.method,
+    #                eval_loss, eval_acc, eval_deopp, (eval_end_time - eval_start_time)))
 
-            if self.scheduler != None:
-                self.scheduler.step(eval_loss)
+    #         if self.scheduler != None:
+    #             self.scheduler.step(eval_loss)
 
-        print('Training Finished!')
+    #     print('Training Finished!')
 
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_groups=2):
         model.train()
@@ -82,10 +82,8 @@ class Trainer(trainer.Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            if self.with_perturbed :
-                loss = self.criterion(logits_tot, labels)
-            else:
-                loss = self.criterion(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
+
+            loss = self.criterion(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
 
             f_s = s_outputs[-2]
             f_t = t_outputs[-2]
@@ -93,10 +91,7 @@ class Trainer(trainer.Trainer):
 
             loss = loss + mmd_loss
             running_loss += loss.item()
-            if self.with_perturbed:
-                running_acc += get_accuracy(logits_tot, labels)
-            else:
-                running_acc += get_accuracy(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
+            running_acc += get_accuracy(logits_tot[:len(logits_tot)//(1+self.cf_aug)], labels[:len(labels)//(1+self.cf_aug)])
 
             self.optimizer.zero_grad()
             loss.backward()

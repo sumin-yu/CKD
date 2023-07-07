@@ -53,31 +53,25 @@ class Trainer(trainer.GenericTrainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs_, int_inputs_, _, groups_, targets, _ = data
-            labels_ = targets
-            inputs_ = torch.stack(inputs_)
-            int_inputs_ = torch.stack(int_inputs_)
-
-            inputs = torch.reshape(inputs_, (-1, inputs_.shape[-3], inputs_.shape[-2], inputs_.shape[-1]))
-            int_inputs = torch.reshape(int_inputs_, (-1, int_inputs_.shape[-3], int_inputs_.shape[-2], int_inputs_.shape[-1]))
-            tot_inputs = torch.cat((inputs, int_inputs), dim=0)
-
-            org_labels = labels_.repeat(num_aug)
-            tot_labels = labels_.repeat(num_aug*num_groups)
+            inputs = inputs.view(-1, *inputs.shape[2:])
+            targets = torch.stack((targets,targets),dim=1).view(-1)
+            
+            labels = targets
 
             if self.cuda:
-                tot_inputs = tot_inputs.cuda(self.device)
-                tot_labels = tot_labels.cuda(self.device)
+                inputs = inputs.cuda(self.device)
+                labels = labels.cuda(self.device)
             
-            t_inputs = tot_inputs.to(self.t_device)
+            t_inputs = inputs.to(self.t_device)
 
-            outputs = model(tot_inputs)
+            outputs = model(inputs)
             t_outputs = teacher(t_inputs)
             kd_loss = compute_hinton_loss(outputs, t_outputs, kd_temp=self.kd_temp, device=self.device)
 
-            loss = self.criterion(outputs, tot_labels) + self.lambh * kd_loss
+            loss = self.criterion(outputs, labels) + self.lambh * kd_loss
 
             running_loss += loss.item()
-            running_acc += get_accuracy(outputs, tot_labels)
+            running_acc += get_accuracy(outputs, labels)
 
             self.optimizer.zero_grad()
             loss.backward()

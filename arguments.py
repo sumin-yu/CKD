@@ -22,7 +22,6 @@ def get_args():
     parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug','celeba_aug2','celeba_aug3'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
-    # parser.add_argument('--num-aug', default=1, type=int, help='number of augmentation for kd-mfd-indiv')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')
@@ -31,9 +30,12 @@ def get_args():
     parser.add_argument('--seed', default=0, type=int, help='seed for randomness')
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
-                        choices=['scratch', 'kd_hinton', 'kd_Junyi', 'kd_fitnet', 'kd_at',
-                                 'kd_mfd', 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_indiv', 'kd_mfd_indiv_multi','kd_hinton_perturbed', 'kd_fitnet_perturbed', 'scratch_perturbed',
-                                 'scratch_aug','logit_pairing', 'group_dro'])
+                        choices=['scratch', 'scratch_aug',
+                                 'kd_mfd', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_hinton_aug', 'kd_fitnet_aug',
+                                 'scratch_aug','logit_pairing','logit_pairing_aug', 'group_dro',
+                                 'kd_hinton', 'kd_fitnet', 'kd_at',
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
@@ -56,7 +58,6 @@ def get_args():
     parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
     parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
 
-    parser.add_argument('--no-annealing', action='store_true', default=True, help='do not anneal lamb during training')
     parser.add_argument('--fitnet-simul', default=False, action='store_true', help='no hint-training')
 
     parser.add_argument('--eta', default=0.0003, type=float, help='adversary training learning rate')

@@ -202,7 +202,7 @@ def make_log_name(args):
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
 
-        elif args.method == 'kd_mfd' or args.method=='kd_mfd_indiv':
+        elif args.method == 'kd_mfd' or 'kd_indiv' in args.method:
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
@@ -216,9 +216,6 @@ def make_log_name(args):
 
         if args.labelwise:
             log_name += '_labelwise'
-        
-        if args.method == 'kd_mfd_indiv' and args.with_perturbed:
-            log_name+= '_wperturbed'
 
         # if args.dataset == 'celeba' and args.target != 'Attractive':
         #     log_name += '_{}'.format(args.target)
