@@ -35,7 +35,7 @@ def get_args():
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_aug', 'group_dro',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'kd_mfd_ctf'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
