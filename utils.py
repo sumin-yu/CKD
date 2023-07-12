@@ -202,12 +202,12 @@ def make_log_name(args):
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
 
-        elif args.method == 'kd_mfd' or 'kd_indiv' in args.method:
+        elif 'kd_mfd' in args.method or 'kd_indiv' in args.method:
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
 
-        elif args.method == 'logit_pairing': 
+        elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
         
         if args.teacher_path is not None:
