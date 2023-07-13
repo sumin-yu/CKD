@@ -61,36 +61,42 @@ class Trainer(hinton_Trainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, _ = data
-            labels = targets
+            inputs, _, groups, targets, _ = data 
+            inputs = inputs.permute((1,0,2,3,4))
+            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+            # targets = targets.repeat(2)
+            targets = torch.stack((targets,targets),dim=0).view(-1)
+
+            labels = targets 
+
+            groups = groups.repeat(num_aug)
+            int_groups = torch.where(groups == 0, 1, 0)
+            int_groups = int_groups.repeat(num_aug)
+            tot_groups = torch.cat((groups, int_groups), dim=0)
 
             if self.cuda:
                 inputs = inputs.cuda(self.device)
-                labels = labels.cuda(self.device)
-                groups = groups.long().cuda(self.device)
+                labels = labels.long().cuda(self.device)
+                tot_groups = tot_groups.long().cuda(self.device)
+
             t_inputs = inputs.to(self.t_device)
 
-            outputs = model(inputs, get_inter=True)
-            stu_logits = outputs[-1]
+            s_outputs = model(inputs, get_inter=True)
+            logits_tot = s_outputs[-1]
 
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(stu_logits, t_outputs=tea_logits,
-                                          kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
-
-            loss = self.criterion(stu_logits, labels)
-            loss = loss + self.lambh * kd_loss
-
-
-            f_s = outputs[-2]
+            loss = self.criterion(logits_tot, labels)
+            
+            f_s = s_outputs[-2]
             f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature)
+            mmd_loss = distiller.forward(f_s, f_t, groups=tot_groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
-            running_acc += get_accuracy(stu_logits, labels)
-
+            running_acc += get_accuracy(logits_tot, labels)
+            
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
