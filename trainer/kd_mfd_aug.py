@@ -59,6 +59,8 @@ class Trainer(hinton_Trainer):
         running_loss = 0.0
         batch_start_time = time.time()
 
+        num_aug =1
+
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data 
