@@ -35,7 +35,7 @@ def get_args():
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_aug', 'group_dro',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
@@ -44,6 +44,7 @@ def get_args():
     parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
     parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')
     parser.add_argument('--lambf', default=1, type=float, help='feature distill strength hyperparameter')
+    parser.add_argument('--rho', default=0.5, type=float, help='the radioi of chi divergence ball')
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
 

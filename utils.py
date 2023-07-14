@@ -207,9 +207,12 @@ def make_log_name(args):
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
 
-        elif args.method == 'logit_pairing': 
+        elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
-        
+
+        elif 'cgdro' in args.method: 
+            log_name += '_rho{}'.format(args.rho)
+
         if args.teacher_path is not None:
             log_name += '_temp{}'.format(args.kd_temp)
             log_name += '_lambh{}'.format(args.lambh)
@@ -217,8 +220,6 @@ def make_log_name(args):
         if args.labelwise:
             log_name += '_labelwise'
 
-        # if args.dataset == 'celeba' and args.target != 'Attractive':
-        #     log_name += '_{}'.format(args.target)
     return log_name
 
 def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=0, deo_m=0, log_dir="", log_name=""):

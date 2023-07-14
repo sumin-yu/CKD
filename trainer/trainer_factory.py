@@ -48,6 +48,8 @@ class TrainerFactory:
             import trainer.kd_at as trainer
         elif method == 'kd_nst':
             import trainer.kd_nst as trainer
+        elif method == 'cgdro':
+            import trainer.cgdro as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)
