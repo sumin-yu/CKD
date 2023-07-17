@@ -118,7 +118,7 @@ class CelebA(GenericDataset):
         feature = self.attr[index, self.feature_idx]
         if self.transform is not None:
             X = self.transform(X)
-            X = torch.stack(X) if (self.split == 'train' or self.test_pair) else X[0]
+            X = torch.stack(X) if (self.test_pair) else X[0]
 
         return X, feature, sensitive, target, (index, img_name)
 
