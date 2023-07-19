@@ -71,7 +71,8 @@ def get_metric(model, dataset):
         for data in dataloader:
             input, _, group, label , _ = data
             input = input.view(-1, *input.shape[2:])
-            label = torch.stack((label,label),dim=1).view(-1)
+            label = torch.reshape(label.permute((1,0)), (-1,))
+            # label = torch.stack((label,label),dim=1).view(-1)
 
             input = input.cuda()
             label = label.cuda()

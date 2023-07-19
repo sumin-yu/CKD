@@ -25,14 +25,23 @@ class CelebA_aug(CelebA):
             X_edited2 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender2", img_name)).convert('RGB')
             X_edited3 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender3", img_name)).convert('RGB')
             X = [X, X_edited1, X_edited2, X_edited3]
+            target = self.attr[index, self.target_idx]
+            target = torch.Tensor([target, target, target])
+            sensitive = self.attr[index, self.sensi_idx]
+            inv = 0 if sensitive == 1 else 1
+            sensitive = torch.Tensor([sensitive, inv, inv, inv])
         elif self.test_pair:
             X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
             X = [X, X_edited] 
+            target = self.attr[index, self.target_idx]
+            target = torch.Tensor([target, target])
+            sensitive = self.attr[index, self.sensi_idx]
+            sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
         else:
             X = [X]
+            target = self.attr[index, self.target_idx]
+            sensitive = self.attr[index, self.sensi_idx]
 
-        target = self.attr[index, self.target_idx]
-        sensitive = self.attr[index, self.sensi_idx]
         feature = self.attr[index, self.feature_idx]
 
         if self.transform is not None:

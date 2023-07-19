@@ -26,8 +26,11 @@ class Trainer(trainer.vanilla_train.Trainer):
             inputs, _, groups, targets, _ = data
             inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            targets = torch.stack((targets,targets),dim=0).view(-1)
             
+            groups = torch.reshape(groups.permute((1,0)), (-1,))
+            targets = torch.reshape(targets.permute((1,0)), (-1,))
+
+            labels = targets 
             labels = targets
 
             if self.cuda:

@@ -30,6 +30,14 @@ class DatasetFactory:
             from data_handler.celeba_aug3 import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == 'celeba_aug_ukn':
+            from data_handler.celeba_aug_ukn import CelebA_aug
+            root='./data/'
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == 'celeba_aug_ukn_wo_org':
+            from data_handler.celeba_aug_ukn_wo_org import CelebA_aug
+            root='./data/'
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
 
         
         elif name == "cifar10":

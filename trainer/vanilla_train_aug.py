@@ -23,9 +23,12 @@ class Trainer(trainer.vanilla_train.Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data
-            inputs = inputs.view(-1, *inputs.shape[2:])
-            targets = torch.stack((targets,targets),dim=1).view(-1)
+            inputs = inputs.permute((1,0,2,3,4))
+            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             
+            groups = torch.reshape(groups.permute((1,0)), (-1,))
+            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+
             labels = targets
 
             if self.cuda:

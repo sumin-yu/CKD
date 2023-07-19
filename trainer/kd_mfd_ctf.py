@@ -61,13 +61,11 @@ class Trainer(hinton_Trainer):
             inputs, _, groups, targets, _ = data
             inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+            
+            groups = torch.reshape(groups.permute((1,0)), (-1,))
+            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
-            targets = torch.stack((targets,targets),dim=0).view(-1)
-            labels = targets
-
-            int_groups = torch.where(groups == 0, 1, 0)
-            tot_groups = torch.cat((groups, int_groups), dim=0)
-            groups = tot_groups
+            labels = targets 
 
             if self.cuda:
                 inputs = inputs.cuda(self.device)

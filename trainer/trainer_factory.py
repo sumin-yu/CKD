@@ -22,8 +22,6 @@ class TrainerFactory:
             import trainer.logit_pairing as trainer
         elif method == 'logit_pairing_aug':
             import trainer.logit_pairing_aug as trainer
-        elif method == 'group_dro':
-            import trainer.group_dro as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'kd_fitnet':
@@ -44,6 +42,10 @@ class TrainerFactory:
             import trainer.kd_indiv_aug as trainer
         elif method == 'kd_indiv_multi':
             import trainer.kd_indiv_multi as trainer
+        elif method == 'kd_indiv_ukn1':
+            import trainer.kd_indiv_ukn1 as trainer
+        elif method == 'kd_indiv_ukn2':
+            import trainer.kd_indiv_ukn2 as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
         elif method == 'adv_debiasing':
