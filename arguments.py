@@ -31,7 +31,7 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
-                                 'kd_mfd', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_aug', 'group_dro',
