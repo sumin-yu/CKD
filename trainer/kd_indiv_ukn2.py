@@ -97,7 +97,7 @@ class Trainer(indiv_ukn1_Trainer):
             f_t = t_outputs[-2]
             groups_aug = groups[:self.batch_size]
             targets_aug = targets[:self.batch_size]
-            targets_aug = torch.zeros_like(targets_aug)
+            groups_aug = torch.zeros_like(groups_aug)
             mmd_loss2 = distiller.forward(f_s, f_t, groups=groups_aug, labels=targets_aug, n_set=3) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss + mmd_loss2
