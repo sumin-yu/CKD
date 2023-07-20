@@ -9,6 +9,7 @@ from utils import get_accuracy
 from trainer.loss_utils import compute_hinton_loss
 from sklearn.metrics import confusion_matrix
 from trainer.kd_indiv_ukn1 import Trainer as indiv_ukn1_Trainer
+from trainer.kd_indiv_ukn1 import MMDLoss as MMDLoss
 import os
 
 
