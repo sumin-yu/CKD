@@ -45,7 +45,7 @@ class Trainer(indiv_ukn1_Trainer):
                 self.scheduler.step(eval_loss)
 
         print('Training Finished!')
-        
+
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_groups=2):
         model.train()
         teacher.eval()
@@ -90,7 +90,7 @@ class Trainer(indiv_ukn1_Trainer):
             f_t = t_outputs[-2]
             groups_aug = groups[self.batch_size:]
             targets_aug = targets[self.batch_size:]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups_aug, labels=targets_aug, n_set=2) if self.lambf != 0 else 0 # n_set = 2
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups_aug, labels=targets_aug, n_set=3) if self.lambf != 0 else 0
 
             f_s = s_outputs[-2][:self.batch_size]
             f_t = t_outputs[-2]
