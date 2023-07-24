@@ -20,16 +20,24 @@ class CelebA_aug(CelebA):
         img_name = self.filename[index]
         if self.split == 'train':
             X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
-            X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB')
-            X_edited2 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
             X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
-            X_edited1 = ImageOps.fit(X_edited1, (256, 256), method=Image.LANCZOS)
-            X_edited2 = ImageOps.fit(X_edited2, (256, 256), method=Image.LANCZOS)
-            X = [X, X_edited1, X_edited2]
-            sensitive = self.attr[index, self.sensi_idx]
-            sensitive = torch.Tensor([sensitive, 1, 0])
-            target = self.attr[index, self.target_idx]
-            target = torch.Tensor([target, target, target])
+            if self.method == 'kd_indiv':
+                sensitive = self.attr[index, self.sensi_idx]
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB') if sensitive == 0 else PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
+                sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
+                target = self.attr[index, self.target_idx]
+                target = torch.Tensor([target, target])
+                X = [X, X_edited]
+            else:
+                X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB')
+                X_edited2 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
+                X_edited1 = ImageOps.fit(X_edited1, (256, 256), method=Image.LANCZOS)
+                X_edited2 = ImageOps.fit(X_edited2, (256, 256), method=Image.LANCZOS)
+                X = [X, X_edited1, X_edited2]
+                sensitive = self.attr[index, self.sensi_idx]
+                sensitive = torch.Tensor([sensitive, 1, 0])
+                target = self.attr[index, self.target_idx]
+                target = torch.Tensor([target, target, target])
         elif self.test_pair:
             X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
             X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
