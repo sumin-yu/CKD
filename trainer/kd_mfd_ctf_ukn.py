@@ -87,7 +87,7 @@ class Trainer(hinton_Trainer):
             loss = loss + self.lambh * kd_loss
 
             f_s = outputs[-2][self.batch_size:]
-            f_t = t_outputs[-2]
+            f_t = t_outputs[-2][self.batch_size:]
             groups_aug = groups[self.batch_size:]
             labels_aug = labels[self.batch_size:]
             mmd_loss = distiller.forward(f_s, f_t, groups=groups_aug, labels=labels_aug, jointfeature=self.jointfeature)
