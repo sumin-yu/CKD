@@ -36,6 +36,8 @@ class TrainerFactory:
             import trainer.kd_mfd_aug as trainer
         elif method == 'kd_mfd_ctf':
             import trainer.kd_mfd_ctf as trainer
+        elif method == 'kd_mfd_ctf_ukn':
+            import trainer.kd_mfd_ctf_ukn as trainer
         elif method == 'kd_indiv':
             import trainer.kd_indiv as trainer
         elif method == 'kd_indiv_aug':
