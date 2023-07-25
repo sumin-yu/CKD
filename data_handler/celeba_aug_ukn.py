@@ -21,13 +21,18 @@ class CelebA_aug(CelebA):
         if self.split == 'train':
             X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
             X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
-            if self.method == 'kd_indiv':
+            if self.method == 'kd_indiv' :
                 sensitive = self.attr[index, self.sensi_idx]
                 X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB') if sensitive == 0 else PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
                 sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
                 target = self.attr[index, self.target_idx]
                 target = torch.Tensor([target, target])
                 X = [X, X_edited]
+            elif self.method == 'scratch':
+                sensitive = self.attr[index, self.sensi_idx]
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB') if sensitive == 0 else PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
+                target = self.attr[index, self.target_idx]
+                X = [X_edited]
             else:
                 X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB')
                 X_edited2 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
