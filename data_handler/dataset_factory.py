@@ -33,7 +33,7 @@ class DatasetFactory:
         elif name == 'celeba_aug_ukn':
             from data_handler.celeba_aug_ukn import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,  method=method)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, method=method)
         elif name == 'celeba_aug_ukn_wo_org':
             from data_handler.celeba_aug_ukn_wo_org import CelebA_aug
             root='./data/'
