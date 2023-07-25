@@ -30,6 +30,7 @@ class CelebA_aug(CelebA):
                 X = [X, X_edited]
             elif self.method == 'scratch':
                 sensitive = self.attr[index, self.sensi_idx]
+                sensitive = 0 if sensitive == 1 else 1
                 X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB') if sensitive == 0 else PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
                 target = self.attr[index, self.target_idx]
                 X = [X_edited]
