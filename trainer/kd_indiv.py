@@ -11,7 +11,6 @@ from sklearn.metrics import confusion_matrix
 import trainer
 import os
 
-
 class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
@@ -21,6 +20,7 @@ class Trainer(trainer.GenericTrainer):
         self.kernel = args.kernel
         self.batch_size = args.batch_size
         self.jointfeature = args.jointfeature
+        self.num_aug = args.num_aug
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 

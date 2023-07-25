@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
+    parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation')    
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')

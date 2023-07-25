@@ -218,6 +218,9 @@ def make_log_name(args):
             log_name += '_temp{}'.format(args.kd_temp)
             log_name += '_lambh{}'.format(args.lambh)
 
+        if args.num_aug > 1:
+            log_name += f'_aug{args.num_aug}'
+
         if args.labelwise:
             log_name += '_labelwise'
 

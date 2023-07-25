@@ -10,7 +10,6 @@ from functools import partial
 from torchvision.datasets.utils import download_file_from_google_drive, check_integrity, verify_str_arg
 from data_handler.dataset_factory import GenericDataset
 
-
 class CelebA(GenericDataset):
     base_folder = "celeba"
     # There currently does not appear to be a easy way to extract 7z in python (without introducing additional
