@@ -28,7 +28,7 @@ class Trainer(trainer.vanilla_train.Trainer):
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,))
+            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
             labels = targets 
             labels = targets
