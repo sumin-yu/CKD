@@ -54,6 +54,19 @@ class DatasetFactory:
             root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
                                 labelwise=labelwise)
+        
+        elif name == "spucobirds":
+            from data_handler.spucobirds import SpuCoBirds
+            root = './data/spuco'
+            dataset =  SpuCoBirds(root=root, split=split, transform=transform)
+            dataset.initialize()
+            return dataset
+        elif name == 'spucobirds_aug':
+            from data_handler.spucobirds_aug import SpuCoBirds_aug
+            root = './data/spuco'
+            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
+            dataset.initialize()
+            return dataset
 
 
 

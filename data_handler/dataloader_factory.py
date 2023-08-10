@@ -47,7 +47,9 @@ class DataloaderFactory:
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
-        
+        train_transform = None
+        valid_transform = None
+        test_transform = None
         if 'celeba' in name:
             mean = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]

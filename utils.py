@@ -53,11 +53,13 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset):
+def get_metric(model, dataset, dataset_name):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
     bs = 1
     dataset.test_pair = True
+    if 'spuco' in dataset_name:
+        dataset.initialize()
     dataloader = torch.utils.data.DataLoader(dataset, bs, drop_last=False,
                                              shuffle=False, **kwargs)
     num_classes = dataset.num_classes

@@ -30,7 +30,6 @@ class Trainer(trainer.vanilla_train.Trainer):
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
-            labels = targets 
             labels = targets
 
             if self.cuda:
