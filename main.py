@@ -114,7 +114,7 @@ def main():
         save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
     else: # evalset == 'test'
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        pred_dist, pc, bmr = get_metric(model, test_loader.dataset)
+        pred_dist, pc, bmr = get_metric(model, test_loader.dataset, args.dataset)
         save_anal('test' ,args, acc, bmr, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
 
 

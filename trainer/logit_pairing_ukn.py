@@ -30,7 +30,6 @@ class Trainer(trainer.vanilla_train.Trainer):
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
-            labels = targets 
             labels = targets
 
             if self.cuda:
@@ -38,12 +37,12 @@ class Trainer(trainer.vanilla_train.Trainer):
                 labels = labels.cuda(device=self.device)
             
             outputs = model(inputs)
-            celoss = self.criterion(outputs[:int(outputs.shape[0]/2)], labels[:int(labels.shape[0]/2)])
+            celoss = self.criterion(outputs[:int(outputs.shape[0]/3)], labels[:int(labels.shape[0]/3)])
 
-            ft_batch_size = int(inputs.shape[0] / 2)
-            ft_logit = outputs[:ft_batch_size]
-            ctf_logit = outputs[ft_batch_size:]
-            pairing_loss = (ft_logit-ctf_logit).norm(2).pow(2)
+            ft_batch_size = int(inputs.shape[0] / 3)
+            ukn1_logit = outputs[ft_batch_size:ft_batch_size*2]
+            ukn2_logit = outputs[ft_batch_size*2:]
+            pairing_loss = (ukn1_logit-ukn2_logit).norm(2).pow(2)
 
             loss = celoss + self.lamb * pairing_loss
 
