@@ -73,7 +73,7 @@ def main():
     if args.optimizer == 'Adam':
         optimizer = optim.Adam(model.parameters(), lr=args.lr, )
     elif 'SGD' in args.optimizer:
-        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=args.momentum)
     elif args.optimizer == 'AdamW':
         optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
 
