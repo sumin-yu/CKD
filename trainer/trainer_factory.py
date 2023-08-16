@@ -100,7 +100,7 @@ class GenericTrainer:
         elif self.optim_type == 'AdamW' and self.optimizer is not None:
             self.scheduler = ReduceLROnPlateau(self.optimizer)
         else: 
-            self.scheduler = MultiStepLR(self.optimizer, [30, 60, 90], gamma=0.1)
+            self.scheduler = ReduceLROnPlateau(self.optimizer)
 
     def evaluate(self, model, loader, criterion, device=None, groupwise=False, q_update=False):
         model.eval()

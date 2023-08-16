@@ -83,6 +83,18 @@ class DataloaderFactory:
                             #   transforms.RandomHorizontalFlip(),
                               transforms.ToTensor()
                               ])
+            
+        elif 'spucobirds' in name:
+            mean = [0.485, 0.456, 0.406]
+            std = [0.229, 0.224, 0.225]
+            train_transform = partial(custom_transform,
+                                      resize=True, img_resize=256, 
+                                      rand_crop=True, img_size=224,
+                                      normalize=True, mean=mean, std=std)
+            test_transform = partial(custom_transform,
+                                     resize=True, img_resize=256,
+                                      normalize=True, mean=mean, std=std)
+            valid_transform = test_transform
         
         # else:
         #     transform_list = [transforms.Resize((256,256)),
@@ -119,7 +131,7 @@ class DataloaderFactory:
 
         if labelwise:
             from torch.utils.data.sampler import WeightedRandomSampler
-            weights = train_dataset.make_weights()
+            weights = train_dataset.make_weights(dataset=name)
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

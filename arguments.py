@@ -26,6 +26,7 @@ def get_args():
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')
+    parser.add_argument('--momentum', default=0.9, type=float, help='SGD momentum')
     parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')
     parser.add_argument('--batch-size', default=128, type=int, help='mini batch size')
     parser.add_argument('--seed', default=0, type=int, help='seed for randomness')
@@ -40,7 +41,7 @@ def get_args():
                                  'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
-                        choices=['SGD', 'SGD_momentum_decay', 'Adam','AdamW'],
+                        choices=['SGD', 'Adam','AdamW'],
                         help='(default=%(default)s)')
 
     parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')

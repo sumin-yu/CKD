@@ -119,18 +119,15 @@ class SpuCoBirds_aug(SpuCoBirds):
         :return: The item at the given index.
         """
         index = self.indices[index]
-        image = self.base_transform(Image.open(self.data.X[index]).convert('RGB'))
-        if self.transform is not None:
-            image = self.transform(image)
+        image = [Image.open(self.data.X[index]).convert('RGB')]
         target = self.data.labels[index]
         sensitive = self.spurious[index]
-
-        if self.split == 'train' or self.test_pair:
-            ctf_image = self.base_transform(Image.open(self.data.X_ctf[index]).convert('RGB'))
-            if self.transform is not None:
-                    ctf_image = self.transform(ctf_image)
-            image = [image, ctf_image]
-            image = torch.stack(image)
+        if self.test_pair or self.split == 'train':
+            ctf_image = Image.open(self.data.X_ctf[index]).convert('RGB')
+            image = [image[0], ctf_image]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
-        return image, 0, sensitive, target, 0
+        if self.transform is not None:
+            X = self.transform(image)
+            X = torch.stack(X) if (self.test_pair or self.split == 'train') else X[0]
+        return X, 0, sensitive, target, 0

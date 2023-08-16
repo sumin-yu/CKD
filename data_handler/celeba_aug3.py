@@ -26,7 +26,7 @@ class CelebA_aug(CelebA):
             X_edited3 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender3", img_name)).convert('RGB')
             X = [X, X_edited1, X_edited2, X_edited3]
             target = self.attr[index, self.target_idx]
-            target = torch.Tensor([target, target, target])
+            target = torch.Tensor([target, target, target, target])
             sensitive = self.attr[index, self.sensi_idx]
             inv = 0 if sensitive == 1 else 1
             sensitive = torch.Tensor([sensitive, inv, inv, inv])
@@ -52,24 +52,3 @@ class CelebA_aug(CelebA):
 
     def __len__(self):
         return len(self.attr)
-
-    # def _balance_test_data(self):
-    #     num_data_min = np.min(self.num_data)
-    #     print('min : ', num_data_min)
-    #     data_count = np.zeros((self.num_groups, self.num_classes), dtype=int)
-    #     new_filename = []
-    #     new_attr = []
-    #     print(len(self.attr))        
-    #     for index in range(len(self.attr)):
-    #         target=self.attr[index, self.target_idx]
-    #         sensitive = self.attr[index, self.sensi_idx]
-    #         if data_count[sensitive, target] < num_data_min:
-    #             new_filename.append(self.filename[index])
-    #             new_attr.append(self.attr[index])
-    #             data_count[sensitive, target] += 1
-            
-    #     for i in range(self.num_groups):
-    #         print('# of balanced %d\'s groups data : '%i, data_count[i, :])
-            
-    #     self.filename = new_filename
-    #     self.attr = torch.stack(new_attr)

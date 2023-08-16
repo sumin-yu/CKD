@@ -119,8 +119,10 @@ class GenericDataset(data.Dataset):
         return train_data, test_data
     
 
-    def make_weights(self, method='kd_mfd'):
-        if self.root != './data/jigsaw':
+    def make_weights(self, method='kd_mfd', dataset='spucobirds'):
+        if 'spucobirds' in dataset :
+            weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
+        elif self.root != './data/jigsaw':
             if method == 'fairhsic':
                 group_weights = len(self) / self.n_data.sum(axis=0)
                 weights = [group_weights[int(feature[1])] for feature in self.features]

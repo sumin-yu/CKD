@@ -13,6 +13,7 @@ from tqdm import tqdm
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple
 from torch.utils.data import Dataset
+from data_handler.dataset_factory import GenericDataset
 
 TRAIN_SPLIT = "train"
 VAL_SPLIT= "valid"
@@ -91,7 +92,7 @@ class BaseSpuCoDataset(Dataset):
         :type verbose: bool, optional
         """
         
-        super().__init__()
+        super().__init__(root=root)
         self.root = root 
         self._num_classes = num_classes
         assert split == TRAIN_SPLIT or split == VAL_SPLIT or split == TEST_SPLIT, f"split must be one of {TRAIN_SPLIT}, {VAL_SPLIT}, {TEST_SPLIT}"
@@ -224,7 +225,7 @@ class BaseSpuCoDataset(Dataset):
         """
         return len(self.data.X)
     
-class SpuCoBirds(BaseSpuCoDataset):
+class SpuCoBirds(BaseSpuCoDataset, GenericDataset):
     """
     Subset of SpuCoAnimals only including Bird classes.
     """
@@ -269,11 +270,6 @@ class SpuCoBirds(BaseSpuCoDataset):
         )
         self.download = download
         self.label_noise = label_noise
-        self.base_transform = transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.CenterCrop((224, 224)),
-            transforms.ToTensor()
-        ])
         self.num_groups = 2
         self.test_pair = False
 
@@ -379,17 +375,15 @@ class SpuCoBirds(BaseSpuCoDataset):
         :return: The item at the given index.
         """
         index = self.indices[index]
-        image = self.base_transform(Image.open(self.data.X[index]).convert('RGB'))
-        if self.transform is not None:
-            image = self.transform(image)
+        image = [Image.open(self.data.X[index]).convert('RGB')]
         target = self.data.labels[index]
         sensitive = self.spurious[index]
         if self.test_pair:
-            ctf_image = self.base_transform(Image.open(self.data.X_ctf[index]).convert('RGB'))
-            if self.transform is not None:
-                    ctf_image = self.transform(ctf_image)
-            image = [image, ctf_image]
-            image = torch.stack(image)
+            ctf_image = Image.open(self.data.X_ctf[index]).convert('RGB')
+            image = [image[0], ctf_image]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
-        return image, 0, sensitive, target, 0
+        if self.transform is not None:
+            X = self.transform(image)
+            X = torch.stack(X) if (self.test_pair) else X[0]
+        return X, 0, sensitive, target, 0
