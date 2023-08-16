@@ -121,7 +121,7 @@ class GenericDataset(data.Dataset):
 
     def make_weights(self, method='kd_mfd', dataset='spucobirds'):
         if 'spucobirds' in dataset :
-            weights = [self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
+            weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
         elif self.root != './data/jigsaw':
             if method == 'fairhsic':
                 group_weights = len(self) / self.n_data.sum(axis=0)
