@@ -106,7 +106,7 @@ class Trainer(trainer.GenericTrainer):
                 eval_acc += acc.sum()
                 eval_data_count += len(labels)
 
-            eval_loss = eval_loss / eval_data_count.sum() 
-            eval_acc = eval_acc / eval_data_count.sum()
+            eval_loss = eval_loss / eval_data_count
+            eval_acc = eval_acc / eval_data_count
         model.train()
         return eval_loss, eval_acc
