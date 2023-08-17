@@ -76,8 +76,8 @@ def get_args():
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
 
-    parser.add_argument('--rho', default=5.0, type=float, help='rho for SenSeI')
-    parser.add_argument('--eps', default=0.1, type=float, help='epsilon for SenSeI')
+    parser.add_argument('--sensei_rho', default=5.0, type=float, help='rho for SenSeI')
+    parser.add_argument('--sensei_eps', default=0.1, type=float, help='epsilon for SenSeI')
     parser.add_argument('--auditor-nsteps', default=100, type=int, help='auditor nsteps for SenSeI')
     parser.add_argument('--auditor-lr', default=1e-3, type=float, help='auditor lr for SenSeI')
     parser.add_argument('--f-classifier-path', default=None, help='feature extracting classifier path for SenSeI metric learning')
