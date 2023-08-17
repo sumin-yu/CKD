@@ -82,7 +82,6 @@ class Trainer(trainer.GenericTrainer):
 
         eval_acc = 0 
         eval_loss = 0
-        eval_eopp_list = torch.zeros(num_groups, num_classes).cuda(device)
         eval_data_count = torch.zeros(num_groups, num_classes).cuda(device)
         n_subgroups = num_classes * num_groups
         
@@ -105,11 +104,7 @@ class Trainer(trainer.GenericTrainer):
                 preds = torch.argmax(outputs, 1)
                 acc = (preds == labels).float().squeeze()
                 eval_acc += acc.sum()
-
-                for g in range(num_groups):
-                    for l in range(num_classes):
-                        eval_eopp_list[g, l] += acc[(groups == g) * (labels == l)].sum()
-                        eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
+                eval_data_count += len(labels)
 
             eval_loss = eval_loss / eval_data_count.sum() 
             eval_acc = eval_acc / eval_data_count.sum()
