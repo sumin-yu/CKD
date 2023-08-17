@@ -60,6 +60,10 @@ class TrainerFactory:
             import trainer.kd_nst as trainer
         elif method == 'cgdro':
             import trainer.cgdro as trainer
+        elif method == 'sensei':
+            import trainer.sensei as trainer
+        elif method == 'group_predict':
+            import trainer.group_predict as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)

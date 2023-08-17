@@ -14,12 +14,14 @@ def get_args():
     parser.add_argument('--device', default=0, type=int, help='cuda device number')
     parser.add_argument('--t-device', default=0, type=int, help='teacher cuda device number')
 
-
     parser.add_argument('--mode', default='train', choices=['train', 'eval'])
     parser.add_argument('--modelpath', default=None)
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
-    parser.add_argument('--dataset', required=True, default='', choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all', 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'spucobirds', 'spucobirds_aug'])
+    parser.add_argument('--dataset', required=True, default='',
+                        choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
+                                 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org',
+                                 'spucobirds', 'spucobirds_aug'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
@@ -37,7 +39,7 @@ def get_args():
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro', 'sensei', 'group_predict'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
@@ -58,6 +60,7 @@ def get_args():
     parser.add_argument('--pretrained', default=False, action='store_true', help='load imagenet pretrained model')
     parser.add_argument('--num-workers', default=2, type=int, help='the number of thread used in dataloader')
     parser.add_argument('--term', default=20, type=int, help='the period for recording train acc')
+
     parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
     parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
 
@@ -72,7 +75,12 @@ def get_args():
     parser.add_argument('--jointfeature', default=False, action='store_true', help='mmd with both joint')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
-    parser.add_argument('--with-perturbed', default=False, action='store_true', help='CE loss with perturbed images and no mmd loss')
+
+    parser.add_argument('--rho', default=5.0, type=float, help='rho for SenSeI')
+    parser.add_argument('--eps', default=0.1, type=float, help='epsilon for SenSeI')
+    parser.add_argument('--auditor-nsteps', default=100, type=int, help='auditor nsteps for SenSeI')
+    parser.add_argument('--auditor-lr', default=1e-3, type=float, help='auditor lr for SenSeI')
+    parser.add_argument('--f-classifier-path', default=None, help='feature extracting classifier path for SenSeI metric learning')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
