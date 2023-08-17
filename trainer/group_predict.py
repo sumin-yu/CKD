@@ -82,7 +82,7 @@ class Trainer(trainer.GenericTrainer):
 
         eval_acc = 0 
         eval_loss = 0
-        eval_data_count = torch.zeros(num_groups, num_classes).cuda(device)
+        eval_data_count = 0
         n_subgroups = num_classes * num_groups
         
         if 'Custom' in type(loader).__name__:
