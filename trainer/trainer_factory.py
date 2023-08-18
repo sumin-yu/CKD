@@ -89,7 +89,7 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        if args.method == 'group_dro':
+        if args.method == 'group_dro' or args.method == 'sensei':
             self.criterion = nn.CrossEntropyLoss(reduction='none')
         else:
             self.criterion=nn.CrossEntropyLoss()
