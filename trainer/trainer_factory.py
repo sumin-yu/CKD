@@ -60,6 +60,10 @@ class TrainerFactory:
             import trainer.kd_nst as trainer
         elif method == 'cgdro':
             import trainer.cgdro as trainer
+        elif method == 'sensei':
+            import trainer.sensei as trainer
+        elif method == 'group_predict':
+            import trainer.group_predict as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)
@@ -85,7 +89,7 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        if args.method == 'group_dro':
+        if args.method == 'group_dro' or args.method == 'sensei':
             self.criterion = nn.CrossEntropyLoss(reduction='none')
         else:
             self.criterion=nn.CrossEntropyLoss()
@@ -143,6 +147,7 @@ class GenericTrainer:
                             eval_acc[g, l] += acc[(groups == g) * (labels == l)].sum()
                             eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
                 else:
+                    criterion = nn.CrossEntropyLoss()
                     loss = criterion(outputs, labels)
                     eval_loss += loss.item() * len(labels)
                     preds = torch.argmax(outputs, 1)
