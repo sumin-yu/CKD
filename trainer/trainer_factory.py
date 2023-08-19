@@ -147,6 +147,7 @@ class GenericTrainer:
                             eval_acc[g, l] += acc[(groups == g) * (labels == l)].sum()
                             eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
                 else:
+                    criterion = nn.CrossEntropyLoss()
                     loss = criterion(outputs, labels)
                     eval_loss += loss.item() * len(labels)
                     preds = torch.argmax(outputs, 1)

@@ -80,6 +80,7 @@ def get_args():
     parser.add_argument('--sensei-eps', default=0.1, type=float, help='epsilon for SenSeI')
     parser.add_argument('--auditor-nsteps', default=100, type=int, help='auditor nsteps for SenSeI')
     parser.add_argument('--auditor-lr', default=1e-3, type=float, help='auditor lr for SenSeI')
+    parser.add_argument('--epochs-dist', default=10, type=int, help='epochs for distance metric learning')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

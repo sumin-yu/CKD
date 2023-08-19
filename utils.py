@@ -216,6 +216,11 @@ def make_log_name(args):
         elif 'cgdro' in args.method: 
             log_name += '_rho{}'.format(args.rho)
 
+        elif 'sensei' in args.method:
+            log_name += '_rho{}'.format(args.sensei_rho)
+            log_name += '_eps{}'.format(args.sensei_eps)
+            log_name += '_nsteps{}'.format(args.auditor_nsteps)
+
         if args.teacher_path is not None:
             log_name += '_temp{}'.format(args.kd_temp)
             log_name += '_lambh{}'.format(args.lambh)
