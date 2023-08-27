@@ -6,10 +6,6 @@ from PIL import ImageOps, Image
 from data_handler.celeba import CelebA
 
 class CelebA_aug(CelebA):
-    def __init__(self, num_aug, **kwargs):
-        super(CelebA, self).__init__(**kwargs)
-        self.num_aug = num_aug
-
     def __getitem__(self, index):
         img_name = self.filename[index]
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
