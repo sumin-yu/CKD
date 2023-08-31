@@ -51,6 +51,7 @@ def get_args():
     parser.add_argument('--rho', default=0.5, type=float, help='the radioi of chi divergence ball')
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
+    parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation for MFD_indiv')
 
     parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
@@ -72,7 +73,6 @@ def get_args():
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
     parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
     parser.add_argument('--labelwise', default=False, action='store_true', help='labelwise loader')
-    parser.add_argument('--jointfeature', default=False, action='store_true', help='mmd with both joint')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
 

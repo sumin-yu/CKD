@@ -31,9 +31,26 @@ class CelebA_aug(CelebA):
         feature = self.attr[index, self.feature_idx]
 
         if self.transform is not None:
-            X = self.transform(X)
-            X = torch.stack(X) if (self.split == 'train' or self.test_pair) else X[0]
-            
+            X = image
+            if self.split == 'train':
+                if self.num_aug == 1:
+                    X = self.transform(X)
+                    X = torch.stack(X) 
+                else:
+                    X_list = []
+                    for i in range(self.num_aug):
+                        tmp = self.transform(X)
+                        X_list.extend(tmp)
+                    X = torch.stack(X_list) 
+                    target = target.repeat(self.num_aug)
+                    sensitive = sensitive.repeat(self.num_aug)
+            else:
+                if self.test_pair:
+                    X = self.transform(X)
+                    X = torch.stack(X) 
+                else:
+                    X = X[0]
+                
         return X, feature, sensitive, target, (index, img_name)
 
     def __len__(self):

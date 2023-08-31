@@ -209,6 +209,8 @@ def make_log_name(args):
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
+            if args.method == 'kd_indiv' and args.num_aug > 1:
+                log_name += f'_aug{args.num_aug}'
 
         elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)

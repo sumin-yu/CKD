@@ -20,15 +20,14 @@ class Trainer(trainer.GenericTrainer):
         self.sigma = args.sigma
         self.kernel = args.kernel
         self.batch_size = args.batch_size
-        self.jointfeature = args.jointfeature
+        self.num_aug = args.num_aug
 
     def train(self, train_loader, val_loader, test_loader, epochs):
-
         num_classes = train_loader.dataset.num_classes
         num_groups = train_loader.dataset.num_groups
 
         distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
-                            num_classes=num_classes, num_groups=num_groups, kernel=self.kernel)
+                            num_classes=num_classes, num_groups=num_groups, kernel=self.kernel, num_aug=self.num_aug)
 
         for epoch in range(self.epochs):
             self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_groups=num_groups)
@@ -62,9 +61,9 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, _ = data 
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+            inputs, _, groups, targets, _ = data # 128 x num_aug * 2 x ...
+            inputs = inputs.permute((1,0,2,3,4))  # num_aug x 128 x ...
+            inputs = inputs.contiguous().view(-1, *inputs.shape[2:]) # (num_augx128) x ...
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
@@ -84,11 +83,11 @@ class Trainer(trainer.GenericTrainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+            loss = self.criterion(logits_tot[:len(logits_tot)//(2*self.num_aug)], labels[:len(labels)//(2*self.num_aug)])
 
             f_s = s_outputs[-2]
             f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
@@ -110,17 +109,17 @@ class Trainer(trainer.GenericTrainer):
                 batch_start_time = time.time()
 
 class MMDLoss(nn.Module):
-    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel):
+    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel, num_aug):
         super(MMDLoss, self).__init__()
         self.w_m = w_m
         self.sigma = sigma
         self.num_groups = num_groups
         self.batch_size = batch_size
-        self.num_aug = 1
+        self.num_aug = num_aug
         self.num_classes = num_classes
         self.kernel = kernel
 
-    def forward(self, f_s, f_t, groups, labels, jointfeature=False):
+    def forward(self, f_s, f_t, groups, labels):
         if self.kernel == 'poly':
             student = F.normalize(f_s.view(f_s.shape[0], -1), dim=1)
             teacher = F.normalize(f_t.view(f_t.shape[0], -1), dim=1).detach()
@@ -130,50 +129,40 @@ class MMDLoss(nn.Module):
 
         mmd_loss = 0
 
-        if jointfeature:
-            K_TS, sigma_avg = self.pdist(teacher, student,
-                              sigma_base=self.sigma, kernel=self.kernel)
-            K_TT, _ = self.pdist(teacher, teacher, sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
-            K_SS, _ = self.pdist(student, student,
-                              sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
+        with torch.no_grad():
+            _, sigma_avg = self.pdist(teacher, student, sigma_base=self.sigma, kernel=self.kernel)
 
-            mmd_loss += K_TT.mean() + K_SS.mean() - 2 * K_TS.mean()
+        t_order = torch.arange(self.batch_size*self.num_aug*self.num_groups)
+        s_order = torch.arange(self.batch_size*self.num_aug)
+        t_order = t_order.reshape(-1, self.batch_size).transpose(0,1).flatten() # 0,batch_size,batch_size*2, batch_size*3, 1, batch_size+1, batch_size+2, batch_size+3,...
+        s_order = s_order.reshape(-1, self.batch_size).transpose(0,1).flatten() 
 
-        else:
-            with torch.no_grad():
-                _, sigma_avg = self.pdist(teacher, student, sigma_base=self.sigma, kernel=self.kernel)
+        t_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug*self.num_groups, dtype=torch.int).cuda()
+        s_ref = torch.ones(self.batch_size, self.num_aug,self.num_aug, dtype=torch.int).cuda()
+        ts_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug, dtype=torch.int).cuda()
+        t_ref = torch.block_diag(*t_ref)
+        s_ref = torch.block_diag(*s_ref)
+        ts_ref = torch.block_diag(*ts_ref)
+        num_ind = (self.num_groups*self.num_aug)**2
+        num_ind_s = self.num_aug**2
+        num_ind_ts = self.num_groups*self.num_aug*self.num_aug
 
-            t_order = torch.arange(self.batch_size*self.num_aug*self.num_groups)
-            s_order = torch.arange(self.batch_size*self.num_aug)
-            t_order = t_order.reshape(-1, self.batch_size).transpose(0,1).flatten()
-            s_order = s_order.reshape(-1, self.batch_size).transpose(0,1).flatten()
-
-            t_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug*self.num_groups, dtype=torch.int).cuda()
-            s_ref = torch.ones(self.batch_size, self.num_aug,self.num_aug, dtype=torch.int).cuda()
-            ts_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug, dtype=torch.int).cuda()
-            t_ref = torch.block_diag(*t_ref)
-            s_ref = torch.block_diag(*s_ref)
-            ts_ref = torch.block_diag(*ts_ref)
-            num_ind = (self.num_groups*self.num_aug)**2
-            num_ind_s = self.num_aug**2
-            num_ind_ts = self.num_groups*self.num_aug*self.num_aug
-
-            for g in range(self.num_groups): # assume num_groups = 2 !!! # student 는 num_aug 개씩 같이 계산해야함 # teacher 는 num_aug * num_group 개씩 같이 계산해야함
-                if len(student[(groups == g)]) == 0:
-                    continue
-                K_TS, _ = self.pdist(teacher, student[(groups == g)],
-                                            sigma_base=self.sigma, sigma_avg=sigma_avg,  kernel=self.kernel)
-                K_SS, _ = self.pdist(student[(groups == g)], student[(groups == g)],
-                                    sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
-                K_TT, _ = self.pdist(teacher, teacher, sigma_base=self.sigma,
-                                    sigma_avg=sigma_avg, kernel=self.kernel)
-                K_TS = K_TS[t_order][:, s_order]
-                K_SS = K_SS[s_order][:, s_order]
-                K_TT = K_TT[t_order][:, t_order]
-                K_TS = K_TS * ts_ref
-                K_SS = K_SS * s_ref
-                K_TT = K_TT * t_ref
-                mmd_loss += K_TT.sum()/num_ind + K_SS.sum()/num_ind_s - 2 * K_TS.sum()/num_ind_ts
+        for g in range(self.num_groups): # assume num_groups = 2 !!! # student 는 num_aug 개씩 같이 계산해야함 # teacher 는 num_aug * num_group 개씩 같이 계산해야함
+            if len(student[(groups == g)]) == 0:
+                continue
+            K_TS, _ = self.pdist(teacher, student[(groups == g)],
+                                        sigma_base=self.sigma, sigma_avg=sigma_avg,  kernel=self.kernel)
+            K_SS, _ = self.pdist(student[(groups == g)], student[(groups == g)],
+                                sigma_base=self.sigma, sigma_avg=sigma_avg, kernel=self.kernel)
+            K_TT, _ = self.pdist(teacher, teacher, sigma_base=self.sigma,
+                                sigma_avg=sigma_avg, kernel=self.kernel)
+            K_TS = K_TS[t_order][:, s_order]
+            K_SS = K_SS[s_order][:, s_order]
+            K_TT = K_TT[t_order][:, t_order]
+            K_TS = K_TS * ts_ref
+            K_SS = K_SS * s_ref
+            K_TT = K_TT * t_ref
+            mmd_loss += K_TT.sum()/num_ind + K_SS.sum()/num_ind_s - 2 * K_TS.sum()/num_ind_ts
 
         loss = (1/2) * self.w_m * mmd_loss
 
