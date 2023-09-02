@@ -50,6 +50,8 @@ class TrainerFactory:
             import trainer.kd_indiv_ukn1 as trainer
         elif method == 'kd_indiv_ukn2':
             import trainer.kd_indiv_ukn2 as trainer
+        elif method == 'kd_indiv_logit_pairing':
+            import trainer.kd_indiv_logit_pairing as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
         elif method == 'adv_debiasing':

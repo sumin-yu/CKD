@@ -42,7 +42,6 @@ class SpuCoBirds_aug(SpuCoBirds):
     """
     Subset of SpuCoAnimals only including Bird classes.
     """
-
     def load_data(self) -> SourceData:
         """
         Loads SpuCoBirds and sets spurious labels, label noise.
@@ -127,7 +126,26 @@ class SpuCoBirds_aug(SpuCoBirds):
             image = [image[0], ctf_image]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
+
         if self.transform is not None:
-            X = self.transform(image)
-            X = torch.stack(X) if (self.test_pair or self.split == 'train') else X[0]
+            X = image
+            if self.split == 'train':
+                if self.num_aug == 1:
+                    X = self.transform(X)
+                    X = torch.stack(X) 
+                else:
+                    X_list = []
+                    for i in range(self.num_aug):
+                        tmp = self.transform(X)
+                        X_list.extend(tmp)
+                    X = torch.stack(X_list) 
+                    target = target.repeat(self.num_aug)
+                    sensitive = sensitive.repeat(self.num_aug)
+            else:
+                X = self.transform(X)
+                if self.test_pair:
+                    X = torch.stack(X) 
+                else:
+                    X = X[0]
+            
         return X, 0, sensitive, target, 0

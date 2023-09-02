@@ -29,9 +29,10 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male'):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
+        self.num_aug=num_aug
         self.test_pair = False
         if isinstance(target_type, list):
             self.target_type = target_type

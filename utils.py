@@ -209,6 +209,8 @@ def make_log_name(args):
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
+            if args.method == 'kd_indiv' and args.num_aug > 1:
+                log_name += f'_aug{args.num_aug}'
 
         elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
@@ -220,6 +222,9 @@ def make_log_name(args):
             log_name += '_rho{}'.format(args.sensei_rho)
             log_name += '_eps{}'.format(args.sensei_eps)
             log_name += '_nsteps{}'.format(args.auditor_nsteps)
+        
+        if args.method == 'kd_indiv_logit_pairing':
+            log_name += f'_gamma{args.gamma}'
 
         if args.teacher_path is not None:
             log_name += '_temp{}'.format(args.kd_temp)
