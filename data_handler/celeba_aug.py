@@ -48,6 +48,7 @@ class CelebA_aug(CelebA):
                     X = self.transform(X)
                     X = torch.stack(X) 
                 else:
+                    X = self.transform(X)
                     X = X[0]
                 
         return X, feature, sensitive, target, (index, img_name)
