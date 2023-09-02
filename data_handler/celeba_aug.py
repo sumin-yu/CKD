@@ -3,6 +3,12 @@ import os
 from os.path import join
 import PIL
 from PIL import ImageOps, Image
+import pandas
+import numpy as np
+import zipfile
+from functools import partial
+from torchvision.datasets.utils import download_file_from_google_drive, check_integrity, verify_str_arg
+from data_handler.dataset_factory import GenericDataset
 from data_handler.celeba import CelebA
 
 class CelebA_aug(CelebA):
@@ -23,16 +29,33 @@ class CelebA_aug(CelebA):
             sensitive = self.attr[index, self.sensi_idx]
 
         feature = self.attr[index, self.feature_idx]
-    
+
         if self.transform is not None:
-            tmp = []
-            num_transform = self.num_aug if self.split == 'train' else 1
-            for _ in range(num_transform):
-                    X = self.transform(X)
-                    tmp.extend(X)
-            X = torch.stack(tmp) if (self.split == 'train' or self.test_pair) else X[0]
+            X = self.transform(X)
+            X = torch.stack(X) if (self.split == 'train' or self.test_pair) else X[0]
             
         return X, feature, sensitive, target, (index, img_name)
 
     def __len__(self):
         return len(self.attr)
+
+    # def _balance_test_data(self):
+    #     num_data_min = np.min(self.num_data)
+    #     print('min : ', num_data_min)
+    #     data_count = np.zeros((self.num_groups, self.num_classes), dtype=int)
+    #     new_filename = []
+    #     new_attr = []
+    #     print(len(self.attr))        
+    #     for index in range(len(self.attr)):
+    #         target=self.attr[index, self.target_idx]
+    #         sensitive = self.attr[index, self.sensi_idx]
+    #         if data_count[sensitive, target] < num_data_min:
+    #             new_filename.append(self.filename[index])
+    #             new_attr.append(self.attr[index])
+    #             data_count[sensitive, target] += 1
+            
+    #     for i in range(self.num_groups):
+    #         print('# of balanced %d\'s groups data : '%i, data_count[i, :])
+            
+    #     self.filename = new_filename
+    #     self.attr = torch.stack(new_attr)
