@@ -131,7 +131,7 @@ class DataloaderFactory:
 
         if labelwise:
             from torch.utils.data.sampler import WeightedRandomSampler
-            weights = train_dataset.make_weights(dataset=name)
+            weights = train_dataset.make_weights(dataset=name, method=method)
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

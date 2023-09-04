@@ -123,7 +123,7 @@ class GenericDataset(data.Dataset):
         if 'spucobirds' in dataset :
             weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
         elif self.root != './data/jigsaw':
-            if method == 'fairhsic':
+            if method == 'fairhsic' or method == 'kd_indiv_ukn3':
                 group_weights = len(self) / self.n_data.sum(axis=0)
                 weights = [group_weights[int(feature[1])] for feature in self.features]
 #             elif method == 'cgdro_new':
