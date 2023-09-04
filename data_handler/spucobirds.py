@@ -237,7 +237,8 @@ class SpuCoBirds(BaseSpuCoDataset, GenericDataset):
         label_noise: float = 0.0,
         split: str = TRAIN_SPLIT,
         transform: Optional[Callable] = None,
-        verbose: bool = False
+        verbose: bool = False,
+        num_aug: int = 1
     ):
         """
         Initializes the dataset.
@@ -272,6 +273,7 @@ class SpuCoBirds(BaseSpuCoDataset, GenericDataset):
         self.label_noise = label_noise
         self.num_groups = 2
         self.test_pair = False
+        self.num_aug = num_aug
 
     def load_data(self) -> SourceData:
         """
@@ -292,7 +294,6 @@ class SpuCoBirds(BaseSpuCoDataset, GenericDataset):
             
         try:
             self.data = SourceData()
-            
             # Landbirds Land 
             landbirds_land = os.listdir(os.path.join(self.dset_dir, f"{LANDBIRDS}/{LAND}"))
             self.data.X.extend([str(os.path.join(self.dset_dir, f"{LANDBIRDS}/{LAND}", x)) for x in landbirds_land])

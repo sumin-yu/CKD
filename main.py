@@ -30,6 +30,7 @@ def main():
     log_dir = os.path.join(args.log_dir, args.date, dataset, args.method)
     check_log_dir(save_dir)
     check_log_dir(log_dir)    
+    print(log_dir, log_name)
     ########################## get dataloader ################################
     
     tmp = data_handler.DataloaderFactory.get_dataloader(args.dataset, img_size=args.img_size,
@@ -40,6 +41,7 @@ def main():
                                                         skew_ratio=args.skew_ratio,
                                                         labelwise=args.labelwise,
                                                         method=args.method,
+                                                        num_aug=args.num_aug
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

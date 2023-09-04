@@ -10,7 +10,6 @@ from functools import partial
 from torchvision.datasets.utils import download_file_from_google_drive, check_integrity, verify_str_arg
 from data_handler.dataset_factory import GenericDataset
 
-
 class CelebA(GenericDataset):
     base_folder = "celeba"
     # There currently does not appear to be a easy way to extract 7z in python (without introducing additional
@@ -30,9 +29,10 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male'):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
+        self.num_aug=num_aug
         self.test_pair = False
         if isinstance(target_type, list):
             self.target_type = target_type

@@ -35,7 +35,8 @@ def get_args():
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
                                  'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
-                                 'kd_indiv_ukn1', 'kd_indiv_ukn2',
+                                 'kd_indiv_logit_pairing',
+                                 'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
@@ -48,9 +49,11 @@ def get_args():
     parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
     parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')
     parser.add_argument('--lambf', default=1, type=float, help='feature distill strength hyperparameter')
+    parser.add_argument('--gamma', default=0, type=float, help='lopgitpairing strength hyperparameter for MFD-indiv')
     parser.add_argument('--rho', default=0.5, type=float, help='the radioi of chi divergence ball')
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
+    parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation for MFD_indiv')
 
     parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')

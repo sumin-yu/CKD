@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None,num_aug=1):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -21,7 +21,7 @@ class DatasetFactory:
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug)
         elif name == "celeba_aug2":
             from data_handler.celeba_aug2 import CelebA_aug
             root='./data/'
@@ -69,7 +69,7 @@ class DatasetFactory:
         elif name == 'spucobirds_aug':
             from data_handler.spucobirds_aug import SpuCoBirds_aug
             root = './data/spuco'
-            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
+            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform,num_aug=num_aug)
             dataset.initialize()
             return dataset
         elif name == "spucobirds_aug_filtered":
@@ -133,7 +133,7 @@ class GenericDataset(data.Dataset):
         if 'spucobirds' in dataset :
             weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
         elif self.root != './data/jigsaw':
-            if method == 'fairhsic':
+            if method == 'fairhsic' or method == 'kd_indiv_ukn3':
                 group_weights = len(self) / self.n_data.sum(axis=0)
                 weights = [group_weights[int(feature[1])] for feature in self.features]
 #             elif method == 'cgdro_new':
