@@ -31,7 +31,6 @@ class CelebA_aug(CelebA):
         feature = self.attr[index, self.feature_idx]
 
         if self.transform is not None:
-            X = image
             if self.split == 'train':
                 if self.num_aug == 1:
                     X = self.transform(X)
@@ -49,6 +48,7 @@ class CelebA_aug(CelebA):
                     X = self.transform(X)
                     X = torch.stack(X) 
                 else:
+                    X = self.transform(X)
                     X = X[0]
                 
         return X, feature, sensitive, target, (index, img_name)

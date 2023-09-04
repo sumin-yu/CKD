@@ -33,6 +33,7 @@ class CelebA_aug(CelebA):
                 sensitive = 0 if sensitive == 1 else 1
                 X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB') if sensitive == 0 else PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_w", img_name)).convert('RGB')
                 target = self.attr[index, self.target_idx]
+                X_edited = ImageOps.fit(X_edited, (256, 256), method=Image.LANCZOS)
                 X = [X_edited]
             else:
                 X_edited1 = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender_ukn_m", img_name)).convert('RGB')
@@ -65,7 +66,7 @@ class CelebA_aug(CelebA):
 
         if self.transform is not None:
             X = self.transform(X)
-            X = torch.stack(X) if (self.split == 'train' or self.test_pair) else X[0]
+            X = torch.stack(X) if (self.split == 'train' or self.test_pair) and (self.method != 'scratch') else X[0]
             
         return X, feature, sensitive, target, (index, img_name)
 

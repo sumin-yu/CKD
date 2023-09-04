@@ -18,6 +18,7 @@ class Trainer(trainer.GenericTrainer):
         self.lambf = args.lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
+        self.gamma = args.gamma
         self.batch_size = args.batch_size
         self.num_aug = args.num_aug
 
@@ -88,7 +89,12 @@ class Trainer(trainer.GenericTrainer):
             f_t = t_outputs[-2]
             mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels) if self.lambf != 0 else 0
 
-            loss = loss + mmd_loss
+            ft_batch_size = int(inputs.shape[0] / 2)
+            ft_logit = logits_tot[:ft_batch_size]
+            ctf_logit = logits_tot[ft_batch_size:]
+            pairing_loss = (ft_logit-ctf_logit).norm(2).pow(2)
+
+            loss = loss + mmd_loss + self.gamma * pairing_loss
             running_loss += loss.item()
             running_acc += get_accuracy(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
 

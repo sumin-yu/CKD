@@ -83,6 +83,7 @@ class Trainer(trainer.Trainer):
             
             f_s = s_outputs[-2]
             f_t = t_outputs[-2]
+            
             mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss

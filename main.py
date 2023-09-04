@@ -30,6 +30,7 @@ def main():
     log_dir = os.path.join(args.log_dir, args.date, dataset, args.method)
     check_log_dir(save_dir)
     check_log_dir(log_dir)    
+    print(log_dir, log_name)
     ########################## get dataloader ################################
     
     tmp = data_handler.DataloaderFactory.get_dataloader(args.dataset, img_size=args.img_size,
