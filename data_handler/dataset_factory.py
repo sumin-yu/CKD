@@ -38,6 +38,11 @@ class DatasetFactory:
             from data_handler.celeba_aug_ukn_wo_org import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == 'celeba_aug_filtered':
+            from data_handler.celeba_aug_filtered import CelebA_aug
+            root='./data/'
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+
 
         
         elif name == "cifar10":
@@ -67,7 +72,12 @@ class DatasetFactory:
             dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
             dataset.initialize()
             return dataset
-
+        elif name == "spucobirds_aug_filtered":
+            from data_handler.spucobirds_aug_filtered import SpuCoBirds_aug
+            root = './data/spuco'
+            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
+            dataset.initialize()
+            return dataset
 
 
 class GenericDataset(data.Dataset):

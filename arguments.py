@@ -20,8 +20,8 @@ def get_args():
 
     parser.add_argument('--dataset', required=True, default='',
                         choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
-                                 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org',
-                                 'spucobirds', 'spucobirds_aug'])
+                                 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
+                                 'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
@@ -72,7 +72,6 @@ def get_args():
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
     parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
     parser.add_argument('--labelwise', default=False, action='store_true', help='labelwise loader')
-    parser.add_argument('--jointfeature', default=False, action='store_true', help='mmd with both joint')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
 
@@ -81,6 +80,8 @@ def get_args():
     parser.add_argument('--auditor-nsteps', default=100, type=int, help='auditor nsteps for SenSeI')
     parser.add_argument('--auditor-lr', default=1e-3, type=float, help='auditor lr for SenSeI')
     parser.add_argument('--epochs-dist', default=10, type=int, help='epochs for distance metric learning')
+
+    parser.add_argument('--clip-filtering', default=False, action='store_true', help='apply clip based filtering on generated counterfactual images')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

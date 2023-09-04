@@ -20,7 +20,7 @@ class Trainer(trainer.GenericTrainer):
         self.sigma = args.sigma
         self.kernel = args.kernel
         self.batch_size = args.batch_size
-        self.jointfeature = args.jointfeature
+        self.clip_filtering = args.clip_filtering
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
@@ -62,12 +62,23 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, _ = data 
+            inputs, _, groups, targets, filter_indicator = data 
+            batch_size = inputs.shape[0]
             inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+
+            mmd_idx = torch.arange(2*batch_size)
+            if self.clip_filtering:
+                ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
+                filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
+                inputs = inputs[filtered_idx,:,:,:]
+                groups = groups[filtered_idx]
+                targets = targets[filtered_idx]
+
+                mmd_idx = torch.cat(ctf_idx_.type(torch.LongTensor), torch.arange(batch_size, batch_size+ctf_idx_.shape[0]))
 
             labels = targets 
 
@@ -84,11 +95,11 @@ class Trainer(trainer.GenericTrainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            loss = self.criterion(logits_tot[:len(logits_tot)//2], labels[:len(labels)//2])
+            loss = self.criterion(logits_tot[:batch_size], labels[:batch_size])
 
-            f_s = s_outputs[-2]
-            f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            f_s = s_outputs[-2][mmd_idx]
+            f_t = t_outputs[-2][mmd_idx]
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx]) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()

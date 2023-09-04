@@ -16,37 +16,6 @@ class Trainer(trainer.Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
 
-    # def train(self, train_loader, val_loader, test_loader, epochs):
-
-    #     num_classes = train_loader.dataset.num_classes
-    #     num_groups = train_loader.dataset.num_groups
-    #     num_aug = 1
-
-    #     distiller = MMDLoss(w_m=self.lambf, sigma=self.sigma, batch_size=self.batch_size,
-    #                         num_classes=num_classes, num_groups=num_groups, num_aug=num_aug, kernel=self.kernel)
-
-    #     for epoch in range(self.epochs):
-    #         self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller, num_aug=num_aug, num_groups=num_groups)
-
-    #         val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
-    #         print('[{}/{}] Method: {} '
-    #                 'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
-    #                 (epoch + 1, epochs, self.method,
-    #                 val_loss, val_acc, val_deopp))
-            
-    #         eval_start_time = time.time()
-    #         eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
-    #         eval_end_time = time.time()
-    #         print('[{}/{}] Method: {} '
-    #               'Test Loss: {:.3f} Test Acc: {:.2f} Test DEopp {:.2f} [{:.2f} s]'.format
-    #               (epoch + 1, epochs, self.method,
-    #                eval_loss, eval_acc, eval_deopp, (eval_end_time - eval_start_time)))
-
-    #         if self.scheduler != None:
-    #             self.scheduler.step(eval_loss)
-
-    #     print('Training Finished!')
-
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_aug=1, num_groups=2):
         model.train()
         teacher.eval()
@@ -57,12 +26,23 @@ class Trainer(trainer.Trainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, _ = data 
+            inputs, _, groups, targets, filter_indicator = data 
+            batch_size = inputs.shape[0]
             inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
 
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+
+            mmd_idx = torch.arange(2*batch_size)
+            if self.clip_filtering:
+                ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
+                filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
+                inputs = inputs[filtered_idx,:,:,:]
+                groups = groups[filtered_idx]
+                targets = targets[filtered_idx]
+
+                mmd_idx = torch.cat(ctf_idx_.type(torch.LongTensor), torch.arange(batch_size, batch_size+ctf_idx_.shape[0]))
 
             labels = targets 
 
@@ -81,9 +61,9 @@ class Trainer(trainer.Trainer):
 
             loss = self.criterion(logits_tot, labels)
             
-            f_s = s_outputs[-2]
-            f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            f_s = s_outputs[-2][mmd_idx]
+            f_t = t_outputs[-2][mmd_idx]
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx]) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()

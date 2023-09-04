@@ -88,11 +88,12 @@ class DataloaderFactory:
             mean = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]
             train_transform = partial(custom_transform,
-                                      resize=True, img_resize=256, 
+                                      resize=True, 
                                       rand_crop=True, img_size=224,
+                                      flip_horizon=True,
                                       normalize=True, mean=mean, std=std)
             test_transform = partial(custom_transform,
-                                     resize=True, img_resize=256,
+                                     resize=True, 
                                       normalize=True, mean=mean, std=std)
             valid_transform = test_transform
         
