@@ -77,7 +77,7 @@ class Trainer(trainer.GenericTrainer):
                 groups = groups[filtered_idx]
                 targets = targets[filtered_idx]
 
-                mmd_idx = torch.cat(ctf_idx_.type(torch.LongTensor), torch.arange(batch_size, batch_size+ctf_idx_.shape[0]))
+                mmd_idx = torch.cat((ctf_idx_.type(torch.LongTensor), torch.arange(batch_size, batch_size+ctf_idx_.shape[0])))
 
             labels = targets 
 
@@ -98,7 +98,7 @@ class Trainer(trainer.GenericTrainer):
 
             f_s = s_outputs[-2][mmd_idx]
             f_t = t_outputs[-2][mmd_idx]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx]) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx], sample_num=ctf_idx_.shape[0]) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()
@@ -130,7 +130,7 @@ class MMDLoss(nn.Module):
         self.num_classes = num_classes
         self.kernel = kernel
 
-    def forward(self, f_s, f_t, groups, labels):
+    def forward(self, f_s, f_t, groups, labels, sample_num):
         if self.kernel == 'poly':
             student = F.normalize(f_s.view(f_s.shape[0], -1), dim=1)
             teacher = F.normalize(f_t.view(f_t.shape[0], -1), dim=1).detach()
@@ -143,14 +143,14 @@ class MMDLoss(nn.Module):
         with torch.no_grad():
             _, sigma_avg = self.pdist(teacher, student, sigma_base=self.sigma, kernel=self.kernel)
 
-        t_order = torch.arange(self.batch_size*self.num_aug*self.num_groups)
-        s_order = torch.arange(self.batch_size*self.num_aug)
-        t_order = t_order.reshape(-1, self.batch_size).transpose(0,1).flatten() # 0,batch_size,batch_size*2, batch_size*3, 1, batch_size+1, batch_size+2, batch_size+3,...
-        s_order = s_order.reshape(-1, self.batch_size).transpose(0,1).flatten() 
+        t_order = torch.arange(sample_num*self.num_aug*self.num_groups)
+        s_order = torch.arange(sample_num*self.num_aug)
+        t_order = t_order.reshape(-1, sample_num).transpose(0,1).flatten() # 0,batch_size,batch_size*2, batch_size*3, 1, batch_size+1, batch_size+2, batch_size+3,...
+        s_order = s_order.reshape(-1, sample_num).transpose(0,1).flatten() 
 
-        t_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug*self.num_groups, dtype=torch.int).cuda()
-        s_ref = torch.ones(self.batch_size, self.num_aug,self.num_aug, dtype=torch.int).cuda()
-        ts_ref = torch.ones(self.batch_size, self.num_aug*self.num_groups,self.num_aug, dtype=torch.int).cuda()
+        t_ref = torch.ones(sample_num, self.num_aug*self.num_groups,self.num_aug*self.num_groups, dtype=torch.int).cuda()
+        s_ref = torch.ones(sample_num, self.num_aug,self.num_aug, dtype=torch.int).cuda()
+        ts_ref = torch.ones(sample_num, self.num_aug*self.num_groups,self.num_aug, dtype=torch.int).cuda()
         t_ref = torch.block_diag(*t_ref)
         s_ref = torch.block_diag(*s_ref)
         ts_ref = torch.block_diag(*ts_ref)
