@@ -35,6 +35,7 @@ def get_args():
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
                                  'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_indiv_output',
                                  'kd_indiv_logit_pairing',
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
                                  'kd_hinton_aug', 'kd_fitnet_aug',

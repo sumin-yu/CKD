@@ -42,6 +42,8 @@ class TrainerFactory:
             import trainer.kd_mfd_ctf_ukn as trainer
         elif method == 'kd_indiv':
             import trainer.kd_indiv as trainer
+        elif method == 'kd_indiv_output':
+            import trainer.kd_indiv_output as trainer
         elif method == 'kd_indiv_aug':
             import trainer.kd_indiv_aug as trainer
         elif method == 'kd_indiv_multi':
