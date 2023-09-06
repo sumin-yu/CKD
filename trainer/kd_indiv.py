@@ -108,7 +108,7 @@ class Trainer(trainer.GenericTrainer):
                 batch_start_time = time.time()
 
 class MMDLoss(nn.Module):
-    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel, num_aug):
+    def __init__(self, w_m, batch_size, sigma, num_groups, num_classes, kernel, num_aug=1):
         super(MMDLoss, self).__init__()
         self.w_m = w_m
         self.sigma = sigma
