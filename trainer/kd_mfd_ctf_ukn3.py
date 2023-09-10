@@ -5,11 +5,15 @@ import torch.nn.functional as F
 import torch.nn as nn
 import time
 from utils import get_accuracy
-from trainer.kd_mfd import Trainer as mfd_Trainer
+from trainer.kd_mfd_ctf import Trainer as mfd_ctf_Trainer
 from trainer.loss_utils import compute_hinton_loss
 
-class Trainer(mfd_Trainer):
-
+class Trainer(mfd_ctf_Trainer):
+    def __init__(self, args, **kwargs):
+        super().__init__(args, **kwargs)
+        if 'wo_org' not in args.dataset:
+            raise ValueError
+        
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None):
         model.train()
         teacher.eval()
@@ -45,7 +49,7 @@ class Trainer(mfd_Trainer):
                                           kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
             # loss = self.criterion(stu_logits, labels)
-            loss = self.criterion(stu_logits[:int(stu_logits.shape[0]/2)], labels[:int(labels.shape[0]/2)])
+            loss = self.criterion(stu_logits, labels)
             loss = loss + self.lambh * kd_loss
 
             f_s = outputs[-2]

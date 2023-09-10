@@ -18,6 +18,10 @@ class DatasetFactory:
             from data_handler.celeba import CelebA
             root='./data/'
             return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == "celeba_pseudo":
+            from data_handler.celeba_pseudo import CelebA_pseudo
+            root='./data/'
+            return CelebA_pseudo(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
@@ -38,8 +42,6 @@ class DatasetFactory:
             from data_handler.celeba_aug_ukn_wo_org import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-
-        
         elif name == "cifar10":
             from data_handler.cifar10 import CIFAR_10S
             root = './data_cifar'
@@ -54,7 +56,6 @@ class DatasetFactory:
             root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
                                 labelwise=labelwise)
-        
         elif name == "spucobirds":
             from data_handler.spucobirds import SpuCoBirds
             root = './data/spuco'
@@ -123,7 +124,7 @@ class GenericDataset(data.Dataset):
         if 'spucobirds' in dataset :
             weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
         elif self.root != './data/jigsaw':
-            if method == 'fairhsic' or method == 'kd_indiv_ukn3':
+            if method == 'fairhsic' or method == 'kd_indiv_ukn3' or method == 'kd_mfd_ctf_ukn3':
                 group_weights = len(self) / self.n_data.sum(axis=0)
                 weights = [group_weights[int(feature[1])] for feature in self.features]
 #             elif method == 'cgdro_new':

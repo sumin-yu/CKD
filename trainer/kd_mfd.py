@@ -16,7 +16,6 @@ class Trainer(hinton_Trainer):
         self.lambf = args.lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
-        self.jointfeature = args.jointfeature
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
@@ -82,7 +81,7 @@ class Trainer(hinton_Trainer):
 
             f_s = outputs[-2]
             f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature)
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels)
 
             loss = loss + mmd_loss
             running_loss += loss.item()

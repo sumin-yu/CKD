@@ -16,6 +16,9 @@ import os
 class Trainer(indiv_Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
+        if 'wo_org' not in args.dataset:
+            raise ValueError
+
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 

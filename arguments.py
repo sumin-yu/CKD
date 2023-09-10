@@ -21,7 +21,7 @@ def get_args():
     parser.add_argument('--dataset', required=True, default='',
                         choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org',
-                                 'spucobirds', 'spucobirds_aug'])
+                                 'spucobirds', 'spucobirds_aug', 'celeba_pseudo'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
-                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
                                  'kd_indiv_output',
                                  'kd_indiv_logit_pairing',
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
