@@ -42,6 +42,8 @@ class TrainerFactory:
             import trainer.kd_mfd_ctf_ukn as trainer
         elif method == 'kd_mfd_ctf_ukn3':
             import trainer.kd_mfd_ctf_ukn3 as trainer
+        elif method == 'kd_mfd_logit_pairing':
+            import trainer.kd_mfd_logit_pairing as trainer
         elif method == 'kd_indiv':
             import trainer.kd_indiv as trainer
         elif method == 'kd_indiv_output':

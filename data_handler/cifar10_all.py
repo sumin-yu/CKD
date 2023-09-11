@@ -19,7 +19,7 @@ def rgb_to_grayscale(img):
 
 class CIFAR_10S(VisionDataset):
     def __init__(self, root, split='train', transform=None, target_transform=None,
-                 seed=0, skewed_ratio=0.8, labelwise=False, tuning=False):
+                 seed=0, skewed_ratio=0.8, sampling='noBal', tuning=False):
         super(CIFAR_10S, self).__init__(root, transform=transform, target_transform=target_transform)
 
         self.split = split
@@ -36,11 +36,11 @@ class CIFAR_10S(VisionDataset):
         self.dataset['color'] = np.array(colors)
 
         self._get_label_list()
-        self.labelwise = labelwise
+        self.sampling = sampling
 
         self.num_data = data_count
 
-        if self.labelwise:
+        if self.sampling != 'noBal':
             self.idx_map = self._make_idx_map()
 
     def _make_idx_map(self):
@@ -72,7 +72,7 @@ class CIFAR_10S(VisionDataset):
         return len(self.dataset['image'])
 
     def __getitem__(self, index):
-        if self.labelwise:
+        if self.sampling != noBal:
             index = self.idx_map[index]
         image = self.dataset['image'][index]
         label = self.dataset['label'][index]

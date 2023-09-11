@@ -223,7 +223,7 @@ def make_log_name(args):
             log_name += '_eps{}'.format(args.sensei_eps)
             log_name += '_nsteps{}'.format(args.auditor_nsteps)
         
-        if args.method == 'kd_indiv_logit_pairing':
+        if args.method == 'kd_indiv_logit_pairing' or args.method == 'kd_mfd_logit_pairing':
             log_name += f'_gamma{args.gamma}'
 
         if args.teacher_path is not None:
@@ -233,8 +233,8 @@ def make_log_name(args):
         if args.num_aug > 1:
             log_name += f'_aug{args.num_aug}'
 
-        if args.labelwise:
-            log_name += '_labelwise'
+        if args.sampling != 'noBal':
+            log_name += f'_{args.sampling}'
 
     return log_name
 

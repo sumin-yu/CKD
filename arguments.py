@@ -35,6 +35,7 @@ def get_args():
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
                                  'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_mfd_logit_pairing',
                                  'kd_indiv_output',
                                  'kd_indiv_logit_pairing',
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
@@ -75,7 +76,7 @@ def get_args():
 
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
     parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
-    parser.add_argument('--labelwise', default=False, action='store_true', help='labelwise loader')
+    parser.add_argument('--sampling', default='noBal', type=str, choices=['noBal', 'gBal','cBal', 'gcBal'], help='balanced sampling')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
 
