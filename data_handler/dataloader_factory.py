@@ -43,7 +43,7 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., labelwise=False, method=None, num_aug=1):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., labelwise=False, method=None, num_aug=1, img_cfg=2.0):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -88,7 +88,6 @@ class DataloaderFactory:
             mean = [0.485, 0.456, 0.406]
             std = [0.229, 0.224, 0.225]
             train_transform = partial(custom_transform,
-                                      resize=True, 
                                       rand_crop=True, img_size=224,
                                       flip_horizon=True,
                                       normalize=True, mean=mean, std=std)
@@ -97,6 +96,10 @@ class DataloaderFactory:
                                       normalize=True, mean=mean, std=std)
             valid_transform = test_transform
         
+        elif 'raf' in name:
+            train_transform = partial(custom_transform, rand_crop=True, img_size=96, flip_horizon=True)
+            test_transform = partial(custom_transform, resize=True, img_size=96)
+            valid_transform = test_transform
         # else:
         #     transform_list = [transforms.Resize((256,256)),
         #                       transforms.RandomCrop(img_size),
@@ -116,13 +119,11 @@ class DataloaderFactory:
         # preprocessing = transforms.Compose(transform_list)
         # test_preprocessing = transforms.Compose(test_transform_list)
 
-        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive,
-                                                    seed=seed, skew_ratio=skew_ratio)
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive,
-                                                    seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug)
+
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio)
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug, img_cfg=img_cfg)
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive,
-                                                seed=seed, skew_ratio=skew_ratio)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))

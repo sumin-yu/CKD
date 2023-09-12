@@ -240,7 +240,7 @@ def make_log_name(args):
 
 def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
 
-    savepath = os.path.join(log_dir, log_name + '_{}_result'.format(dataset))
+    savepath = os.path.join(log_dir, log_name + '_{}_cfg{}_result'.format(dataset, args.test_img_cfg))
     result = {}
     result['acc'] = acc
     result['BMR'] = bmr

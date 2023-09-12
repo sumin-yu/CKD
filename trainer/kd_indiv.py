@@ -70,6 +70,7 @@ class Trainer(trainer.GenericTrainer):
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
             mmd_idx = torch.arange(2*batch_size)
+            mmd_sample_num = batch_size
             if self.clip_filtering:
                 ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
                 filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
@@ -78,6 +79,7 @@ class Trainer(trainer.GenericTrainer):
                 targets = targets[filtered_idx]
 
                 mmd_idx = torch.cat((ctf_idx_.type(torch.LongTensor), torch.arange(batch_size, batch_size+ctf_idx_.shape[0])))
+                mmd_sample_num = ctf_idx_.shape[0]
 
             labels = targets 
 
@@ -98,7 +100,7 @@ class Trainer(trainer.GenericTrainer):
 
             f_s = s_outputs[-2][mmd_idx]
             f_t = t_outputs[-2][mmd_idx]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx], sample_num=ctf_idx_.shape[0]) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx], sample_num=mmd_sample_num) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()

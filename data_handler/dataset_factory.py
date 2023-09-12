@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None,num_aug=1):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None,num_aug=1, img_cfg=2.0):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -17,11 +17,11 @@ class DatasetFactory:
         elif name == "celeba":
             from data_handler.celeba import CelebA
             root='./data/'
-            return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+            return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, img_cfg=img_cfg)
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug, img_cfg=img_cfg)
         elif name == "celeba_aug2":
             from data_handler.celeba_aug2 import CelebA_aug
             root='./data/'
@@ -78,6 +78,15 @@ class DatasetFactory:
             dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
             dataset.initialize()
             return dataset
+        
+        elif name =='raf':
+            from data_handler.raf import RAF
+            root = './data/rafdb'
+            return RAF(root=root, split=split, transform=transform, img_cfg=img_cfg)
+        elif name =='raf_aug':
+            from data_handler.raf_aug import RAF_aug
+            root = './data/rafdb'
+            return RAF_aug(root=root, split=split, transform=transform, num_aug=num_aug, img_cfg=img_cfg)
 
 
 class GenericDataset(data.Dataset):

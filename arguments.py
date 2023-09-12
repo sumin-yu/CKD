@@ -21,7 +21,8 @@ def get_args():
     parser.add_argument('--dataset', required=True, default='',
                         choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
-                                 'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered'])
+                                 'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
+                                 'raf', 'raf_aug'])
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
@@ -85,6 +86,7 @@ def get_args():
     parser.add_argument('--epochs-dist', default=10, type=int, help='epochs for distance metric learning')
 
     parser.add_argument('--clip-filtering', default=False, action='store_true', help='apply clip based filtering on generated counterfactual images')
+    parser.add_argument('--test-img-cfg', default=2.0, type=float, help='test ctf image cfg')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

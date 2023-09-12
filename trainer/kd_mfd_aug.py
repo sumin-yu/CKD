@@ -19,7 +19,6 @@ class Trainer(hinton_Trainer):
         self.lambf = args.lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
-        self.jointfeature = args.jointfeature
         self.clip_filtering = args.clip_filtering
 
 
@@ -105,7 +104,7 @@ class Trainer(hinton_Trainer):
             # mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
             f_s = s_outputs[-2][mmd_idx]
             f_t = t_outputs[-2][mmd_idx]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx], jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups[mmd_idx], labels=labels[mmd_idx]) if self.lambf != 0 else 0
 
             loss = loss + mmd_loss
             running_loss += loss.item()

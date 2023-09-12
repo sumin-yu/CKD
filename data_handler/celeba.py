@@ -29,11 +29,14 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1, img_cfg=2.0):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
         self.num_aug=num_aug
         self.test_pair = False
+        self.img_cfg = img_cfg
+        self.ctf_dir = "img_align_celeba_edited_gender"
+        self.test_ctf_dir = "img_align_celeba_edited_gender" if self.img_cfg == 2.0 else "img_align_celeba_edited_gender_testcfg1.8"
         if isinstance(target_type, list):
             self.target_type = target_type
         else:
@@ -108,7 +111,7 @@ class CelebA(GenericDataset):
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.test_pair:
-            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
+            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.test_ctf_dir, img_name)).convert('RGB')
             X =  [X, X_edited]
             target = self.attr[index, self.target_idx]
             target = torch.Tensor([target, target])
