@@ -16,3 +16,12 @@ run_trash/*
 data_cifar/*
 slack_sender.py
 *.png
+
+t
+tt
+ttt
+t_eval
+
+mahalanobis_dist.py
+mahalanobis_sigma_model_scratch_aug_loadnum_20_iter4_batch8
+mahalanobis_sigma_model_scratch_loadnum_20_iter4_batch8
