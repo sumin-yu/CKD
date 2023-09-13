@@ -6,18 +6,22 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., labelwise=False, method=None,num_aug=1, img_cfg=2.0):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=1., sampling='noBal', method=None,num_aug=1, img_cfg=2.0):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
             root = './data/UTKFace'
             return UTKFaceDataset(root=root, split=split, transform=transform,
-                                  labelwise=labelwise)
+                                  sampling=sampling)
 
         elif name == "celeba":
             from data_handler.celeba import CelebA
             root='./data/'
             return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, img_cfg=img_cfg)
+        elif name == "celeba_pseudo":
+            from data_handler.celeba_pseudo import CelebA_pseudo
+            root='./data/'
+            return CelebA_pseudo(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
@@ -58,8 +62,7 @@ class DatasetFactory:
             from data_handler.cifar10_all import CIFAR_10S
             root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                                labelwise=labelwise)
-        
+                                sampling=sampling)
         elif name == "spucobirds":
             from data_handler.spucobirds import SpuCoBirds
             root = './data/spuco'
@@ -138,28 +141,19 @@ class GenericDataset(data.Dataset):
         return train_data, test_data
     
 
-    def make_weights(self, method='kd_mfd', dataset='spucobirds'):
+    def make_weights(self, method='kd_mfd', dataset='spucobirds', sampling='noBal'):
         if 'spucobirds' in dataset :
             weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
-        elif self.root != './data/jigsaw':
-            if method == 'fairhsic' or method == 'kd_indiv_ukn3':
+        else:
+            # if method == 'fairhsic' or 'kd_indiv_ukn3' or 'kd_mfd_ctf_ukn3':
+            if sampling == 'cBal':
                 group_weights = len(self) / self.n_data.sum(axis=0)
                 weights = [group_weights[int(feature[1])] for feature in self.features]
-#             elif method == 'cgdro_new':
-#                 weights = self.n_data.sum(axis=0) / self.n_data
-#                 weights = [group_weights[int(feature[0]),int(feature[1])] for feature in self.features] 
-            else:
+            elif sampling == 'gcBal':
                 group_weights = len(self) / self.n_data
                 weights = [group_weights[int(feature[0]),int(feature[1])] for feature in self.features]
-        else:
-            if method == 'fairhsic':
-                group_weights = len(self) / self.n_data.sum(axis=0)
-                weights = [group_weights[l] for g,l in zip(self.g_array,self.y_array)]
-#             elif method == 'cgdro_new':
-#                 weights = self.n_data.sum(axis=0) / self.n_data
-#                 weights = [group_weights[g,l] for g,l in zip(self.g_array,self.y_array)]
-            else:
-                group_weights = len(self) / self.n_data
-                weights = [group_weights[g,l] for g,l in zip(self.g_array,self.y_array)]
+            if sampling == 'gBal':
+                group_weights = len(self) / self.n_data.sum(axis=1)
+                weights = [group_weights[int(feature[0])] for feature in self.features]
         return weights 
     

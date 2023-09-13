@@ -5,11 +5,17 @@ import torch.nn.functional as F
 import torch.nn as nn
 import time
 from utils import get_accuracy
-from trainer.kd_mfd_ctf import Trainer as mfd_ctf_Trainer
+from trainer.kd_mfd import Trainer as mfd_Trainer
 from trainer.loss_utils import compute_hinton_loss
 
 
-class Trainer(mfd_ctf_Trainer):
+class Trainer(mfd_Trainer):
+    def __init__(self, args, **kwargs):
+        super().__init__(args=args, **kwargs)
+        self.gamma = args.gamma
+        if 'aug' not in args.dataset:
+            raise ValueError
+
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None):
         model.train()
         teacher.eval()
@@ -21,13 +27,13 @@ class Trainer(mfd_ctf_Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+            inputs = inputs.permute((1,0,2,3,4))  # num_aug x 128 x ...
+            inputs = inputs.contiguous().view(-1, *inputs.shape[2:]) # (num_augx128) x ...
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
-            labels = targets 
+            labels = targets
 
             if self.cuda:
                 inputs = inputs.cuda(self.device)
@@ -44,17 +50,20 @@ class Trainer(mfd_ctf_Trainer):
             kd_loss = compute_hinton_loss(stu_logits, t_outputs=tea_logits,
                                           kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
-            # loss = self.criterion(stu_logits, labels)
-            loss = self.criterion(stu_logits[:self.batch_size], labels[:self.batch_size])
+            ft_batch_size = int(inputs.shape[0] / 2)
+
+            loss = self.criterion(stu_logits[:ft_batch_size], labels[:ft_batch_size])
             loss = loss + self.lambh * kd_loss
 
-            f_s = outputs[-2][self.batch_size:]
-            f_t = t_outputs[-2][self.batch_size:]
-            groups_aug = groups[self.batch_size:]
-            labels_aug = labels[self.batch_size:]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups_aug, labels=labels_aug)
+            f_s = outputs[-2]
+            f_t = t_outputs[-2]
+            mmd_loss = distiller.forward(f_s[:ft_batch_size], f_t[:ft_batch_size], groups=groups[:ft_batch_size], labels=labels[:ft_batch_size])
 
-            loss = loss + mmd_loss
+            ft_logit = stu_logits[:ft_batch_size]
+            ctf_logit = stu_logits[ft_batch_size:]
+            pairing_loss = (ft_logit-ctf_logit).norm(2).pow(2)
+
+            loss = loss + mmd_loss + self.gamma * pairing_loss
             running_loss += loss.item()
             running_acc += get_accuracy(stu_logits, labels)
 
@@ -72,3 +81,6 @@ class Trainer(mfd_ctf_Trainer):
                 running_loss = 0.0
                 running_acc = 0.0
                 batch_start_time = time.time()
+
+        # if not self.no_annealing:
+        #     self.lambh = self.lambh - 3 / (self.epochs - 1)

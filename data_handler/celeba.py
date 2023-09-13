@@ -107,30 +107,25 @@ class CelebA(GenericDataset):
             f.extractall(os.path.join(self.root, self.base_folder))
 
     def __getitem__(self, index):
-        img_name = self.filename[index]
+        sensitive, target, img_name = self.features[index]
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.test_pair:
             X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.test_ctf_dir, img_name)).convert('RGB')
             X =  [X, X_edited]
-            target = self.attr[index, self.target_idx]
             target = torch.Tensor([target, target])
-            sensitive = self.attr[index, self.sensi_idx]
             sensitive = torch.Tensor([sensitive, 0 if sensitive ==1 else 1])
         else:
             X = [X]
-            target = self.attr[index, self.target_idx]
-            sensitive = self.attr[index, self.sensi_idx]
 
-        feature = self.attr[index, self.feature_idx]
         if self.transform is not None:
             X = self.transform(X)
             X = torch.stack(X) if (self.test_pair) else X[0]
 
-        return X, feature, sensitive, target, (index, img_name)
+        return X, 0, sensitive, target, (index, img_name)
 
     def __len__(self):
-        return len(self.attr)
+        return len(self.features)
 
     # def _balance_test_data(self):
     #     num_data_min = np.min(self.num_data)

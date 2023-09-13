@@ -43,7 +43,7 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., labelwise=False, method=None, num_aug=1, img_cfg=2.0):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, img_cfg=2.0):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -131,9 +131,9 @@ class DataloaderFactory:
         n_classes = test_dataset.num_classes
         n_groups = test_dataset.num_groups
 
-        if labelwise:
+        if sampling != 'noBal':
             from torch.utils.data.sampler import WeightedRandomSampler
-            weights = train_dataset.make_weights(dataset=name, method=method)
+            weights = train_dataset.make_weights(dataset=name, method=method, sampling=sampling)
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

@@ -8,8 +8,12 @@ from utils import get_accuracy
 from trainer.kd_mfd_ctf import Trainer as mfd_ctf_Trainer
 from trainer.loss_utils import compute_hinton_loss
 
-
 class Trainer(mfd_ctf_Trainer):
+    def __init__(self, args, **kwargs):
+        super().__init__(args, **kwargs)
+        if 'wo_org' not in args.dataset:
+            raise ValueError
+        
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None):
         model.train()
         teacher.eval()
@@ -45,14 +49,12 @@ class Trainer(mfd_ctf_Trainer):
                                           kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
             # loss = self.criterion(stu_logits, labels)
-            loss = self.criterion(stu_logits[:self.batch_size], labels[:self.batch_size])
+            loss = self.criterion(stu_logits, labels)
             loss = loss + self.lambh * kd_loss
 
-            f_s = outputs[-2][self.batch_size:]
-            f_t = t_outputs[-2][self.batch_size:]
-            groups_aug = groups[self.batch_size:]
-            labels_aug = labels[self.batch_size:]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups_aug, labels=labels_aug)
+            f_s = outputs[-2]
+            f_t = t_outputs[-2]
+            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels)
 
             loss = loss + mmd_loss
             running_loss += loss.item()

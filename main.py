@@ -39,7 +39,7 @@ def main():
                                                         target=args.target,
                                                         sensitive=args.sensitive,
                                                         skew_ratio=args.skew_ratio,
-                                                        labelwise=args.labelwise,
+                                                        sampling=args.sampling,
                                                         method=args.method,
                                                         num_aug=args.num_aug,
                                                         img_cfg=args.test_img_cfg
