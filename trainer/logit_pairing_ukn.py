@@ -42,7 +42,7 @@ class Trainer(trainer.vanilla_train.Trainer):
             ft_batch_size = int(inputs.shape[0] / 3)
             ukn1_logit = outputs[ft_batch_size:ft_batch_size*2]
             ukn2_logit = outputs[ft_batch_size*2:]
-            pairing_loss = (ukn1_logit-ukn2_logit).norm(2).pow(2)
+            pairing_loss = torch.mean((ukn1_logit-ukn2_logit).pow(2))
 
             loss = celoss + self.lamb * pairing_loss
 

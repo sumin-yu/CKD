@@ -55,7 +55,7 @@ class Trainer(trainer.vanilla_train.Trainer):
 
             ft_logit = outputs[org_filtered_idx]
             ctf_logit = outputs[batch_size:]
-            pairing_loss = (ft_logit-ctf_logit).norm(2).pow(2)
+            pairing_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             loss = celoss + self.lamb * pairing_loss
 

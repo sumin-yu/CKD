@@ -8,7 +8,7 @@ import numpy as np
 import requests
 import torch
 import torchvision.transforms as transforms
-from PIL import Image
+from PIL import Image, ImageOps
 from tqdm import tqdm
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple
@@ -118,11 +118,14 @@ class SpuCoBirds_aug(SpuCoBirds):
         :return: The item at the given index.
         """
         index = self.indices[index]
-        image = [Image.open(self.data.X[index]).convert('RGB')]
+        X = Image.open(self.data.X[index]).convert('RGB')
+        X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
+        image = [X]
         target = self.data.labels[index]
         sensitive = self.spurious[index]
         if self.test_pair or self.split == 'train':
             ctf_image = Image.open(self.data.X_ctf[index]).convert('RGB')
+            ctf_image = ImageOps.fit(ctf_image, (256, 256), method=Image.LANCZOS)
             image = [image[0], ctf_image]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
