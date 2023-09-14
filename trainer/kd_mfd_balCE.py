@@ -11,9 +11,6 @@ from trainer.loss_utils import compute_hinton_loss
 
 class Trainer(hinton_Trainer):
     def __init__(self, args, **kwargs):
-        if 'aug' not in args.dataset:
-            raise ValueError
-        
         super().__init__(args=args, **kwargs)
         self.lambh = args.lambh
         self.lambf = args.lambf
