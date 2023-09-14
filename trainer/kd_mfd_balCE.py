@@ -11,11 +11,16 @@ from trainer.loss_utils import compute_hinton_loss
 
 class Trainer(hinton_Trainer):
     def __init__(self, args, **kwargs):
+        if 'aug' not in args.dataset:
+            raise ValueError
+        
         super().__init__(args=args, **kwargs)
         self.lambh = args.lambh
         self.lambf = args.lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
+        self.clip_filtering = args.clip_filtering
+
 
     def train(self, train_loader, val_loader, test_loader, epochs):
 
@@ -55,6 +60,11 @@ class Trainer(hinton_Trainer):
         running_loss = 0.0
         batch_start_time = time.time()
 
+        num_aug =1
+
+        n_classes = train_loader.dataset.num_classes
+        n_groups = train_loader.dataset.num_groups
+        n_subgroups = n_classes * n_groups
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data
@@ -66,26 +76,31 @@ class Trainer(hinton_Trainer):
                 groups = groups.long().cuda(self.device)
             t_inputs = inputs.to(self.t_device)
 
-            outputs = model(inputs, get_inter=True)
-            stu_logits = outputs[-1]
+            s_outputs = model(inputs, get_inter=True)
+            logits_tot = s_outputs[-1]
 
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(stu_logits, t_outputs=tea_logits,
-                                          kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
+            subgroups = groups * n_classes + labels
+            group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
+            group_count = group_map.sum(1)
+            group_denom = group_count + (group_count==0).float() # avoid nans
+            loss = nn.CrossEntropyLoss(reduction='none')(logits_tot, labels)
+            group_loss = (group_map @ loss.view(-1))/group_denom
+            loss = torch.mean(group_loss)
 
-            loss = self.criterion(stu_logits, labels)
-            loss = loss + self.lambh * kd_loss
-
-            f_s = outputs[-2]
+            # f_s = s_outputs[-2]
+            # f_t = t_outputs[-2]
+            # mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels, jointfeature=self.jointfeature) if self.lambf != 0 else 0
+            f_s = s_outputs[-2]
             f_t = t_outputs[-2]
             mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels)
 
             loss = loss + mmd_loss
             running_loss += loss.item()
-            running_acc += get_accuracy(stu_logits, labels)
-
+            running_acc += get_accuracy(logits_tot, labels)
+            
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -103,7 +118,6 @@ class Trainer(hinton_Trainer):
 
         # if not self.no_annealing:
         #     self.lambh = self.lambh - 3 / (self.epochs - 1)
-
 
 class MMDLoss(nn.Module):
     def __init__(self, w_m, sigma, num_groups, num_classes, kernel):
