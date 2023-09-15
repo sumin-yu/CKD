@@ -239,6 +239,9 @@ def make_log_name(args):
         if args.clip_filtering:
             log_name += '_cfiltering'
 
+        if 'celeba' in args.dataset:
+            log_name += '_{}'.format(args.target)
+
     return log_name
 
 def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
