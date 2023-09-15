@@ -34,6 +34,8 @@ class TrainerFactory:
             import trainer.kd_fitnet_aug as trainer
         elif method == 'kd_mfd':
             import trainer.kd_mfd as trainer
+        elif method == 'kd_mfd_balCE':
+            import trainer.kd_mfd_balCE as trainer
         elif method == 'kd_mfd_aug':
             import trainer.kd_mfd_aug as trainer
         elif method == 'kd_mfd_ctf':
