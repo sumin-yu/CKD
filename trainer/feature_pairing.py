@@ -62,7 +62,7 @@ class Trainer(trainer.vanilla_train.Trainer):
             loss = celoss + self.lamb * pairing_loss
 
             running_loss += loss.item()
-            running_acc += get_accuracy(outputs, labels)
+            running_acc += get_accuracy(logits, labels)
 
             self.optimizer.zero_grad()
             loss.backward()
