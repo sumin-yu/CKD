@@ -214,6 +214,8 @@ def make_log_name(args):
 
         elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
+        elif 'feature_pairing' in args.method: 
+            log_name += '_lambf{}'.format(args.lambf)
 
         elif 'cgdro' in args.method: 
             log_name += '_rho{}'.format(args.rho)
