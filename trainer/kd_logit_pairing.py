@@ -62,7 +62,7 @@ class Trainer(hinton_Trainer):
 
             celoss = self.criterion(stu_logits[:batch_size], labels[:batch_size])
 
-            t_target_logit = tea_logits[:batch_size] + tea_logits[batch_size:]
+            t_target_logit = (tea_logits[:batch_size] + tea_logits[batch_size:])/2
 
             ft_logit = stu_logits[org_filtered_idx]
             ctf_logit = stu_logits[batch_size:]
