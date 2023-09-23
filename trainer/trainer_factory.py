@@ -22,6 +22,8 @@ class TrainerFactory:
             import trainer.logit_pairing as trainer
         elif method == 'feature_pairing':
             import trainer.feature_pairing as trainer
+        elif method == 'feature_pairing_mmd':
+            import trainer.feature_pairing_mmd as trainer
         elif method == 'logit_pairing_ukn':
             import trainer.logit_pairing_ukn as trainer
         elif method == 'logit_pairing_aug':

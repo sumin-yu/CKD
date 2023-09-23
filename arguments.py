@@ -42,7 +42,7 @@ def get_args():
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
-                                 'feature_pairing',
+                                 'feature_pairing','feature_pairing_mmd',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
                                  'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro', 'sensei', 'group_predict'])
 
