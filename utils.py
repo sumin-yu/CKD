@@ -214,11 +214,18 @@ def make_log_name(args):
 
         elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
+
         elif 'feature_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
 
-        elif 'cgdro' in args.method: 
+        elif 'fairdro' in args.method: 
             log_name += '_rho{}'.format(args.rho)
+
+        elif 'grouprdo' in args.method: 
+            log_name += '_gamma{}'.format(args.gamma)
+
+        elif 'lbc' in args.method: 
+            log_name += '_iter{}_eta{}'.format(args.iter, args.eta)
 
         elif 'sensei' in args.method:
             log_name += '_rho{}'.format(args.sensei_rho)

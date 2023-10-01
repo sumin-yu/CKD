@@ -44,7 +44,7 @@ def get_args():
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'feature_pairing','feature_pairing_mmd',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro', 'sensei', 'group_predict'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'fairdro','groupdro', 'lbc','sensei', 'group_predict'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
@@ -73,8 +73,9 @@ def get_args():
 
     parser.add_argument('--fitnet-simul', default=False, action='store_true', help='no hint-training')
 
-    parser.add_argument('--eta', default=0.0003, type=float, help='adversary training learning rate')
+    parser.add_argument('--eta', default=0.0003, type=float, help='adversary training learning rate or lbc parameter')
     parser.add_argument('--adv-lambda', default=2.0, type=float, help='adversary loss strength')
+    parser.add_argument('--iter', default=5, type=int, help='# of iteraion for lbc')
 
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
     parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
