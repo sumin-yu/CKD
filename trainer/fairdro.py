@@ -33,8 +33,11 @@ class Trainer(trainer.GenericTrainer):
                                         pin_memory=True, 
                                         drop_last=False)
         
-        self.adv_probs = torch.ones(n_groups*n_classes).cuda() / n_groups*n_classes
-
+        self.adv_probs_dict = {}
+        for l in range(n_classes):
+            n_data = train_loader.dataset.n_data[:,l]
+            self.adv_probs_dict[l] = torch.ones(n_groups).cuda(device=self.device) / n_groups
+        
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, model)            
 
@@ -57,13 +60,11 @@ class Trainer(trainer.GenericTrainer):
         print('Training Finished!')        
 
     def _train_epoch(self, epoch, train_loader, model):
-
         model.train()
         
         running_acc = 0.0
         running_loss = 0.0
         batch_start_time = time.time()
-
         n_classes = train_loader.dataset.num_classes
         n_groups = train_loader.dataset.num_groups
         n_subgroups = n_classes * n_groups
@@ -81,28 +82,32 @@ class Trainer(trainer.GenericTrainer):
                 labels = labels.cuda(device=self.device)
                 groups = groups.cuda(device=self.device)
                 
-            subgroups = groups * n_classes + labels
-            outputs = model(inputs)
+            def closure():
+                subgroups = groups * n_classes + labels
+                outputs = model(inputs)
 
-            loss = self.train_criterion(outputs, labels)
-        
-            # calculate the groupwise losses
-            group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
-            group_count = group_map.sum(1)
-            group_denom = group_count + (group_count==0).float() # avoid nans
-            group_loss = (group_map @ loss.view(-1))/group_denom
-
-            # update q
-            self.adv_probs = self.adv_probs * torch.exp(self.gamma*group_loss.data)
-            self.adv_probs = self.adv_probs/(self.adv_probs.sum()) # proj
-
-            loss = group_loss @ self.adv_probs
-
-            self.optimizer.zero_grad()                
-            loss.backward()            
+                loss = self.train_criterion(outputs, labels)
+            
+                # calculate the losses for each subgroup
+                group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
+                group_count = group_map.sum(1)
+                group_denom = group_count + (group_count==0).float() # avoid nans
+                group_loss = (group_map @ loss.view(-1))/group_denom
+            
+                robust_loss = 0
+                for l in range(n_classes):
+                    label_group_loss = group_loss[idxs+l]
+                    robust_loss += label_group_loss @ self.adv_probs_dict[l]
+                robust_loss /= n_classes        
+                return outputs, robust_loss
+            
+            outputs, robust_loss = closure()
+            
+            self.optimizer.zero_grad()
+            robust_loss.backward()                
             self.optimizer.step()
 
-            running_loss += loss.item()
+            running_loss += robust_loss.item()
             running_acc += get_accuracy(outputs, labels)
             if i % self.term == self.term-1: # print every self.term mini-batches
                 avg_batch_time = time.time()-batch_start_time
@@ -114,4 +119,97 @@ class Trainer(trainer.GenericTrainer):
                 running_loss = 0.0
                 running_acc = 0.0
                 batch_start_time = time.time()
-        
+
+
+    def _q_update_ibr_linear_interpolation(self, train_subgroup_loss, n_classes, n_groups, epoch, epochs):
+        train_subgroup_loss = torch.flatten(train_subgroup_loss)
+        assert len(train_subgroup_loss) == (n_classes * n_groups)
+
+        idxs = np.array([i * n_classes for i in range(n_groups)]) 
+        q_start = copy.deepcopy(self.adv_probs_dict)
+        q_ibr = copy.deepcopy(self.adv_probs_dict)
+        if self.q_decay == 'cos': 
+            cur_step_size = 0.5 * (1 + np.cos(np.pi * (epoch/epochs)))
+        elif self.q_decay == 'linear':
+            cur_step_size = 1 - epoch/epochs
+        for l in range(n_classes):
+            label_group_loss = train_subgroup_loss[idxs+l]
+            if not self.margin:
+                q_ibr[l] = self._update_mw_bisection(label_group_loss)#, self.group_dist[l])
+            else:
+                q_ibr[l] = self._update_mw_margin(label_group_loss)#, self.group_dist[l])
+            # self.adv_probs_dict[l] = q_start[l] + cur_step_size*(q_ibr[l] - q_start[l])
+            q_ibr[l] = q_start[l] + cur_step_size*(q_ibr[l] - q_start[l])
+            print(f'{l} label loss : {train_subgroup_loss[idxs+l]}')
+            # print(f'{l} label q_ibr values : {q_ibr[l]}')
+            # print(f'{l} label q values : {self.adv_probs_dict[l]}')
+            print(f'{l} label q values : {q_ibr[l]}')
+        return q_ibr
+
+
+    def _update_mw_margin(self, losses, p_train=None):
+
+        if losses.min() < 0:
+            raise ValueError
+
+        rho = self.rho
+
+        n_groups = len(losses)
+        mean = losses.mean()
+        denom = (losses - mean).norm(2)
+        if denom == 0:
+            q = torch.zeros_like(losses) + 1/n_groups
+        else:
+            q = 1/n_groups + np.sqrt(2 * self.rho / n_groups)* (1/denom) * (losses - mean)
+        return q
+
+    def evaluate_train(self, model, loader, criterion, epoch=0, train=False):
+        if not train:
+            model.eval()
+        else:
+            model.train()
+        n_groups = loader.dataset.num_groups
+        n_classes = loader.dataset.num_classes
+        n_subgroups = n_groups * n_classes        
+
+        group_count = torch.zeros(n_subgroups).cuda(device=self.device)
+        group_loss = torch.zeros(n_subgroups).cuda(device=self.device)        
+        group_acc = torch.zeros(n_subgroups).cuda(device=self.device) 
+
+        with torch.no_grad():
+            for j, eval_data in enumerate(loader):
+                inputs, _, groups, classes, _ = eval_data
+                labels = classes 
+
+                if self.cuda:
+                    inputs = inputs.cuda(self.device)
+                    labels = labels.cuda(self.device)
+                    groups = groups.cuda(self.device)
+
+                outputs = model(inputs)
+
+                loss = criterion(outputs, labels)
+                preds = torch.argmax(outputs, 1)
+                acc = (preds == labels).float().squeeze()
+
+                subgroups = groups * n_classes + labels                
+                group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
+                group_count += group_map.sum(1)
+
+                group_loss += (group_map @ loss.view(-1))
+                group_acc += group_map @ acc
+
+            loss = group_loss.sum() / group_count.sum() 
+            acc = group_acc.sum() / group_count.sum() 
+
+            group_loss /= group_count
+            group_acc /= group_count
+
+            group_loss = group_loss.reshape((n_groups, n_classes))            
+            group_acc = group_acc.reshape((n_groups, n_classes))
+            labelwise_acc_gap = torch.max(group_acc, dim=0)[0] - torch.min(group_acc, dim=0)[0]
+            deoa = torch.mean(labelwise_acc_gap).item()
+            deom = torch.max(labelwise_acc_gap).item()
+
+        model.train()
+        return loss, acc, deom, deoa, group_acc, group_loss 
