@@ -221,7 +221,7 @@ def make_log_name(args):
         elif 'fairdro' in args.method: 
             log_name += '_rho{}'.format(args.rho)
 
-        elif 'grouprdo' in args.method: 
+        elif 'groupdro' in args.method: 
             log_name += '_gamma{}'.format(args.gamma)
 
         elif 'lbc' in args.method: 
