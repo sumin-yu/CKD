@@ -106,7 +106,6 @@ class Trainer(trainer.GenericTrainer):
 
             loss = group_loss @ self.adv_probs
                 
-            loss.backward()
             self.optimizer.zero_grad()
             loss.backward()                
             self.optimizer.step()
