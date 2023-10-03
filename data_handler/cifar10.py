@@ -91,7 +91,7 @@ class CIFAR_10S(GenericDataset):
 
         return input, 0, np.float32(color), np.int64(label), (index, 0)
 
-    def _make_skewed(self, split='train', seed=0, skewed_ratio=1., num_classes=10):
+    def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=10):
 
         train = False if split =='test' else True
         cifardata = CIFAR10('./data_cifar', train=train, shuffle=True, seed=seed, download=True, split=split)

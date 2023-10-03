@@ -45,12 +45,11 @@ class Trainer(trainer.GenericTrainer):
                                                                                     self.train_criterion, 
                                                                                     epoch,
                                                                                     train=True,
-                                                                                    record=self.record,
                                                                                     )
             train_subgroup_loss = 1-train_subgroup_acc
 
             # q update
-            self.q_dict, _ = self._q_update_ibr_linear_interpolation(self.q_dict, 
+            self.adv_probs_dict, _ = self._q_update_ibr_linear_interpolation(self.adv_probs_dict, 
                                                                         train_subgroup_loss, 
                                                                         n_classes,
                                                                         n_groups, 
@@ -146,16 +145,10 @@ class Trainer(trainer.GenericTrainer):
         idxs = np.array([i * n_classes for i in range(n_groups)]) 
         q_start = copy.deepcopy(self.adv_probs_dict)
         q_ibr = copy.deepcopy(self.adv_probs_dict)
-        if self.q_decay == 'cos': 
-            cur_step_size = 0.5 * (1 + np.cos(np.pi * (epoch/epochs)))
-        elif self.q_decay == 'linear':
-            cur_step_size = 1 - epoch/epochs
+        cur_step_size = 1 - epoch/epochs
         for l in range(n_classes):
             label_group_loss = train_subgroup_loss[idxs+l]
-            if not self.margin:
-                q_ibr[l] = self._update_mw_bisection(label_group_loss)#, self.group_dist[l])
-            else:
-                q_ibr[l] = self._update_mw_margin(label_group_loss)#, self.group_dist[l])
+            q_ibr[l] = self._update_mw_margin(label_group_loss)#, self.group_dist[l])
             # self.adv_probs_dict[l] = q_start[l] + cur_step_size*(q_ibr[l] - q_start[l])
             q_ibr[l] = q_start[l] + cur_step_size*(q_ibr[l] - q_start[l])
             print(f'{l} label loss : {train_subgroup_loss[idxs+l]}')
