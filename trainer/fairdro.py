@@ -40,6 +40,24 @@ class Trainer(trainer.GenericTrainer):
         
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, model)            
+            _, _, _, _, train_subgroup_acc, train_subgroup_loss = self.evaluate_train(self.model, 
+                                                                                    self.normal_loader,
+                                                                                    self.train_criterion, 
+                                                                                    epoch,
+                                                                                    train=True,
+                                                                                    record=self.record,
+                                                                                    )
+            train_subgroup_loss = 1-train_subgroup_acc
+
+            # q update
+            self.q_dict, _ = self._q_update_ibr_linear_interpolation(self.q_dict, 
+                                                                        train_subgroup_loss, 
+                                                                        n_classes,
+                                                                        n_groups, 
+                                                                        epoch, 
+                                                                        epochs
+                                                                        )
+
 
             eval_start_time = time.time()
             eval_loss, eval_acc, eval_deom,  = self.evaluate(self.model, 
