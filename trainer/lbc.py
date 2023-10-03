@@ -27,7 +27,7 @@ class Trainer(trainer.GenericTrainer):
         self.train_criterion = torch.nn.CrossEntropyLoss(reduction='none')
         self.eta = args.eta
         self.iteration = args.iter
-
+        self.n_workers = args.num_workers
 
     def train(self, train_loader, val_loader, test_loader, epochs):        
         

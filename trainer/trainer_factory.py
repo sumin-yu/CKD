@@ -99,7 +99,6 @@ class GenericTrainer:
     '''
     def __init__(self, model, args, optimizer, teacher=None):
         self.get_inter = args.get_inter
-        
         self.cuda = args.cuda
         self.device = args.device
         self.t_device = args.t_device
@@ -111,6 +110,7 @@ class GenericTrainer:
         self.model = model
         self.teacher = teacher
         self.optimizer = optimizer
+        self.bs = args.batch_size
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
         if args.method == 'sensei':
