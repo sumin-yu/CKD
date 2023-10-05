@@ -249,7 +249,7 @@ def make_log_name(args):
             log_name += '_cfiltering'
 
         if 'celeba' in args.dataset:
-            log_name += '_{}'.format(args.target)
+            log_name += '_{}_{}'.format(args.target, args.sensitive)
 
     return log_name
 
