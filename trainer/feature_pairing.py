@@ -2,10 +2,10 @@ from __future__ import print_function
 
 import time
 from utils import get_accuracy
+import trainer.vanilla_train
 import torch
-from trainer.kd_hinton import Trainer as hinton_Trainer
 
-class Trainer(hinton_Trainer):
+class Trainer(trainer.vanilla_train.Trainer):
     def __init__(self, args, **kwargs):
         if 'aug' not in args.dataset:
             raise ValueError
@@ -15,9 +15,8 @@ class Trainer(hinton_Trainer):
         super().__init__(args=args, **kwargs)
         self.clip_filtering = args.clip_filtering
 
-    def _train_epoch(self, epoch, train_loader, model, teacher):
+    def _train_epoch(self, epoch, train_loader, model):
         model.train()
-        teacher.eval()
         
         running_acc = 0.0
         running_loss = 0.0
@@ -32,11 +31,10 @@ class Trainer(hinton_Trainer):
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-            
+
             org_filtered_idx = torch.arange(batch_size)
+            # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
             if self.clip_filtering:
-                
-                # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
                 ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
                 filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
                 inputs = inputs[filtered_idx,:,:,:]
@@ -51,30 +49,20 @@ class Trainer(hinton_Trainer):
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
                 labels = labels.cuda(device=self.device)
-                groups = groups.long().cuda(self.device)
-                t_inputs = inputs.to(self.t_device)
             
             outputs = model(inputs, get_inter=True)
-            stu_logits = outputs[-1]
+            logits = outputs[-1]
+            features = outputs[-2]
+            celoss = self.criterion(logits[:batch_size], labels[:batch_size])
 
-            t_outputs = teacher(t_inputs, get_inter=True)
-            tea_logits = t_outputs[-1]
-
-            celoss = self.criterion(stu_logits[:batch_size], labels[:batch_size])
-
-            t_target_logit = (tea_logits[:batch_size] + tea_logits[batch_size:])/2
-
-            ft_logit = stu_logits[org_filtered_idx]
-            ctf_logit = stu_logits[batch_size:]
-            pairing_loss1 = torch.mean((ft_logit-t_target_logit).pow(2))
-            pairing_loss2 = torch.mean((ctf_logit-t_target_logit).pow(2))
-
-            pairing_loss = (pairing_loss1 + pairing_loss2) /2
+            ft_features = features[org_filtered_idx]
+            ctf_features = features[batch_size:]
+            pairing_loss = torch.mean((ft_features-ctf_features).pow(2))
 
             loss = celoss + self.lamb * pairing_loss
 
             running_loss += loss.item()
-            running_acc += get_accuracy(stu_logits, labels)
+            running_acc += get_accuracy(logits, labels)
 
             self.optimizer.zero_grad()
             loss.backward()

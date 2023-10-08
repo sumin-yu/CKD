@@ -20,10 +20,16 @@ class TrainerFactory:
             import trainer.vanilla_train_aug as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
+        elif method == 'feature_pairing':
+            import trainer.feature_pairing as trainer
+        elif method == 'feature_pairing_mmd':
+            import trainer.feature_pairing_mmd as trainer
         elif method == 'logit_pairing_ukn':
             import trainer.logit_pairing_ukn as trainer
         elif method == 'logit_pairing_aug':
             import trainer.logit_pairing_aug as trainer
+        elif method == 'feature_pairing':
+            import trainer.feature_pairing as trainer
         elif method == 'kd_logit_pairing':
             import trainer.kd_logit_pairing as trainer
         elif method == 'kd_hinton':
@@ -72,8 +78,12 @@ class TrainerFactory:
             import trainer.kd_at as trainer
         elif method == 'kd_nst':
             import trainer.kd_nst as trainer
-        elif method == 'cgdro':
-            import trainer.cgdro as trainer
+        elif method == 'fairdro':
+            import trainer.fairdro as trainer
+        elif method == 'groupdro':
+            import trainer.groupdro as trainer
+        elif method == 'lbc':
+            import trainer.lbc as trainer
         elif method == 'sensei':
             import trainer.sensei as trainer
         elif method == 'sensei_2':
@@ -91,7 +101,6 @@ class GenericTrainer:
     '''
     def __init__(self, model, args, optimizer, teacher=None):
         self.get_inter = args.get_inter
-        
         self.cuda = args.cuda
         self.device = args.device
         self.t_device = args.t_device
@@ -103,9 +112,10 @@ class GenericTrainer:
         self.model = model
         self.teacher = teacher
         self.optimizer = optimizer
+        self.bs = args.batch_size
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        if args.method == 'group_dro' or args.method == 'sensei' or args.method=='sensei_2':
+        if 'sensei' in  args.method :
             self.criterion = nn.CrossEntropyLoss(reduction='none')
         else:
             self.criterion=nn.CrossEntropyLoss()
@@ -122,7 +132,7 @@ class GenericTrainer:
         else: 
             self.scheduler = ReduceLROnPlateau(self.optimizer)
 
-    def evaluate(self, model, loader, criterion, device=None, groupwise=False, q_update=False):
+    def evaluate(self, model, loader, criterion, device=None, groupwise=False):
         model.eval()
         num_groups = loader.dataset.num_groups
         num_classes = loader.dataset.num_classes
@@ -174,25 +184,6 @@ class GenericTrainer:
                         for l in range(num_classes):
                             eval_eopp_list[g, l] += acc[(groups == g) * (labels == l)].sum()
                             eval_data_count[g, l] += torch.sum((groups == g) * (labels == l))
-
-                if q_update:
-                    loss = nn.CrossEntropyLoss(reduction='none')(outputs, labels)
-                    predictions = torch.argmax(outputs, 1)
-                    hits = (predictions == labels).float().squeeze()
-                    subgroups = groups * self.num_classes + labels      
-                    group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
-                    group_count += group_map.sum(1)
-
-                    group_loss += (group_map @ loss.view(-1))
-                    group_acc += group_map @ hits
-
-            if q_update:
-                group_loss = group_loss / group_count
-                group_acc = group_acc / group_count
-                group_loss = group_loss.reshape((self.num_groups, self.num_classes))            
-                group_acc = group_acc.reshape((self.num_groups, self.num_classes))
-                return group_acc, group_loss
-
 
             eval_loss = eval_loss / eval_data_count.sum() if not groupwise else eval_loss / eval_data_count
             eval_acc = eval_acc / eval_data_count.sum() if not groupwise else eval_acc / eval_data_count
