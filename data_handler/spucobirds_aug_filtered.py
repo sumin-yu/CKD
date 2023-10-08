@@ -124,7 +124,7 @@ class SpuCoBirds_aug(SpuCoBirds):
         image = [X]
         indicator = 0
 
-        if self.split == 'train':    
+        if self.split == 'train' or self.test_pair :    
             if os.path.isfile('./data/spuco/spuco_birds_ctf_filtering_all/' + self.data.X[index].split('/',4)[-1]):
                 indicator = 1
             else: indicator = 0

@@ -76,6 +76,8 @@ class TrainerFactory:
             import trainer.cgdro as trainer
         elif method == 'sensei':
             import trainer.sensei as trainer
+        elif method == 'sensei_2':
+            import trainer.sensei_2 as trainer
         elif method == 'group_predict':
             import trainer.group_predict as trainer
         else:
@@ -103,7 +105,7 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        if args.method == 'group_dro' or args.method == 'sensei':
+        if args.method == 'group_dro' or args.method == 'sensei' or args.method=='sensei_2':
             self.criterion = nn.CrossEntropyLoss(reduction='none')
         else:
             self.criterion=nn.CrossEntropyLoss()

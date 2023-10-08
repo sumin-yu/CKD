@@ -41,8 +41,7 @@ def main():
                                                         skew_ratio=args.skew_ratio,
                                                         sampling=args.sampling,
                                                         method=args.method,
-                                                        num_aug=args.num_aug,
-                                                        img_cfg=args.test_img_cfg
+                                                        num_aug=args.num_aug
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp
@@ -117,7 +116,7 @@ def main():
         save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
     else: # evalset == 'test'
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        pred_dist, pc, bmr = get_metric(model, test_loader.dataset, args.dataset)
+        pred_dist, pc, bmr = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering)
         save_anal('test' ,args, acc, bmr, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
 
 

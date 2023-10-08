@@ -29,14 +29,13 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1, img_cfg=2.0):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1, test_set='original'):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
         self.num_aug=num_aug
         self.test_pair = False
-        self.img_cfg = img_cfg
         self.ctf_dir = "img_align_celeba_edited_gender"
-        self.test_ctf_dir = "img_align_celeba_edited_gender" if self.img_cfg == 2.0 else "img_align_celeba_edited_gender_testcfg1.8"
+
         if isinstance(target_type, list):
             self.target_type = target_type
         else:
@@ -64,12 +63,21 @@ class CelebA(GenericDataset):
 
         fn = partial(join, self.root, self.base_folder)
         splits = pandas.read_csv(fn("list_eval_partition.txt"), delim_whitespace=True, header=None, index_col=0)
-        attr = pandas.read_csv(fn("list_attr_celeba.txt"), delim_whitespace=True, header=1)
+        if test_set == 'original':
+            attr = pandas.read_csv(fn("list_attr_celeba.txt"), delim_whitespace=True, header=1)
+            mask = slice(None) if split is None else (splits[1] == split)
+            self.filename = splits[mask].index.values
+            self.attr = torch.as_tensor(attr[mask].values)
+        elif test_set == 'strong_f':
+            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter.txt"))
+            self.attr = torch.as_tensor(attr.values)
+            self.filename = attr.index.values
+        elif test_set == 'weak_f':
+            attr = pandas.read_csv(fn("list_attr_celeba_test_weak_filter.txt"))
+            self.attr = torch.as_tensor(attr.values)
+            self.filename = attr.index.values
 
-        mask = slice(None) if split is None else (splits[1] == split)
 
-        self.filename = splits[mask].index.values
-        self.attr = torch.as_tensor(attr[mask].values)
         self.attr = (self.attr + 1) // 2  # map from {-1, 1} to {0, 1}
         self.attr_names = list(attr.columns)
         self.target_idx = self.attr_names.index(self.target_attr)
@@ -111,7 +119,7 @@ class CelebA(GenericDataset):
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.test_pair:
-            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.test_ctf_dir, img_name)).convert('RGB')
+            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.ctf_dir, img_name)).convert('RGB')
             X =  [X, X_edited]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive ==1 else 1])

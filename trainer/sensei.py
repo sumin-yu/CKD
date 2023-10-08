@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import os
 import torch
 import torch.nn as nn
 import numpy as np
@@ -9,6 +9,12 @@ from sklearn.linear_model import LogisticRegression
 from utils import get_accuracy
 import networks
 import trainer
+import pickle
+from torch.distributions.transformed_distribution import TransformedDistribution
+from torch.distributions.transforms import SigmoidTransform
+from torch.distributions.uniform import Uniform
+
+from torch.utils.data import DataLoader
 
 class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
@@ -21,7 +27,8 @@ class Trainer(trainer.GenericTrainer):
         self.minlambda = torch.tensor(1e-5, device=self.device)
         self.auditor_nsteps = args.auditor_nsteps # 100
         self.auditor_lr = args.auditor_lr # 1e-3
-        self.distance_x = LogisticRegSensitiveSubspace(self.model, self.device)
+        self.dist_path = args.sensei_dist_path
+        self.distance_x = LogisticRegSensitiveSubspace(self.model, self.device, self.dist_path)
         self.distance_y = SquaredEuclideanDistance(self.device)
         self.auditor = SenSeIAuditor(self.distance_x, self.distance_y, self.auditor_nsteps, self.auditor_lr)
 
@@ -117,43 +124,6 @@ class Trainer(trainer.GenericTrainer):
                 running_acc = 0.0
                 batch_start_time = time.time()
 
-    # def _train_epoch_dist(self, epoch, train_loader, model):
-        
-    #     running_acc = 0.0
-    #     running_loss = 0.0
-
-    #     batch_start_time = time.time()
-    #     for i, data in enumerate(train_loader):
-    #         # Get the inputs
-    #         inputs, _, groups, targets, _ = data
-            
-    #         labels = targets
-
-    #         if self.cuda:
-    #             inputs = inputs.cuda(device=self.device)
-    #             labels = labels.cuda(device=self.device)
-    #         outputs = model(inputs)
-    #         criterion = nn.CrossEntropyLoss()
-    #         loss = criterion(outputs, labels)
-
-    #         running_loss += loss.item()
-    #         running_acc += get_accuracy(outputs, labels)
-
-    #         self.optimizer.zero_grad()
-    #         loss.backward()
-    #         self.optimizer.step()
-            
-    #         if i % self.term == self.term-1: # print every self.term mini-batches
-    #             avg_batch_time = time.time()-batch_start_time
-    #             print('[{}/{}, {:5d}] Method: {} Train Loss: {:.3f} Train Acc: {:.2f} '
-    #                   '[{:.2f} s/batch]'.format
-    #                   (epoch + 1, self.epochs_dist, i+1, 'before metric learning', running_loss / self.term, running_acc / self.term,
-    #                    avg_batch_time/self.term))
-
-    #             running_loss = 0.0
-    #             running_acc = 0.0
-    #             batch_start_time = time.time()
-
 class SenSeIAuditor(nn.Module):
     def __init__(self, distance_x, distance_y, num_steps, lr):
         super().__init__()
@@ -229,90 +199,140 @@ class SquaredEuclideanDistance(nn.Module):
         return dist
 
 class LogisticRegSensitiveSubspace(nn.Module):
-    def __init__(self, model, device):
+    def __init__(self, model, device, dist_path):
         super().__init__()
         self.basis_vectors = None
         self._logreg_models = None
         self.device = device
         self.model = model
-        # # load pre-trained fixed scratch model predicting gender attribute
-        # self.f_extractor = networks.ModelFactory.get_model(target_model='resnet', num_classes=2, img_size=256)
-        # self.f_extractor.load_state_dict(torch.load(model_path))
-        # self.f_extractor.cuda('cuda:{}'.format(device))
-        # self.f_extractor.eval()
+        self.dist_path = dist_path
+        self.iters = 100
+        self.dist_batch = 1000
+        self.load_num = 20000
     
     def fit(self, data_loader): 
-        # 1. get feature vectors from self.f_extractor
-        data_feature = []
-        data_SensitiveAttrs = []
-        with torch.no_grad():
-            for i, data in enumerate(data_loader):
-                inputs, _, groups, _, _ = data
+        file_name = self.dist_path
+        if os.path.isfile(file_name):
+            with open(file_name,'rb') as f:
+                self.sigma = pickle.load(f)
+                print('sigma load complete!')
+        else:
+            print('sigma learning start!')
+            X1 = []
+            X2 = []
+            Y = []
+            data_loader = DataLoader(data_loader.dataset, batch_size=2, shuffle=True, drop_last=True)
+            with torch.no_grad():
+                for i, data in enumerate(data_loader):
+                    inputs, _, groups, _, _ = data
 
-                inputs = inputs.cuda(device=self.device)
-                outputs = self.model(inputs, get_inter=True)[-2]
-                outputs = outputs.view(outputs.shape[0], -1)
-                data_feature += outputs
-                data_SensitiveAttrs += groups
-                if (i==100): break
-        data_feature = torch.stack(data_feature)
-        data_SensitiveAttrs = torch.stack(data_SensitiveAttrs).reshape(-1,1)
-        # 2. then, using the inter-feature vectors, train logistic regression model
-        basis_vectors_ = self.compute_basis_vectors_data(X_train=data_feature, y_train=data_SensitiveAttrs)
+                    inputs = inputs.cuda(device=self.device)
+                    groups = groups.cuda(device=self.device)
+                    outputs = self.model(inputs, get_inter=True)[-2]
+                    outputs = outputs.view(outputs.shape[0], -1)
+                    X1 += outputs[0].unsqueeze(0)
+                    X2 += outputs[1].unsqueeze(0)
+                    Y += [1] if groups[0] == groups[1] else [0]
+                    # if i % 10 == 0:
+                        # print('data loading..., ',i)
+                    if (i==self.load_num-1): break
+            X1 = torch.stack(X1)
+            X2 = torch.stack(X2)
+            # Y = torch.stack(Y)
+            Y = torch.tensor(Y)
 
-        self.sigma = self.compute_projection_complement(basis_vectors_)
-        self.sigma = self.sigma.cuda(device=self.device)
-        self.basis_vectors = basis_vectors_
+            assert (
+                X1.shape[0] == X2.shape[0] == Y.shape[0]
+            ), "Number of elements in X1, X2, and Y do not match"
+            X = X1- X2
+            # X = self.convert_tensor_to_numpy(X1 - X2)
+            # Y = self.convert_tensor_to_numpy(Y)
+            self.sigma = self.compute_sigma(X, Y, self.iters, self.dist_batch)
+            with open(file_name, 'wb') as f:
+                pickle.dump(self.sigma, f)
+            print('sigma load complete!')
 
-        print('distance_X metric learning finished.')
+    def __grad_likelihood__(self, X, Y, sigma):
+        """Computes the gradient of the likelihood function using sigmoidal link"""
 
-    def compute_basis_vectors_data(self, X_train, y_train): 
-        dtype = X_train.dtype
+        # diag = np.einsum("ij,ij->i", np.matmul(X, sigma), X)
+        # diag = np.maximum(diag, 1e-10)
+        # prVec = logistic.cdf(diag)
+        # sclVec = 2.0 / (np.exp(diag) - 1)
+        # vec = (Y * prVec) - ((1 - Y) * prVec * sclVec)
+        # grad = np.matmul(X.T * vec, X) / X.shape[0]
+        # return grad
 
-        X_train = self.convert_tensor_to_numpy(X_train)
-        y_train = self.convert_tensor_to_numpy(y_train)
+        diag = torch.einsum("ij,ij->i", torch.matmul(X, sigma), X)
+        diag = torch.maximum(diag, torch.tensor(1e-9))
 
-        basis_vectors_ = []
-        outdim = y_train.shape[-1]
+        base_distribution = Uniform(0, 1)
+        transforms = [SigmoidTransform().inv]
+        logistic = TransformedDistribution(base_distribution, transforms)
+        prVec = logistic.cdf(diag)
+        sclVec = 2.0 / (torch.exp(diag) - 1)
+        sclVec = torch.nan_to_num(sclVec)
+        vec = (Y * prVec) - ((1 - Y) * prVec * sclVec)
+        grad = torch.matmul(X.T * vec, X) / X.shape[0]
+        return grad.clone().detach()
 
-        self._logreg_models = [
-            LogisticRegression(solver="liblinear", penalty="l1")
-            .fit(X_train, y_train[:, idx])
-            for idx in range(outdim)
-        ]
+    def __projPSD__(self, sigma):
+        """Computes the projection onto the PSD cone"""
 
-        basis_vectors_ = np.array(
-            [
-                self._logreg_models[idx].coef_.squeeze()
-                for idx in range(outdim)
-            ]
-        )
+        # try:
+        #     L = np.linalg.cholesky(sigma)
+        #     sigma_hat = np.dot(L, L.T)
+        # except np.linalg.LinAlgError:
+        #     d, V = np.linalg.eigh(sigma)
+        #     sigma_hat = np.dot(
+        #         V[:, d >= 1e-8], d[d >= 1e-8].reshape(-1, 1) * V[:, d >= 1e-8].T
+        #     )
+        # return sigma_hat
+        try:
+            L = torch.linalg.cholesky(sigma)
+            sigma_hat = torch.matmul(L, L.T)
+        except torch.linalg.LinAlgError:
+            d, V = torch.linalg.eigh(sigma)
+            sigma_hat = torch.matmul(
+                V[:, d >= 1e-8], d[d >= 1e-8].reshape(-1, 1) * V[:, d >= 1e-8].T
+            )
+        return sigma_hat.clone().detach()
 
-        basis_vectors_ = torch.tensor(basis_vectors_, dtype=dtype).T
-        basis_vectors_ = basis_vectors_.detach()
-        return basis_vectors_
+    def compute_sigma(self, X, Y, iters, batchsize):
+        N = X.shape[0]
+        P = X.shape[1]
 
+        sigma_t = torch.normal(0.0, 1.0, size=(P**2,)).reshape(P, P)
+        sigma_t = torch.matmul(sigma_t, sigma_t.T)
+        sigma_t = sigma_t / torch.linalg.norm(sigma_t)
+        sigma_t = sigma_t.cuda(device=self.device)
+
+        curriter = 0
+
+        while curriter < iters:
+            # print('iter num: ',curriter)
+            batch_idxs = torch.randperm(N)[:batchsize]
+            # batch_idxs = torch.random.choice(N, size=batchsize, replace=False)
+            X_batch = X[batch_idxs].cuda(device=self.device)
+            Y_batch = Y[batch_idxs].cuda(device=self.device)
+
+            grad_t = self.__grad_likelihood__(X_batch, Y_batch, sigma_t)
+            # print('grad: \n',grad_t)
+            t = 1.0 / (1 + curriter // 1000)
+            # t = 1.0 / (100 * (1+curriter))
+            sigma_t = self.__projPSD__(sigma_t - t * grad_t)
+
+            curriter += 1
+            # print('sigma: \n',sigma_t)
+        sigma = sigma_t.detach()
+        return sigma
+    
     def convert_tensor_to_numpy(self, tensor):
         if torch.is_tensor(tensor):
             array_np = tensor.detach().cpu().numpy()
             return array_np
 
-    def compute_projection_complement(self, basis_vectors):
-        projection = torch.linalg.inv(torch.matmul(basis_vectors.T, basis_vectors))
-        projection = torch.matmul(basis_vectors, projection)
-        # Shape: (n_features, n_features)
-        projection = torch.matmul(projection, basis_vectors.T)
-
-        # Complement the projection as: (I - Proj)
-        projection_complement_ = torch.eye(projection.shape[0]) - projection
-        projection_complement_ = projection_complement_.detach()
-
-        return projection_complement_
-
     def forward(self, x1_feature, x2_feature):
-        # with torch.no_grad():
-        #     x1_feature = self.model(x1, get_inter=True)
-        #     x2_feature = self.model(x2, get_inter=True)
         dist = self.compute_dist(x1_feature, x2_feature, self.sigma)
         return dist
 
@@ -329,3 +349,68 @@ class LogisticRegSensitiveSubspace(nn.Module):
         # sigma = sigma.cuda()
         dist = torch.sum((X_diff @ sigma) * X_diff, dim=-1, keepdim=True)
         return dist
+
+
+    # def compute_basis_vectors_data(self, X_train, y_train): 
+    #     dtype = X_train.dtype
+
+    #     X_train = self.convert_tensor_to_numpy(X_train)
+    #     y_train = self.convert_tensor_to_numpy(y_train)
+
+    #     basis_vectors_ = []
+    #     outdim = y_train.shape[-1]
+
+    #     self._logreg_models = [
+    #         LogisticRegression(solver="liblinear", penalty="l1")
+    #         .fit(X_train, y_train[:, idx])
+    #         for idx in range(outdim)
+    #     ]
+
+    #     basis_vectors_ = np.array(
+    #         [
+    #             self._logreg_models[idx].coef_.squeeze()
+    #             for idx in range(outdim)
+    #         ]
+    #     )
+
+    #     basis_vectors_ = torch.tensor(basis_vectors_, dtype=dtype).T
+    #     basis_vectors_ = basis_vectors_.detach()
+    #     return basis_vectors_
+
+    # def convert_tensor_to_numpy(self, tensor):
+    #     if torch.is_tensor(tensor):
+    #         array_np = tensor.detach().cpu().numpy()
+    #         return array_np
+
+    # def compute_projection_complement(self, basis_vectors):
+    #     projection = torch.linalg.inv(torch.matmul(basis_vectors.T, basis_vectors))
+    #     projection = torch.matmul(basis_vectors, projection)
+    #     # Shape: (n_features, n_features)
+    #     projection = torch.matmul(projection, basis_vectors.T)
+
+    #     # Complement the projection as: (I - Proj)
+    #     projection_complement_ = torch.eye(projection.shape[0]) - projection
+    #     projection_complement_ = projection_complement_.detach()
+
+    #     return projection_complement_
+
+    # def forward(self, x1_feature, x2_feature):
+    #     # with torch.no_grad():
+    #     #     x1_feature = self.model(x1, get_inter=True)
+    #     #     x2_feature = self.model(x2, get_inter=True)
+    #     dist = self.compute_dist(x1_feature, x2_feature, self.sigma)
+    #     return dist
+
+    # def compute_dist(self, x1, x2, sigma):
+    #     if len(x1.shape) == 1:
+    #         x1 = x1.unsqueeze(0)
+    #     if len(x2.shape) == 1:
+    #         x2 = x2.unsqueeze(0)
+        
+    #     x1 = x1.view(x1.shape[0], -1)
+    #     x2 = x2.view(x2.shape[0], -1)
+    #     X_diff = x1 - x2
+    #     # X_diff = X_diff.cuda()
+    #     # sigma = sigma.cuda()
+    #     dist = torch.sum((X_diff @ sigma) * X_diff, dim=-1, keepdim=True)
+    #     return dist

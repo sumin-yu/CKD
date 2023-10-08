@@ -14,12 +14,12 @@ class RAF(GenericDataset):
     label = 'emotion'
     sensi = 'gender'
     
-    def __init__(self, root, split='train', transform=None, target_transform=None, num_aug=1, img_cfg=2.0):
+    def __init__(self, root, split='train', transform=None, target_transform=None, num_aug=1):
         super(RAF, self).__init__(root, transform=transform)
         self.root = root # './data/rafdb'
         self.org_dir = 'Image/aligned'
         self.ctf_dir = 'Image/aligned_edited_gender'
-        self.test_ctf_dir = 'Image/aligned_edited_gender_testcfg2.0' if img_cfg==2.0 else 'Image/aligned_edited_gender_testcfg1.8'
+        self.test_ctf_dir = 'Image/aligned_edited_gender_testcfg2.0'
         self.sensi_dir = 'Annotation/manual'
         self.split = split
         self.num_aug = num_aug

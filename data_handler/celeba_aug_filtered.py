@@ -19,11 +19,12 @@ class CelebA_aug(CelebA):
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
 
         indicator = 0
-        if self.split == 'train':
+        if self.split == 'train' or self.test_pair:
             file_name = "img_align_celeba_edited_gender_filtered_" + self.target_attr
             if os.path.isfile(os.path.join(self.root, self.base_folder, file_name, img_name)):
                 indicator = 1
             else: indicator = 0
+        
         if self.split == 'train' or self.test_pair:
             X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba_edited_gender", img_name)).convert('RGB')
             X =  [X, X_edited]

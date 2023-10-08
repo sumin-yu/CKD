@@ -20,10 +20,11 @@ def get_args():
 
     parser.add_argument('--dataset', required=True, default='',
                         choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
+                                 'cifar10_b', 'cifar10_b_aug', 'cifar10_b_same', 'cifar10_b_same_aug',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
                                  'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
                                  'raf', 'raf_aug', 'celeba_pseudo'])
-    parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
+    parser.add_argument('--skew-ratio', default=0.9, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
@@ -43,7 +44,7 @@ def get_args():
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro', 'sensei', 'group_predict'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'cgdro', 'sensei','sensei_2', 'group_predict'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
@@ -86,6 +87,7 @@ def get_args():
     parser.add_argument('--auditor-nsteps', default=100, type=int, help='auditor nsteps for SenSeI')
     parser.add_argument('--auditor-lr', default=1e-3, type=float, help='auditor lr for SenSeI')
     parser.add_argument('--epochs-dist', default=10, type=int, help='epochs for distance metric learning')
+    parser.add_argument('--sensei-dist-path', type=str, help='mahalanobis distance file path')
 
     parser.add_argument('--clip-filtering', default=False, action='store_true', help='apply clip based filtering on generated counterfactual images')
     parser.add_argument('--test-img-cfg', default=2.0, type=float, help='test ctf image cfg')

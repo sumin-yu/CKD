@@ -53,7 +53,7 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset, dataset_name):
+def get_metric(model, dataset, dataset_name, clip_filtering):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
     bs = 1
@@ -70,34 +70,43 @@ def get_metric(model, dataset, dataset_name):
         num_as_bmr = 0.
         num_as_pc = 0.
         pred_dist = 0.
+        num_tot = 0.
         for data in dataloader:
-            input, _, group, label , _ = data
-            input = input.view(-1, *input.shape[2:])
-            label = torch.reshape(label.permute((1,0)), (-1,))
-            # label = torch.stack((label,label),dim=1).view(-1)
-
-            input = input.cuda()
-            label = label.cuda()
-
-            output = model(input)
-
-            preds = torch.argmax(output, 1)
-
-            # bmr
-            num_hit_bmr += (preds == label).sum()
-            num_as_bmr += 1 if (preds == label).sum() == 1 else 0
-
-            # symKL
-            output = F.log_softmax(output, dim=1)
-            pred_dist += (F.kl_div(output[0], output[1], log_target=True, reduction='sum') +
-                          F.kl_div(output[1], output[0], log_target=True, reduction='sum')) / 2
+            indicator = 1
             
-            # pc
-            num_as_pc +=  (preds[0] == (preds[1])).sum()
+            if clip_filtering:
+                input, _, group, label , indicator = data
+            else:
+                input, _, group, label , _ = data
+
+            if indicator ==1 :
+                num_tot += 1
+                input = input.view(-1, *input.shape[2:])
+                label = torch.reshape(label.permute((1,0)), (-1,))
+                # label = torch.stack((label,label),dim=1).view(-1)
+
+                input = input.cuda()
+                label = label.cuda()
+
+                output = model(input)
+
+                preds = torch.argmax(output, 1)
+
+                # bmr
+                num_hit_bmr += (preds == label).sum()
+                num_as_bmr += 1 if (preds == label).sum() == 1 else 0
+
+                # symKL
+                output = F.log_softmax(output, dim=1)
+                pred_dist += (F.kl_div(output[0], output[1], log_target=True, reduction='sum') +
+                            F.kl_div(output[1], output[0], log_target=True, reduction='sum')) / 2
+                
+                # pc
+                num_as_pc +=  (preds[0] == (preds[1])).sum()
 
         bmr = torch.tensor(-1) if num_hit_bmr == 0. else num_as_bmr / num_hit_bmr
-        pred_dist /= len(dataloader.dataset)
-        pc = num_as_pc / len(dataloader.dataset)
+        pred_dist /= num_tot
+        pc = num_as_pc / num_tot
         print('PC     = {}'.format(pc))
         print('Sym-KL = {}'.format(pred_dist))
         print('BMR    = {}'.format(bmr))

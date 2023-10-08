@@ -43,7 +43,7 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, img_cfg=2.0):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, test_set='original'):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -62,7 +62,7 @@ class DataloaderFactory:
             test_transform = partial(custom_transform, 
                                      resize=True, 
                                      normalize=True, mean=mean, std=std)
-
+        
             valid_transform = test_transform
             # transform_list = [transforms.RandomResizedCrop(img_size),
             #                   transforms.RandomHorizontalFlip(),
@@ -70,19 +70,13 @@ class DataloaderFactory:
             #                   normalize
             #                  ]
             
-        elif name == 'cifar10_aug':
+        elif 'cifar10' in name:
             train_transform = transforms.Compose([transforms.ToPILImage(),
                             #   transforms.Resize((38,38)),
                             #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
                             #   transforms.RandomHorizontalFlip(),
                             #   transforms.Resize((32,32)),
                               transforms.ToTensor()])
-            
-        elif name == 'cifar10':
-            train_transform = transforms.Compose([transforms.ToPILImage(),
-                            #   transforms.RandomHorizontalFlip(),
-                              transforms.ToTensor()
-                              ])
             
         elif 'spucobirds' in name:
             mean = [0.485, 0.456, 0.406]
@@ -121,9 +115,9 @@ class DataloaderFactory:
 
 
         val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio)
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug, img_cfg=img_cfg)
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug)
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))
