@@ -45,7 +45,7 @@ def get_args():
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'feature_pairing','feature_pairing_mmd',
                                  'kd_hinton', 'kd_fitnet', 'kd_at',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'fairdro','groupdro','lbc','cgdro', 'sensei','sensei_2', 'group_predict'])
+                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
