@@ -49,7 +49,7 @@ class Trainer(trainer.GenericTrainer):
             train_subgroup_loss = 1-train_subgroup_acc
 
             # q update
-            self.adv_probs_dict, _ = self._q_update_ibr_linear_interpolation(self.adv_probs_dict, 
+            self.adv_probs_dict = self._q_update_ibr_linear_interpolation( 
                                                                         train_subgroup_loss, 
                                                                         n_classes,
                                                                         n_groups, 
