@@ -261,7 +261,7 @@ class LogisticRegSensitiveSubspace(nn.Module):
         # sclVec = 2.0 / (np.exp(diag) - 1)
         # vec = (Y * prVec) - ((1 - Y) * prVec * sclVec)
         # grad = np.matmul(X.T * vec, X) / X.shape[0]
-        # return grad
+        # return grad 
 
         diag = torch.einsum("ij,ij->i", torch.matmul(X, sigma), X)
         diag = torch.maximum(diag, torch.tensor(1e-9))
@@ -349,68 +349,3 @@ class LogisticRegSensitiveSubspace(nn.Module):
         # sigma = sigma.cuda()
         dist = torch.sum((X_diff @ sigma) * X_diff, dim=-1, keepdim=True)
         return dist
-
-
-    # def compute_basis_vectors_data(self, X_train, y_train): 
-    #     dtype = X_train.dtype
-
-    #     X_train = self.convert_tensor_to_numpy(X_train)
-    #     y_train = self.convert_tensor_to_numpy(y_train)
-
-    #     basis_vectors_ = []
-    #     outdim = y_train.shape[-1]
-
-    #     self._logreg_models = [
-    #         LogisticRegression(solver="liblinear", penalty="l1")
-    #         .fit(X_train, y_train[:, idx])
-    #         for idx in range(outdim)
-    #     ]
-
-    #     basis_vectors_ = np.array(
-    #         [
-    #             self._logreg_models[idx].coef_.squeeze()
-    #             for idx in range(outdim)
-    #         ]
-    #     )
-
-    #     basis_vectors_ = torch.tensor(basis_vectors_, dtype=dtype).T
-    #     basis_vectors_ = basis_vectors_.detach()
-    #     return basis_vectors_
-
-    # def convert_tensor_to_numpy(self, tensor):
-    #     if torch.is_tensor(tensor):
-    #         array_np = tensor.detach().cpu().numpy()
-    #         return array_np
-
-    # def compute_projection_complement(self, basis_vectors):
-    #     projection = torch.linalg.inv(torch.matmul(basis_vectors.T, basis_vectors))
-    #     projection = torch.matmul(basis_vectors, projection)
-    #     # Shape: (n_features, n_features)
-    #     projection = torch.matmul(projection, basis_vectors.T)
-
-    #     # Complement the projection as: (I - Proj)
-    #     projection_complement_ = torch.eye(projection.shape[0]) - projection
-    #     projection_complement_ = projection_complement_.detach()
-
-    #     return projection_complement_
-
-    # def forward(self, x1_feature, x2_feature):
-    #     # with torch.no_grad():
-    #     #     x1_feature = self.model(x1, get_inter=True)
-    #     #     x2_feature = self.model(x2, get_inter=True)
-    #     dist = self.compute_dist(x1_feature, x2_feature, self.sigma)
-    #     return dist
-
-    # def compute_dist(self, x1, x2, sigma):
-    #     if len(x1.shape) == 1:
-    #         x1 = x1.unsqueeze(0)
-    #     if len(x2.shape) == 1:
-    #         x2 = x2.unsqueeze(0)
-        
-    #     x1 = x1.view(x1.shape[0], -1)
-    #     x2 = x2.view(x2.shape[0], -1)
-    #     X_diff = x1 - x2
-    #     # X_diff = X_diff.cuda()
-    #     # sigma = sigma.cuda()
-    #     dist = torch.sum((X_diff @ sigma) * X_diff, dim=-1, keepdim=True)
-    #     return dist
