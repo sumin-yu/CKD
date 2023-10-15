@@ -179,7 +179,7 @@ class CIFAR_10S_binary(CIFAR_10S):
             int_img = self.transform(inv_image)
             input = [img, int_img]
             input = torch.stack(input)
-            color = torch.Tensor([color, 0 if color==1 else 1])
+            color = torch.Tensor([color, 0 if color ==1 else 1])
             label = torch.Tensor([label, label])
         else: 
             # print(image)
