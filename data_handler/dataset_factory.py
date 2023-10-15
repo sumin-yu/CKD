@@ -80,6 +80,24 @@ class DatasetFactory:
             root = './data_cifar'
             return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
 
+        elif name == "Ccifar10_b":
+            from data_handler.corrupted_cifar10_binary import Corrupted_CIFAR_10S_binary
+            root = './data_cifar'
+            return Corrupted_CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+        elif name == "Ccifar10_b_aug":
+            from data_handler.corrupted_cifar10_binary_aug import Corrupted_CIFAR_10S_binary_aug
+            root = './data_cifar'
+            return Corrupted_CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+        elif name == "Ccifar10_b_same":
+            from data_handler.corrupted_cifar10_binary_same import Corrupted_CIFAR_10S_binary
+            root = './data_cifar'
+            return Corrupted_CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+        elif name == "Ccifar10_b_same_aug":
+            from data_handler.corrupted_cifar10_binary_same_aug import Corrupted_CIFAR_10S_binary_aug
+            root = './data_cifar'
+            return Corrupted_CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+
+
         elif name == "spucobirds":
             from data_handler.spucobirds import SpuCoBirds
             root = './data/spuco'

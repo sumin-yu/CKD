@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument('--dataset', required=True, default='',
                         choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
                                  'cifar10_b', 'cifar10_b_aug', 'cifar10_b_same', 'cifar10_b_same_aug',
+                                 'Ccifar10_b', 'Ccifar10_b_aug', 'Ccifar10_b_same', 'Ccifar10_b_same_aug',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
                                  'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
                                  'raf', 'raf_aug', 'celeba_pseudo'])
