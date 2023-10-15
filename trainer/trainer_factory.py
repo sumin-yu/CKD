@@ -20,6 +20,8 @@ class TrainerFactory:
             import trainer.vanilla_train_aug as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
+        elif method == 'cov':
+            import trainer.cov as trainer
         elif method == 'feature_pairing':
             import trainer.feature_pairing as trainer
         elif method == 'feature_pairing_mmd':
