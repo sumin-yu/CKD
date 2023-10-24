@@ -28,7 +28,7 @@ class Corrupted_CIFAR_10S(GenericDataset):
         self.num_classes = 10
         self.num_groups = 2
 
-        imgs, labels, groups, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes)
+        imgs, _, labels, groups, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes)
 
         self.dataset = {}
         self.dataset['image'] = np.array(imgs)
@@ -135,7 +135,7 @@ class Corrupted_CIFAR_10S(GenericDataset):
         print('<# of Skewed data>')
         print(data_count)
 
-        return imgs, labels, groups, data_count
+        return imgs, [], labels, groups, data_count
 
 
 class CIFAR10(VisionDataset):

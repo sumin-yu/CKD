@@ -34,7 +34,7 @@ class CelebA(GenericDataset):
         self.split = split
         self.num_aug=num_aug
         self.test_pair = False
-        self.ctf_dir = "img_align_celeba_edited_gender"
+        self.ctf_dir = "img_align_celeba_edited_{}".format(sen_attr)
 
         if isinstance(target_type, list):
             self.target_type = target_type
@@ -69,11 +69,11 @@ class CelebA(GenericDataset):
             self.filename = splits[mask].index.values
             self.attr = torch.as_tensor(attr[mask].values)
         elif test_set == 'strong_f':
-            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter.txt"))
+            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}.txt".format(self.sensitive_attr)))
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
         elif test_set == 'weak_f':
-            attr = pandas.read_csv(fn("list_attr_celeba_test_weak_filter.txt"))
+            attr = pandas.read_csv(fn("list_attr_celeba_test_weak_filter_{}.txt".format(self.sensitive_attr)))
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
 

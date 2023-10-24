@@ -180,6 +180,13 @@ class Corrupted_CIFAR_10S_binary_aug(Corrupted_CIFAR_10S):
             input = torch.stack(input)
             group = torch.Tensor([group, 0 if group==1 else 1])
             label = torch.Tensor([label, label])
+        elif self.split == 'train':
+            img = self.transform(image)
+            img_edited = self.transform(inv_image)
+            input = [img, img_edited]
+            input = torch.stack(input)
+            group = torch.Tensor([group, 0 if group==1 else 1])
+            label = torch.Tensor([label, label])
         else: 
             # print(image)
             img_list = self.transform(image)

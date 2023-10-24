@@ -61,9 +61,9 @@ def get_args():
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
     parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation for MFD_indiv')
 
-    parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152'])
+    parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152', 'cifar_net_v2'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
-    parser.add_argument('--teacher-type', default=None, choices=['resnet', 'shufflenet', 'cifar_net'])
+    parser.add_argument('--teacher-type', default=None, choices=['resnet', 'shufflenet', 'cifar_net', 'cifar_net_v2'])
     parser.add_argument('--teacher-path', default=None, help='teacher model path')
 
     parser.add_argument('--pretrained', default=False, action='store_true', help='load imagenet pretrained model')

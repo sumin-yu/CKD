@@ -3,6 +3,7 @@ import torch.nn as nn
 from networks.resnet import resnet18, resnet152
 from networks.shufflenet import shufflenet_v2_x1_0
 from networks.cifar_net import Net
+from networks.cifar_net_v2 import Net as Net_v2
 from networks.mlp import MLP
 
 
@@ -30,6 +31,8 @@ class ModelFactory():
 
         elif target_model == 'cifar_net':
             return Net(num_classes=num_classes)
+        elif target_model == 'cifar_net_v2':
+            return Net_v2(num_classes=num_classes)
 
         elif target_model == 'shufflenet':
             if pretrained:

@@ -243,6 +243,7 @@ def make_log_name(args):
             log_name += '_rho{}'.format(args.sensei_rho)
             log_name += '_eps{}'.format(args.sensei_eps)
             log_name += '_nsteps{}'.format(args.auditor_nsteps)
+            log_name += '_auditorlr{}'.format(args.auditor_lr)
         
         if args.method == 'kd_indiv_logit_pairing' or args.method == 'kd_mfd_logit_pairing':
             log_name += f'_gamma{args.gamma}'
