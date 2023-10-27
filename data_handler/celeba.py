@@ -69,11 +69,11 @@ class CelebA(GenericDataset):
             self.filename = splits[mask].index.values
             self.attr = torch.as_tensor(attr[mask].values)
         elif test_set == 'strong_f':
-            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}.txt".format(self.sensitive_attr)))
+            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}_{}.txt".format(self.target_attr, self.sensitive_attr)))
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
         elif test_set == 'weak_f':
-            attr = pandas.read_csv(fn("list_attr_celeba_test_weak_filter_{}.txt".format(self.sensitive_attr)))
+            attr = pandas.read_csv(fn("list_attr_celeba_test_weak_filter_{}_{}.txt".format(self.target_attr, self.sensitive_attr)))
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
 

@@ -19,13 +19,18 @@ def get_args():
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
     parser.add_argument('--dataset', required=True, default='',
-                        choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug', 'cifar10_all',
+                        choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug',
                                  'cifar10_b', 'cifar10_b_aug', 'cifar10_b_same', 'cifar10_b_same_aug',
                                  'Ccifar10_b', 'Ccifar10_b_aug', 'Ccifar10_b_same', 'Ccifar10_b_same_aug',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
                                  'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
                                  'raf', 'raf_aug', 'celeba_pseudo'])
     parser.add_argument('--skew-ratio', default=0.9, type=float, help='skew ratio for cifar-10s')
+    parser.add_argument('--domain-gap-degree', default=0, type=int, choices=[1,2,3,4,5], help='domain gap degree for cifar-10s')
+    parser.add_argument('--editing-bias-beta', default=0, type=int, choices=[0,1,2,3], help='editing bias degree for cifar-10s. degree0 means that ctf image is perfect <-> degree3 means that ctf image is made by extremely biased editing model')
+    parser.add_argument('--editing-bias-alpha', default=0.0, type=float, help='editing bias alpha for cifar10-s')
+    parser.add_argument('--noise-degree', default=1, type=int, choices=[1,2,3,4,5], help='noise degree for cifar-10s')
+    parser.add_argument('--noise-type', default='Spatter', type=str, choices=['Zoom_Blur', 'Motion_Blur', 'Snow', 'Spatter', 'Elastic', 'Contrast'], help='noise type for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')

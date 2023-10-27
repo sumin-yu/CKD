@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original'):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter'):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -54,31 +54,26 @@ class DatasetFactory:
             root = './data_cifar'
             return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
         elif name == "cifar10_aug":
-            from data_handler.cifar10_aug import CIFAR_10S
+            from data_handler.cifar10_aug import CIFAR_10S_aug
             root = './data_cifar'
-            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return CIFAR_10S_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
         
-        elif name == "cifar10_all":
-            from data_handler.cifar10_all import CIFAR_10S
-            root = './data_cifar'
-            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio,
-                                sampling=sampling)
         elif name == "cifar10_b":
             from data_handler.cifar10_binary import CIFAR_10S_binary
             root = './data_cifar'
-            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type)
         elif name == "cifar10_b_aug":
             from data_handler.cifar10_binary_aug import CIFAR_10S_binary_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type)
         elif name == "cifar10_b_same":
-            from data_handler.cifar10_binary_same import CIFAR_10S_binary
+            from data_handler.cifar10_binary_same import CIFAR_10S_binary_same
             root = './data_cifar'
-            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type)
         elif name == "cifar10_b_same_aug":
-            from data_handler.cifar10_binary_same_aug import CIFAR_10S_binary_aug
+            from data_handler.cifar10_binary_same_aug import CIFAR_10S_binary_same_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type)
 
         elif name == "Ccifar10_b":
             from data_handler.corrupted_cifar10_binary import Corrupted_CIFAR_10S_binary
@@ -89,13 +84,13 @@ class DatasetFactory:
             root = './data_cifar'
             return Corrupted_CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
         elif name == "Ccifar10_b_same":
-            from data_handler.corrupted_cifar10_binary_same import Corrupted_CIFAR_10S_binary
+            from data_handler.corrupted_cifar10_binary_same import Corrupted_CIFAR_10S_binary_same
             root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return Corrupted_CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
         elif name == "Ccifar10_b_same_aug":
-            from data_handler.corrupted_cifar10_binary_same_aug import Corrupted_CIFAR_10S_binary_aug
+            from data_handler.corrupted_cifar10_binary_same_aug import Corrupted_CIFAR_10S_binary_same_aug
             root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
+            return Corrupted_CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
 
 
         elif name == "spucobirds":

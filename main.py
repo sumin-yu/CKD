@@ -41,7 +41,12 @@ def main():
                                                         skew_ratio=args.skew_ratio,
                                                         sampling=args.sampling,
                                                         method=args.method,
-                                                        num_aug=args.num_aug
+                                                        num_aug=args.num_aug,
+                                                        domain_gap_degree=args.domain_gap_degree,
+                                                        editing_bias_alpha=args.editing_bias_alpha,
+                                                        editing_bias_beta=args.editing_bias_beta,
+                                                        noise_degree=args.noise_degree,
+                                                        noise_type=args.noise_type
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

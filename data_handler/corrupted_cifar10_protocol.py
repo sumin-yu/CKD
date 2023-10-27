@@ -221,6 +221,7 @@ def defocus_blur(x, severity=1):
 def motion_blur(x, severity=1):
     c = [(6, 1), (6, 1.5), (6, 2), (8, 2), (9, 2.5)][severity - 1]
 
+    x = PILImage.fromarray(np.uint8(x))
     output = BytesIO()
     x.save(output, format="PNG")
     x = MotionImage(blob=output.getvalue())
@@ -446,15 +447,15 @@ def jpeg_compression(x, severity=1):
 def pixelate(x, severity=1):
     c = [0.95, 0.9, 0.85, 0.75, 0.65][severity - 1]
 
-    x = x.resize((int(32 * c), int(32 * c)), PILImage.BOX)
-    x = x.resize((32, 32), PILImage.BOX)
+    x = x.resize((int(32 * c), int(32 * c)), PILImage.BOX) #
+    x = x.resize((32, 32), PILImage.BOX) #
 
-    return x
+    return np.array(x)
 
 
 # mod of https://gist.github.com/erniejunior/601cdf56d2b424757de5
 def elastic_transform(image, severity=1):
-    IMSIZE = 32
+    IMSIZE = 32 #
     c = [
         (IMSIZE * 0, IMSIZE * 0, IMSIZE * 0.08),
         (IMSIZE * 0.05, IMSIZE * 0.2, IMSIZE * 0.07),
@@ -530,17 +531,17 @@ def elastic_transform(image, severity=1):
 import collections
 
 CORRUPTED_CIFAR10_PROTOCOL = collections.OrderedDict()
-CORRUPTED_CIFAR10_PROTOCOL["Gaussian Noise"] = gaussian_noise
-CORRUPTED_CIFAR10_PROTOCOL["Shot Noise"] = shot_noise
-CORRUPTED_CIFAR10_PROTOCOL["Impulse Noise"] = impulse_noise
-CORRUPTED_CIFAR10_PROTOCOL["Speckle Noise"] = speckle_noise
-CORRUPTED_CIFAR10_PROTOCOL["Gaussian Blur"] = gaussian_blur
-CORRUPTED_CIFAR10_PROTOCOL["Defocus Blur"] = defocus_blur
-CORRUPTED_CIFAR10_PROTOCOL["Glass Blur"] = glass_blur
-CORRUPTED_CIFAR10_PROTOCOL["Motion Blur"] = motion_blur
-CORRUPTED_CIFAR10_PROTOCOL["Zoom Blur"] = zoom_blur
+CORRUPTED_CIFAR10_PROTOCOL["Gaussian_Noise"] = gaussian_noise
+CORRUPTED_CIFAR10_PROTOCOL["Shot_Noise"] = shot_noise
+CORRUPTED_CIFAR10_PROTOCOL["Impulse_Noise"] = impulse_noise
+CORRUPTED_CIFAR10_PROTOCOL["Speckle_Noise"] = speckle_noise
+CORRUPTED_CIFAR10_PROTOCOL["Gaussian_Blur"] = gaussian_blur
+CORRUPTED_CIFAR10_PROTOCOL["Defocus_Blur"] = defocus_blur
+CORRUPTED_CIFAR10_PROTOCOL["Glass_Blur"] = glass_blur
+CORRUPTED_CIFAR10_PROTOCOL["Motion_Blur"] = motion_blur
+CORRUPTED_CIFAR10_PROTOCOL["Zoom_Blur"] = zoom_blur
 CORRUPTED_CIFAR10_PROTOCOL["Snow"] = snow
-CORRUPTED_CIFAR10_PROTOCOL["Frost"] = frost
+# CORRUPTED_CIFAR10_PROTOCOL["Frost"] = frost
 CORRUPTED_CIFAR10_PROTOCOL["Fog"] = fog
 CORRUPTED_CIFAR10_PROTOCOL["Brightness"] = brightness
 CORRUPTED_CIFAR10_PROTOCOL["Contrast"] = contrast
@@ -550,3 +551,11 @@ CORRUPTED_CIFAR10_PROTOCOL["JPEG"] = jpeg_compression
 CORRUPTED_CIFAR10_PROTOCOL["Spatter"] = spatter
 CORRUPTED_CIFAR10_PROTOCOL["Saturate"] = saturate
 CORRUPTED_CIFAR10_PROTOCOL["Original"] = lambda image, severity: np.array(image)
+
+
+# # apply corruption
+# for name, func in CORRUPTED_CIFAR10_PROTOCOL.items():
+#     # load image
+#     img = Image.open("./corruption_test/test.jpg")
+#     img = Image.fromarray(func(img, severity=3).astype(np.uint8))
+#     img.save("./corruption_test/test_" + name + ".jpg")

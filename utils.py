@@ -263,6 +263,14 @@ def make_log_name(args):
 
         if 'celeba' in args.dataset:
             log_name += '_{}_{}'.format(args.target, args.sensitive)
+        
+        if 'cifar10_b' in args.dataset:
+            if args.domain_gap_degree != 0:
+                log_name += '_domgap_{}_{}'.format(args.noise_type, args.domain_gap_degree)
+            if args.editing_bias_alpha != 0.0:
+                log_name += '_editbias_alpha{}'.format(args.editing_bias_alpha)
+                log_name += '_beta{}'.format(args.editing_bias_beta)
+                log_name += '_{}_{}'.format(args.noise_type, args.noise_degree)
 
     return log_name
 

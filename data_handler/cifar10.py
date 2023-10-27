@@ -8,34 +8,24 @@ import torch
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 from data_handler.dataset_factory import GenericDataset
-
-def rgb_to_grayscale(img):
-    """Convert image to gray scale"""
-    pil_gray_img = img.convert('L')
-    np_gray_img = np.array(pil_gray_img, dtype=np.uint8)
-    np_gray_img = np.dstack([np_gray_img, np_gray_img, np_gray_img])
-
-    return np_gray_img
-
-
+ 
 class CIFAR_10S(GenericDataset):
     def __init__(self, root, split='train', transform=None,
                  seed=0, skewed_ratio=0.8):
-        super(CIFAR_10S, self).__init__(root, transform=transform)
+        super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
-        self.split = split
-        self.seed = seed
         self.test_pair = False
 
         self.num_classes = 10
         self.num_groups = 2
 
-        imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio, self.num_classes)
+        imgs, intervened_imgs, labels, colors, data_count = self._make_skewed(split, seed, skewed_ratio)
 
         self.dataset = {}
         self.dataset['image'] = np.array(imgs)
         self.dataset['label'] = np.array(labels)
         self.dataset['color'] = np.array(colors)
+        self.dataset['inv_image'] = np.array(intervened_imgs)
 
         self._get_label_list()
 
@@ -44,19 +34,19 @@ class CIFAR_10S(GenericDataset):
         self.features = [[int(s), int(l)] for s, l in zip(self.dataset['color'], self.dataset['label'])]
         self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
 
+    def _perturbing(self, img):
+        """Convert image to gray scale"""
+        pil_gray_img = img.convert('L')
+        np_gray_img = np.array(pil_gray_img, dtype=np.uint8)
+        np_gray_img = np.dstack([np_gray_img, np_gray_img, np_gray_img])
+        return np_gray_img
 
-    # def _make_idx_map(self):
-    #     idx_map = [[] for i in range(self.num_groups * self.num_classes)]
-    #     for j, i in enumerate(self.dataset['image']):
-    #         y = self.dataset['label'][j]
-    #         s = self.dataset['color'][j]
-    #         pos = s * self.num_classes + y
-    #         idx_map[int(pos)].append(j)
-    #     final_map = []
-    #     for l in idx_map:
-    #         final_map.extend(l)
-    #     return final_map
-
+    def _set_data(self, img, group):
+        if group==1:
+            return np.array(img), self._perturbing(img), group
+        elif group==0:
+            return self._perturbing(img), np.array(img), group
+        
     def _get_label_list(self):
         self.label_list = []
         for i in range(self.num_classes):
@@ -105,6 +95,7 @@ class CIFAR_10S(GenericDataset):
         # num_data = 50000 if split =='train' else 20000
 
         imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
+        intervened_imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
         labels = np.zeros(num_data)
         colors = np.zeros(num_data)
         data_count = np.zeros((2, 10), dtype=int)
@@ -116,7 +107,7 @@ class CIFAR_10S(GenericDataset):
             img, target = data
 
             if split == 'test' or split == 'valid':
-                gray_image = rgb_to_grayscale(img)
+                gray_image = self._perturbing(img)
                 color_image = np.array(img)
                 imgs[2*i] = gray_image
                 imgs[2*i+1] = color_image
@@ -129,29 +120,22 @@ class CIFAR_10S(GenericDataset):
             else:
                 if target < 5:
                     if data_count[0, target] < (num_skewed_train_data):
-                        imgs[i] = rgb_to_grayscale(img)
-                        colors[i] = 0
-                        data_count[0, target] += 1
+                        imgs[i], intervened_imgs[i], colors[i] = self._set_data(img, 0)
                     else:
-                        imgs[i] = np.array(img)
-                        colors[i] = 1
-                        data_count[1, target] += 1
+                        imgs[i], intervened_imgs[i], colors[i] = self._set_data(img, 1)
                     labels[i] = target
                 else:
                     if data_count[0, target] < (num_total_train_data - num_skewed_train_data):
-                        imgs[i] = rgb_to_grayscale(img)
-                        colors[i] = 0
-                        data_count[0, target] += 1
+                        imgs[i], intervened_imgs[i], colors[i] = self._set_data(img, 0)
                     else:
-                        imgs[i] = np.array(img)
-                        colors[i] = 1
-                        data_count[1, target] += 1
-                    labels[i] = target
+                        imgs[i], intervened_imgs[i], colors[i] = self._set_data(img, 1)
+                data_count[int(colors[i]), target] += 1
+                labels[i] = target
 
         print('<# of Skewed data>')
         print(data_count)
 
-        return imgs, labels, colors, data_count
+        return imgs, intervened_imgs, labels, colors, data_count
 
 
 class CIFAR10(VisionDataset):
