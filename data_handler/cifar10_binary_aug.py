@@ -15,7 +15,7 @@ class CIFAR_10S_binary_aug(CIFAR_10S_binary):
                     noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
         super(CIFAR_10S_binary_aug, self).__init__(root, split=split, transform=transform, seed=seed, skewed_ratio=skewed_ratio, domain_gap_degree=domain_gap_degree, 
                     editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree,
-                    noise_type=noise_type, group_bias_type='color', group_bias_degree=1)
+                    noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
     
     def __getitem__(self, index):
         image = self.dataset['image'][index]

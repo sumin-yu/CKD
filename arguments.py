@@ -42,6 +42,7 @@ def get_args():
     parser.add_argument('--batch-size', default=128, type=int, help='mini batch size')
     parser.add_argument('--seed', default=0, type=int, help='seed for randomness')
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
+    
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
                                  'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
