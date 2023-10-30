@@ -8,6 +8,7 @@ import torch
 from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 from data_handler.dataset_factory import GenericDataset
+from data_handler.corrupted_cifar10_protocol import CORRUPTED_CIFAR10_PROTOCOL
  
 class CIFAR_10S(GenericDataset):
     def __init__(self, root, split='train', transform=None,
@@ -34,12 +35,15 @@ class CIFAR_10S(GenericDataset):
         self.features = [[int(s), int(l)] for s, l in zip(self.dataset['color'], self.dataset['label'])]
         self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
 
-    def _perturbing(self, img):
+    def _perturbing(self, img, bias_type, degree):
         """Convert image to gray scale"""
-        pil_gray_img = img.convert('L')
-        np_gray_img = np.array(pil_gray_img, dtype=np.uint8)
-        np_gray_img = np.dstack([np_gray_img, np_gray_img, np_gray_img])
-        return np_gray_img
+        if bias_type =='color':
+            pil_gray_img = img.convert('L')
+            inv_img = np.array(pil_gray_img, dtype=np.uint8)
+            inv_img = np.dstack([inv_img, inv_img, inv_img])
+        elif bias_type == 'Contrast':
+            inv_img = CORRUPTED_CIFAR10_PROTOCOL['Contrast'](img, severity=degree)
+        return inv_img
 
     def _set_data(self, img, group):
         if group==1:

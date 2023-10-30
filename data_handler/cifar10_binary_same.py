@@ -9,8 +9,8 @@ from data_handler.cifar10_binary import CIFAR10, CIFAR_10S_binary
 
 class CIFAR_10S_binary_same(CIFAR_10S_binary):
     def __init__(self, root, split='train', transform=None,
-                 seed=0, skewed_ratio=0.8, domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter'):
-        super(CIFAR_10S_binary_same, self).__init__(root, split=split, transform=transform, seed=seed, skewed_ratio=skewed_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type)
+                 seed=0, skewed_ratio=0.8, domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
+        super(CIFAR_10S_binary_same, self).__init__(root, split=split, transform=transform, seed=seed, skewed_ratio=skewed_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type='color', group_bias_degree=1)
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 

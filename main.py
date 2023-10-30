@@ -46,7 +46,9 @@ def main():
                                                         editing_bias_alpha=args.editing_bias_alpha,
                                                         editing_bias_beta=args.editing_bias_beta,
                                                         noise_degree=args.noise_degree,
-                                                        noise_type=args.noise_type
+                                                        noise_type=args.noise_type,
+                                                        group_bias_type=args.group_bias_type,
+                                                        group_bias_degree=args.group_bias_degree
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

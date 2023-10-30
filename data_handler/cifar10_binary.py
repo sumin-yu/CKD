@@ -15,7 +15,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                  seed=0, skewed_ratio=0.8,
                     domain_gap_degree=0,
                     editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0,
-                    noise_type='Spatter'):
+                    noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
         super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
         self.test_pair = False
@@ -28,6 +28,9 @@ class CIFAR_10S_binary(CIFAR_10S):
         self.domain_gap_degree = domain_gap_degree
         self.editing_bias_alpha = editing_bias_alpha
         self.noise_degree = noise_degree
+
+        self.group_bias_type=group_bias_type
+        self.group_bias_degree=group_bias_degree
 
         if self.editing_bias_alpha != 0:
             if editing_bias_beta == 0:
@@ -111,14 +114,14 @@ class CIFAR_10S_binary(CIFAR_10S):
     def _set_data(self, img, group):
         if self.split != 'test':
             if group==1:    
-                return np.array(img), self._make_domain_gap(self._perturbing(img)), group
+                return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
             elif group==0:
-                return self._perturbing(img), self._make_domain_gap(np.array(img)), group
+                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
         else:
             if group==1:    
-                return np.array(img), self._perturbing(img), group
+                return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
             elif group==0:
-                return self._perturbing(img), np.array(img), group
+                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 
