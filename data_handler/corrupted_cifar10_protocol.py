@@ -293,7 +293,7 @@ def frost(x, severity=1):
     return np.clip(c[0] * np.array(x) + c[1] * frost, 0, 255)
 
 
-def snow(x, severity=1):
+def snow(x, severity=1, seed=0):
     c = [
         (0.1, 0.2, 1, 0.6, 8, 3, 0.95),
         (0.1, 0.2, 1, 0.5, 10, 4, 0.9),
@@ -301,7 +301,7 @@ def snow(x, severity=1):
         (0.25, 0.3, 2.25, 0.6, 12, 6, 0.85),
         (0.3, 0.3, 1.25, 0.65, 14, 12, 0.8),
     ][severity - 1]
-
+    np.random.seed(seed)
     x = np.array(x, dtype=np.float32) / 255.0
     snow_layer = np.random.normal(
         size=x.shape[:2], loc=c[0], scale=c[1]
@@ -336,7 +336,7 @@ def snow(x, severity=1):
     return np.clip(x + snow_layer + np.rot90(snow_layer, k=2), 0, 1) * 255
 
 
-def spatter(x, severity=1):
+def spatter(x, severity=1, seed=0):
     c = [
         (0.62, 0.1, 0.7, 0.7, 0.5, 0),
         (0.65, 0.1, 0.8, 0.7, 0.5, 0),
@@ -344,6 +344,7 @@ def spatter(x, severity=1):
         (0.65, 0.1, 0.7, 0.69, 0.6, 1),
         (0.65, 0.1, 0.5, 0.68, 0.6, 1),
     ][severity - 1]
+    np.random.seed(seed)
     x = np.array(x, dtype=np.float32) / 255.0
 
     liquid_layer = np.random.normal(size=x.shape[:2], loc=c[0], scale=c[1])
