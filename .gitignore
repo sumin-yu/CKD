@@ -21,6 +21,9 @@ t
 tt
 ttt
 t_eval
+t_sumin
+
+cifar10sb_results/
 
 mahalanobis_dist.py
 mahalanobis_sigma_model_scratch_aug_loadnum_20_iter4_batch8
