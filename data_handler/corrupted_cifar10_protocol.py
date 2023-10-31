@@ -145,10 +145,11 @@ def clipped_zoom(img, zoom_factor):
 # /////////////// Distortions ///////////////
 
 
-def gaussian_noise(x, severity=1):
+def gaussian_noise(x, severity=1, seed=0):
     c = [0.04, 0.06, 0.08, 0.09, 0.10][severity - 1]
 
     x = np.array(x) / 255.0
+    np.random.seed(seed)
     return np.clip(x + np.random.normal(size=x.shape, scale=c), 0, 1) * 255
 
 
