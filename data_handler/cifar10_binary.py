@@ -103,6 +103,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                         img = self.noise_injection(img, severity=self.noise_degree)
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
                         org_noise = 1
+                        inv_noise = 1
         return img, inv_img, org_noise, inv_noise
 
     def _make_domain_gap(self, img):
