@@ -70,17 +70,20 @@ class CIFAR_10S_binary_same(CIFAR_10S_binary):
 
         data_count[:,0] = np.sum(data_count_r[:,:5], axis=1)
         data_count[:,1] = np.sum(data_count_r[:,5:], axis=1)
+        print('----------------------', split, ' data distribution discription----------------------')
         print('<# of Skewed data>')
         print(data_count)
         print('<# of Skewed real data>')
         print(data_count_r)
+        print('answer')
+        print(data_count_r_answer)
 
         ### for test ###
         if self.editing_bias_alpha != 0:
             # save data_count_r_org as txt file in one file with the name of 'org'
-            if not os.path.exists('./data_cifar/editing_bias_same_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta)):
+            if not os.path.exists('./data_cifar/editing_bias_same_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split)):
                 # open file
-                f = open('./data_cifar/editing_bias_same_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta), 'w')
+                f = open('./data_cifar/editing_bias_same_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split), 'w')
                 # write data
                 f.write('org data num\n')
                 f.write(str(data_count_r))

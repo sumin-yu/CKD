@@ -20,6 +20,7 @@ class CIFAR_10S_binary(CIFAR_10S):
 
         self.test_pair = False
         self.split = split
+        self.seed = seed
 
         self.num_classes = 2
         self.num_groups = 2
@@ -78,37 +79,37 @@ class CIFAR_10S_binary(CIFAR_10S):
             if self.split != 'test':
                 if color == 0: # org color is gray
                     if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta):
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
                         if num > tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree)
+                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                             org_noise = 1
                 else: # org color is color
                     if num <= tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree)
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
                         inv_noise = 1
                         if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta):
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
+                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                             inv_noise = 1
             else:
                 if color == 0: # org color is gray
                     if num > tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree)
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
                         inv_noise = 1
                 else: # org color is color
                     if num <= tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree)
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
                         inv_noise = 1
         return img, inv_img, org_noise, inv_noise
 
     def _make_domain_gap(self, img):
         if self.domain_gap_degree != 0:
-            domain_gap_img = self.noise_injection(img, severity=self.domain_gap_degree)
+            domain_gap_img = self.noise_injection(img, severity=self.domain_gap_degree, seed=self.seed)
             domain_gap_img =  domain_gap_img.astype(np.uint8)
         else:
             domain_gap_img = img
@@ -221,13 +222,15 @@ class CIFAR_10S_binary(CIFAR_10S):
         print(data_count)
         print('<# of Skewed real data>')
         print(data_count_r)
+        print('answer')
+        print(data_count_r_answer)
 
         ### for test ###
         if self.editing_bias_alpha != 0:
             # save data_count_r_org as txt file in one file with the name of 'org'
-            if not os.path.exists('./data_cifar/editing_bias_diff_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta)):
+            if not os.path.exists('./data_cifar/editing_bias_diff_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split)):
                 # open file
-                f = open('./data_cifar/editing_bias_diff_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta), 'w')
+                f = open('./data_cifar/editing_bias_diff_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split), 'w')
                 # write data
                 f.write('org data num\n')
                 f.write(str(data_count_r))
