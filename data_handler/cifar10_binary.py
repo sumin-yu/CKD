@@ -87,6 +87,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                     if num <= tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree)
                         org_noise = 1
+                        inv_noise = 1
                         if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta):
                             inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
                             inv_noise = 1
@@ -96,6 +97,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                         img = self.noise_injection(img, severity=self.noise_degree)
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree)
                         org_noise = 1
+                        inv_noise = 1
                 else: # org color is color
                     if num <= tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree)
@@ -213,6 +215,7 @@ class CIFAR_10S_binary(CIFAR_10S):
            
         data_count[:,0] = np.sum(data_count_r[:,:5], axis=1)
         data_count[:,1] = np.sum(data_count_r[:,5:], axis=1)
+        print('----------------------', split, ' data distribution discription----------------------')
         print('<# of Skewed data>')
         print(data_count)
         print('<# of Skewed real data>')
