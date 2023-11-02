@@ -79,7 +79,7 @@ class CIFAR_10S_binary(CIFAR_10S):
         if self.editing_bias_alpha != 0:
             if self.split != 'test':
                 if color == 0: # org color is gray
-                    if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) and num <= tot_num*(1-(1-self.editing_bias_alpha)*self.editing_bias_beta):
+                    if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) and num <= tot_num*(1-(1-self.editing_bias_alpha)*(1-self.editing_bias_beta)):
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
                     if num > tot_num*self.editing_bias_alpha:
@@ -89,7 +89,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                     if num <= tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
-                    if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) or num > tot_num*(1-(1-self.editing_bias_alpha)*self.editing_bias_beta):
+                    if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) or num > tot_num*(1-(1-self.editing_bias_alpha)*(1-self.editing_bias_beta)):
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
             else:
