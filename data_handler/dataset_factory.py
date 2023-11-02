@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg'):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -61,19 +61,19 @@ class DatasetFactory:
         elif name == "cifar10_b":
             from data_handler.cifar10_binary import CIFAR_10S_binary
             root = './data_cifar'
-            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
         elif name == "cifar10_b_aug":
             from data_handler.cifar10_binary_aug import CIFAR_10S_binary_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
         elif name == "cifar10_b_same":
             from data_handler.cifar10_binary_same import CIFAR_10S_binary_same
             root = './data_cifar'
-            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
         elif name == "cifar10_b_same_aug":
             from data_handler.cifar10_binary_same_aug import CIFAR_10S_binary_same_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
 
         elif name == "Ccifar10_b":
             from data_handler.corrupted_cifar10_binary import Corrupted_CIFAR_10S_binary

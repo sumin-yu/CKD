@@ -43,7 +43,7 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg'):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -114,10 +114,10 @@ class DataloaderFactory:
         # test_preprocessing = transforms.Compose(test_transform_list)
 
 
-        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))

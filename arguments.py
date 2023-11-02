@@ -33,6 +33,7 @@ def get_args():
     parser.add_argument('--editing-bias-alpha', default=0.0, type=float, help='editing bias alpha for cifar10-s')
     parser.add_argument('--noise-degree', default=1, type=int, choices=[1,3,5], help='noise degree for cifar-10s')
     parser.add_argument('--noise-type', default='Spatter', type=str, choices=['Gaussian_Noise', 'Zoom_Blur', 'Motion_Blur', 'Snow', 'Spatter', 'Elastic', 'Contrast'], help='noise type for cifar-10s')
+    parser.add_argument('--noise-corr', default='neg', type=str, choices=['pos', 'neg'], help='noise correlation for cifar-10s')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
