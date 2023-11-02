@@ -48,7 +48,8 @@ def main():
                                                         noise_degree=args.noise_degree,
                                                         noise_type=args.noise_type,
                                                         group_bias_type=args.group_bias_type,
-                                                        group_bias_degree=args.group_bias_degree
+                                                        group_bias_degree=args.group_bias_degree,
+                                                        noise_corr=args.noise_corr
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

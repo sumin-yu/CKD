@@ -15,7 +15,7 @@ class CIFAR_10S_binary(CIFAR_10S):
                  seed=0, skewed_ratio=0.8,
                     domain_gap_degree=0,
                     editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0,
-                    noise_type='Spatter', group_bias_type='color', group_bias_degree=1):
+                    noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg'):
         super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
         self.test_pair = False
@@ -29,6 +29,7 @@ class CIFAR_10S_binary(CIFAR_10S):
         self.domain_gap_degree = domain_gap_degree
         self.editing_bias_alpha = editing_bias_alpha
         self.noise_degree = noise_degree
+        self.noise_corr = noise_corr
 
         self.group_bias_type=group_bias_type
         self.group_bias_degree=group_bias_degree
@@ -78,20 +79,19 @@ class CIFAR_10S_binary(CIFAR_10S):
         if self.editing_bias_alpha != 0:
             if self.split != 'test':
                 if color == 0: # org color is gray
-                    if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta):
+                    if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) and num <= tot_num*(1-(1-self.editing_bias_alpha)*self.editing_bias_beta):
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
-                        if num > tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                            org_noise = 1
+                    if num > tot_num*self.editing_bias_alpha:
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                        org_noise = 1
                 else: # org color is color
                     if num <= tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
+                    if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) or num > tot_num*(1-(1-self.editing_bias_alpha)*self.editing_bias_beta):
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
-                        if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta):
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                            inv_noise = 1
             else:
                 if color == 0: # org color is gray
                     if num > tot_num*self.editing_bias_alpha:
@@ -116,16 +116,28 @@ class CIFAR_10S_binary(CIFAR_10S):
         return domain_gap_img
 
     def _set_data(self, img, group):
-        if self.split != 'test':
-            if group==1:    
-                return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
-            elif group==0:
-                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
-        else:
-            if group==1:    
-                return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-            elif group==0:
-                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
+        if self.noise_corr == 'neg':
+            if self.split != 'test':
+                if group==1:    
+                    return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
+                elif group==0:
+                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
+            else:
+                if group==1:    
+                    return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
+                elif group==0:
+                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
+        elif self.noise_corr == 'pos':
+            if self.split != 'test':
+                if group==1:    
+                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
+                elif group==0:
+                    return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
+            else:
+                if group==1:    
+                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
+                elif group==0:
+                    return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 
@@ -150,7 +162,12 @@ class CIFAR_10S_binary(CIFAR_10S):
         data_count_r_answer = np.zeros((2, 10), dtype=int)
         num_total_train_data = int((num_data // 10))
         num_skewed_train_data = int((num_data * skewed_ratio) // 10)
-        off_set = int((num_data * 0.2) // 10)
+        if skewed_ratio == 0.8:
+            off_set = int((num_data * 0.2) // 10)
+        elif skewed_ratio == 0.9:
+            off_set = int((num_data * 0.1) // 10)
+        else:
+            raise ValueError('skewed_ratio should be 0.8 or 0.9')
 
         ### for test ###
         data_count_r_org = np.zeros((2, 10), dtype=int)
@@ -210,10 +227,8 @@ class CIFAR_10S_binary(CIFAR_10S):
             imgs[i], inv_imgs[i], org_noise, inv_noise = self._make_editing_bias(imgs[i], inv_imgs[i], colors[i], data_count_r[int(colors[i]), target_r], data_count_r_answer[int(colors[i]), target_r])
 
             ### for test ###
-            if org_noise == 1:
-                data_count_r_org[int(colors[i]), target_r] += 1
-            if inv_noise == 1:
-                data_count_r_inv[int(colors[i]), target_r] += 1
+            data_count_r_org[int(colors[i]), target_r] += org_noise
+            data_count_r_inv[int(colors[i]), target_r] += inv_noise
            
         data_count[:,0] = np.sum(data_count_r[:,:5], axis=1)
         data_count[:,1] = np.sum(data_count_r[:,5:], axis=1)
@@ -227,26 +242,16 @@ class CIFAR_10S_binary(CIFAR_10S):
 
         ### for test ###
         if self.editing_bias_alpha != 0:
-            # save data_count_r_org as txt file in one file with the name of 'org'
-            if not os.path.exists('./data_cifar/editing_bias_diff_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split)):
-                # open file
-                f = open('./data_cifar/editing_bias_diff_{}_{}_{}.txt'.format(self.editing_bias_alpha, self.editing_bias_beta, self.split), 'w')
-                # write data
-                f.write('org data num\n')
-                f.write(str(data_count_r))
-                f.write('\ngray wo noise & color w noise\n')
-                tmp = np.vstack((data_count_r[0]-data_count_r_org[0], data_count_r_org[1]))
-                f.write(str(tmp))
-                f.write('\ngray_inv w noise & color_inv wo noise\n')
-                tmp = np.vstack((data_count_r_inv[0], data_count_r[1]-data_count_r_inv[1]))
-                f.write(str(tmp))
-                # close file
-                f.close()           
-
-            print('<# of org noised data>')
-            print(data_count_r_org)
-            print('<# of inv noised data>')
-            print(data_count_r_inv)
+            print('---------------------------------')
+            print('<# of org no-noised data of group0')
+            print(data_count_r_answer[0] - data_count_r_org[0])
+            print('<# of inv noised data of group0')
+            print(data_count_r_inv[0])
+            print('---------------------------------')
+            print('<# of org noised data of group1')
+            print(data_count_r_org[1])
+            print('<# of inv no-noised data of group1')
+            print(data_count_r_answer[1] - data_count_r_inv[1])
 
         return imgs, inv_imgs, labels, colors, data_count
 
