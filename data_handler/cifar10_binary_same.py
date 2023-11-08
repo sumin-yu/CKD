@@ -9,8 +9,8 @@ from data_handler.cifar10_binary import CIFAR10, CIFAR_10S_binary
 
 class CIFAR_10S_binary_same(CIFAR_10S_binary):
     def __init__(self, root, split='train', transform=None,
-                 seed=0, skewed_ratio=0.8, domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg'):
-        super(CIFAR_10S_binary_same, self).__init__(root, split=split, transform=transform, seed=seed, skewed_ratio=skewed_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr)
+                 seed=0, skewed_ratio=0.8, domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False):
+        super(CIFAR_10S_binary_same, self).__init__(root, split=split, transform=transform, seed=seed, skewed_ratio=skewed_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc)
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 
@@ -28,6 +28,8 @@ class CIFAR_10S_binary_same(CIFAR_10S_binary):
         inv_imgs = np.zeros((num_data, 32, 32, 3), dtype=np.uint8)
         labels = np.zeros(num_data)
         colors = np.zeros(num_data)
+        org_noise = np.zeros(num_data)
+        inv_noise = np.zeros(num_data)
         data_count = np.zeros((2, num_classes), dtype=int)
 
         data_count_r = np.zeros((2, 10), dtype=int)
@@ -60,13 +62,13 @@ class CIFAR_10S_binary_same(CIFAR_10S_binary):
                     imgs[i], inv_imgs[i], colors[i] = self._set_data(img, group=1)
                 labels[i] = 1
             data_count_r[int(colors[i]), target_r] += 1
-            imgs[i], inv_imgs[i], org_noise, inv_noise = self._make_editing_bias(imgs[i], inv_imgs[i], colors[i], data_count_r[int(colors[i]), target_r], data_count_r_answer[int(colors[i]), target_r])
+            imgs[i], inv_imgs[i], org_noise_, inv_noise_ = self._make_editing_bias(imgs[i], inv_imgs[i], colors[i], data_count_r[int(colors[i]), target_r], data_count_r_answer[int(colors[i]), target_r])
+            org_noise[i] = org_noise_
+            inv_noise[i] = inv_noise_
 
             ### for test ###
-            if org_noise == 1:
-                data_count_r_org[int(colors[i]), target_r] += 1
-            if inv_noise == 1:
-                data_count_r_inv[int(colors[i]), target_r] += 1
+            data_count_r_org[int(colors[i]), target_r] += org_noise_
+            data_count_r_inv[int(colors[i]), target_r] += inv_noise_
 
         data_count[:,0] = np.sum(data_count_r[:,:5], axis=1)
         data_count[:,1] = np.sum(data_count_r[:,5:], axis=1)
@@ -91,4 +93,4 @@ class CIFAR_10S_binary_same(CIFAR_10S_binary):
             print('<# of inv no-noised data of group1')
             print(data_count_r_answer[1] - data_count_r_inv[1])
 
-        return imgs, inv_imgs,  labels, colors, data_count
+        return imgs, inv_imgs,  labels, colors, data_count, org_noise, inv_noise

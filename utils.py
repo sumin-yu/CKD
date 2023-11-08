@@ -28,18 +28,18 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def get_accuracy(outputs, labels, binary=False):
+def get_accuracy(output, labels, binary=False):
     #if multi-label classification
     if len(labels.size())>1:
-        outputs = (outputs>0.0).float()
-        correct = ((outputs==labels)).float().sum()
+        output = (output>0.0).float()
+        correct = ((output==labels)).float().sum()
         total = torch.tensor(labels.shape[0] * labels.shape[1], dtype=torch.float)
         avg = correct / total
         return avg.item()
     if binary:
-        predictions = (torch.sigmoid(outputs) >= 0.5).float()
+        predictions = (torch.sigmoid(output) >= 0.5).float()
     else:
-        predictions = torch.argmax(outputs, 1)
+        predictions = torch.argmax(output, 1)
     c = (predictions == labels).float().squeeze()
     accuracy = torch.mean(c)
     return accuracy.item()
@@ -77,29 +77,30 @@ def get_metric(model, dataset, dataset_name, clip_filtering):
             if clip_filtering:
                 input, _, group, label , indicator = data
             else:
-                input, _, group, label , _ = data
-
+                input, (cifar_org_alpha_noise, cifar_inv_alpha_noise), group, label , _ = data
+            group = group[0]
             if indicator ==1 :
                 num_tot += 1
                 input = input.view(-1, *input.shape[2:])
                 label = torch.reshape(label.permute((1,0)), (-1,))
-                # label = torch.stack((label,label),dim=1).view(-1)
 
                 input = input.cuda()
                 label = label.cuda()
 
-                output = model(input)
+                output = model(input, get_inter=True)
+                logits = output[-1]
+                features = output[-2]
 
-                preds = torch.argmax(output, 1)
+                preds = torch.argmax(logits, 1)
 
                 # bmr
                 num_hit_bmr += (preds == label).sum()
                 num_as_bmr += 1 if (preds == label).sum() == 1 else 0
 
                 # symKL
-                output = F.log_softmax(output, dim=1)
-                pred_dist += (F.kl_div(output[0], output[1], log_target=True, reduction='sum') +
-                            F.kl_div(output[1], output[0], log_target=True, reduction='sum')) / 2
+                logits = F.log_softmax(logits, dim=1)
+                pred_dist += (F.kl_div(logits[0], logits[1], log_target=True, reduction='sum') +
+                            F.kl_div(logits[1], logits[0], log_target=True, reduction='sum')) / 2
                 
                 # pc
                 num_as_pc +=  (preds[0] == (preds[1])).sum()
@@ -200,6 +201,10 @@ def make_log_name(args):
         
         # remove .pt from name
         log_name = log_name[:-3]
+        if args.test_alpha_pc:
+            log_name += '_test_alpha_pc'
+        if args.test_beta2_pc:
+            log_name += '_test_beta2_pc'
 
     else:
         if args.pretrained:
@@ -275,6 +280,8 @@ def make_log_name(args):
                 log_name += '_beta{}'.format(args.editing_bias_beta)
                 log_name += '_{}_{}'.format(args.noise_type, args.noise_degree)
                 log_name += '_corr{}'.format(args.noise_corr)
+            if args.test_alpha_pc:
+                log_name += '_test_alpha_pc'
 
     return log_name
 
@@ -289,6 +296,7 @@ def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
     result['args'] = args
+    print('accuracy: {}'.format(acc), 'BMR: {}'.format(bmr), 'pred_dist: {}'.format(pred_dist), 'PC: {}'.format(pc), 'DEO_A: {}'.format(deo_a), 'DEO_M: {}'.format(deo_m))
     print('success', savepath)
     # save result as pickle
     with open(savepath, 'wb') as f:

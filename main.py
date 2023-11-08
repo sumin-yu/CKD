@@ -49,7 +49,9 @@ def main():
                                                         noise_type=args.noise_type,
                                                         group_bias_type=args.group_bias_type,
                                                         group_bias_degree=args.group_bias_degree,
-                                                        noise_corr=args.noise_corr
+                                                        noise_corr=args.noise_corr,
+                                                        test_alpha_pc=args.test_alpha_pc,
+                                                        test_beta2_pc=args.test_beta2_pc
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp
@@ -115,9 +117,11 @@ def main():
         save_anal('test' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
         print('here') 
     elif args.evalset == 'train':
+        train_loader.dataset.test_mode = True
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
+        pred_dist, pc, bmr = get_metric(model, train_loader.dataset, args.dataset, args.clip_filtering)
+        save_anal('train' ,args, acc, bmr, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
         # pred_dist, pc, bmr = get_metric(model, train_loader.dataset)
-        save_anal('train' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
     elif args.evalset == 'val':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
         # pred_dist, pc, bmr = get_metric(model, val_loader.dataset)
