@@ -270,8 +270,7 @@ def make_log_name(args):
             log_name += '_{}_{}'.format(args.target, args.sensitive)
         
         if 'cifar10_b' in args.dataset:
-            if 'same' not in args.dataset:
-                log_name += '_skewed{}'.format(args.skew_ratio)
+            log_name += '_skewed{}'.format(args.skew_ratio)
             log_name += '_group{}_{}'.format(args.group_bias_type, args.group_bias_degree)
             if args.editing_bias_alpha == 0:
                 log_name += '_domgap_{}_{}'.format(args.noise_type, args.domain_gap_degree)
