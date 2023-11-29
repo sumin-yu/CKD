@@ -130,7 +130,7 @@ class CelebA(GenericDataset):
             X = self.transform(X)
             X = torch.stack(X) if (self.test_pair) else X[0]
 
-        return X, 0, sensitive, target, (index, img_name)
+        return X, (0,0), sensitive, target, (index, img_name)
 
     def __len__(self):
         return len(self.features)

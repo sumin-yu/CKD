@@ -19,7 +19,8 @@ slack_sender.py
 *.jpg
 t_*
 t_sumin
-
+t
+tt_sumin
 cifar10sb_results/
 
 mahalanobis_dist.py
