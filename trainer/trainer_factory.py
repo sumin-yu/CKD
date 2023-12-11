@@ -223,7 +223,7 @@ class GenericTrainer:
         with torch.no_grad():
             for i, data in enumerate(dataloader):
                 # Get the inputs
-                inputs, (cifar_org_alpha_noise, cifar_ctf_alpha_nosie), groups, targets, _ = data
+                inputs, _, groups, targets, _ = data
                 labels = targets
                 groups = groups.long()
 
@@ -242,8 +242,6 @@ class GenericTrainer:
                 output_set = torch.cat((output_set, outputs.cpu()))
                 if self.get_inter:
                     intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
-                alpha_set = torch.cat((alpha_set, cifar_org_alpha_noise.cpu()))
-                alpha_ctf_set = torch.cat((alpha_ctf_set, cifar_ctf_alpha_nosie.cpu()))
 
                 pred = torch.argmax(outputs, 1)
                 group_element = list(torch.unique(groups).numpy())
@@ -259,9 +257,7 @@ class GenericTrainer:
         predict_mat['output_set'] = output_set.numpy()
         if self.get_inter:
             predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
-        predict_mat['alpha_set'] = alpha_set.numpy()
-        predict_mat['alpha_ctf_set'] = alpha_ctf_set.numpy()
-            
+
         savepath = os.path.join(log_dir, log_name + '_{}_confu'.format(dataset))
         print('savepath', savepath)
         savemat(savepath, confu_mat, appendmat=True)
