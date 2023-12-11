@@ -94,6 +94,8 @@ class TrainerFactory:
             import trainer.sensei_2 as trainer
         elif method == 'group_predict':
             import trainer.group_predict as trainer
+        elif method == 'ck_lp':
+            import trainer.check_lp as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)

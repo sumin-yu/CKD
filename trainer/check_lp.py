@@ -3,13 +3,25 @@ from __future__ import print_function
 import time
 from utils import get_accuracy
 import trainer
-
+import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-
+    
+    def reinit_last_layer(self):
+        _out, _in =  self.model.fc.weight.shape 
+        print(_out, _in)
+        self.model.fc = torch.nn.Linear(_in, _out)
+        self.model.cuda()
+        self.optimizer = torch.optim.AdamW(self.model.fc.parameters())
+        self.scheduler = ReduceLROnPlateau(self.optimizer)
+    
     def train(self, train_loader, val_loader, test_loader, epochs):
+        
+        self.reinit_last_layer()
+
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, self.model)
 
@@ -35,7 +47,7 @@ class Trainer(trainer.GenericTrainer):
         print('Training Finished!')        
 
     def _train_epoch(self, epoch, train_loader, model):
-        model.train()
+        model.eval()
         
         running_acc = 0.0
         running_loss = 0.0
