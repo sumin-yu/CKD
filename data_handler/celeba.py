@@ -29,12 +29,23 @@ class CelebA(GenericDataset):
     ]
 
     def __init__(self, root, split="train", target_type="attr", transform=None,
-                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1, test_set='original'):
+                 target_transform=None, download=False, target_attr='Blond_Hair', sen_attr='Male',num_aug=1, test_set='original', test_pc_G=None):
         super(CelebA, self).__init__(root, transform=transform)
         self.split = split
         self.num_aug=num_aug
         self.test_pair = False
         self.ctf_dir = "img_align_celeba_edited_{}".format(sen_attr)
+        self.test_pc_G = test_pc_G
+        if test_pc_G is not None:
+            if test_pc_G == 'Hair_Length':
+                # self.G1_dir = "img_align_celeba_edited_{}".format('Long_Hair')
+                # self.G2_dir = "img_align_celeba_edited_{}".format('Short_Hair')
+                self.G1_dir = "img_align_celeba_Hair_Length_ctf_with_origin"
+                self.G2_dir = "img_align_celeba_Hair_Length_org_with_origin"
+            elif test_pc_G == 'Bangs':
+                self.G1_dir = "img_align_celeba_Bangs"
+                self.G2_dir = "img_align_celeba_No_Bangs"
+
 
         if isinstance(target_type, list):
             self.target_type = target_type
@@ -63,13 +74,18 @@ class CelebA(GenericDataset):
 
         fn = partial(join, self.root, self.base_folder)
         splits = pandas.read_csv(fn("list_eval_partition.txt"), delim_whitespace=True, header=None, index_col=0)
-        if test_set == 'original':
+        if test_set == 'pc_G':
+            attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}_{}_pc_G_{}.txt".format(self.target_attr, self.sensitive_attr, self.test_pc_G)))
+            self.attr = torch.as_tensor(attr.values)
+            self.filename = attr.index.values
+        elif test_set == 'original':
             attr = pandas.read_csv(fn("list_attr_celeba.txt"), delim_whitespace=True, header=1)
             mask = slice(None) if split is None else (splits[1] == split)
             self.filename = splits[mask].index.values
             self.attr = torch.as_tensor(attr[mask].values)
         elif test_set == 'strong_f':
             attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}_{}.txt".format(self.target_attr, self.sensitive_attr)))
+            # attr = pandas.read_csv(fn("list_attr_celeba_test_strong_filter_{}_{}_pc_G_{}.txt".format(self.target_attr, self.sensitive_attr, 'Hair_Length')))
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
         elif test_set == 'weak_f':
@@ -119,8 +135,17 @@ class CelebA(GenericDataset):
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
         if self.test_pair:
-            X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.ctf_dir, img_name)).convert('RGB')
-            X =  [X, X_edited]
+            if self.test_pc_G is not None:
+                X_G1 = PIL.Image.open(os.path.join(self.root, self.base_folder, self.G1_dir, img_name)).convert('RGB')
+                X_G1 = ImageOps.fit(X_G1, (256, 256), method=Image.LANCZOS)
+                X_G2 = PIL.Image.open(os.path.join(self.root, self.base_folder, self.G2_dir, img_name)).convert('RGB')
+                X_G2 = ImageOps.fit(X_G2, (256, 256), method=Image.LANCZOS)
+                X_G1.save('X_G1_celeba.png')
+                X_G2.save('X_G2_celeba.png')
+                X =  [X_G1, X_G2]
+            else:
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.ctf_dir, img_name)).convert('RGB')
+                X =  [X, X_edited]
             target = torch.Tensor([target, target])
             sensitive = torch.Tensor([sensitive, 0 if sensitive ==1 else 1])
         else:

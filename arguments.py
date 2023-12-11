@@ -24,7 +24,8 @@ def get_args():
                                  'Ccifar10_b', 'Ccifar10_b_aug', 'Ccifar10_b_same', 'Ccifar10_b_same_aug',
                                  'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
                                  'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
-                                 'raf', 'raf_aug', 'celeba_pseudo'])
+                                 'raf', 'raf_aug', 'celeba_pseudo', 'celeba_hq', 'celeba_hq_aug',
+                                 'lfw', 'lfw_aug'])
     parser.add_argument('--skew-ratio', default=0.9, type=float, help='skew ratio for cifar-10s')
     parser.add_argument('--group-bias-type', default='color', type=str, choices=['color', 'Contrast'], help='group bias type for cifar-10s')
     parser.add_argument('--group-bias-degree', default=1, type=int, choices=[1,2,3,4,5], help='group bias degree for cifar-10s')
@@ -83,6 +84,8 @@ def get_args():
 
     parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
     parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
+    parser.add_argument('--test-pc-G', default=None, type=str, help='test pc w.r.t. G, celeba (Wearing_Hat, Hair_Length, Bangs), celeba_hq (Hair_Length, Hair_Curl)')
+    parser.add_argument('--test-set', default='original', type=str, choices=['original', 'strong_f', 'weak_f', 'pc_G'], help='test set for celeba / pc_g test set for celeba_hq')
 
     parser.add_argument('--fitnet-simul', default=False, action='store_true', help='no hint-training')
 

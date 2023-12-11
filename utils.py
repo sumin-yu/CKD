@@ -53,7 +53,7 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset, dataset_name, clip_filtering):
+def get_metric(model, dataset, dataset_name, clip_filtering, is_pc_G=False):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
     bs = 1
@@ -69,50 +69,50 @@ def get_metric(model, dataset, dataset_name, clip_filtering):
         num_hit_bmr = 0.
         num_as_bmr = 0.
         num_as_pc = 0.
+        num_as_pc_g = 0.
         pred_dist = 0.
         num_tot = 0.
         for data in dataloader:
-            indicator = 1
-            
-            if clip_filtering:
-                input, _, group, label , indicator = data
-            else:
-                input, (cifar_org_alpha_noise, cifar_inv_alpha_noise), group, label , _ = data
+            input, _, group, label , _ = data
             group = group[0]
-            if indicator ==1 :
-                num_tot += 1
-                input = input.view(-1, *input.shape[2:])
-                label = torch.reshape(label.permute((1,0)), (-1,))
+            num_tot += 1
+            input = input.view(-1, *input.shape[2:])
+            label = torch.reshape(label.permute((1,0)), (-1,))
 
-                input = input.cuda()
-                label = label.cuda()
+            input = input.cuda()
+            label = label.cuda()
 
-                output = model(input, get_inter=True)
-                logits = output[-1]
-                features = output[-2]
+            output = model(input, get_inter=True)
+            logits = output[-1]
+            features = output[-2]
 
-                preds = torch.argmax(logits, 1)
+            preds = torch.argmax(logits, 1)
+            # bmr
+            num_hit_bmr += (preds == label).sum()
+            num_as_bmr += 1 if (preds == label).sum() == 1 else 0
 
-                # bmr
-                num_hit_bmr += (preds == label).sum()
-                num_as_bmr += 1 if (preds == label).sum() == 1 else 0
-
-                # symKL
-                logits = F.log_softmax(logits, dim=1)
-                pred_dist += (F.kl_div(logits[0], logits[1], log_target=True, reduction='sum') +
-                            F.kl_div(logits[1], logits[0], log_target=True, reduction='sum')) / 2
-                
-                # pc
-                num_as_pc +=  (preds[0] == (preds[1])).sum()
+            # symKL
+            logits = F.log_softmax(logits, dim=1)
+            pred_dist += (F.kl_div(logits[0], logits[1], log_target=True, reduction='sum') +
+                        F.kl_div(logits[1], logits[0], log_target=True, reduction='sum')) / 2
+            
+            # pc
+            num_as_pc +=  (preds[0] == (preds[1])).sum()
 
         bmr = torch.tensor(-1) if num_hit_bmr == 0. else num_as_bmr / num_hit_bmr
         pred_dist /= num_tot
         pc = num_as_pc / num_tot
+        pc_g = num_as_pc_g / num_tot
+
+    if is_pc_G:
+        print('PC_G   = {}'.format(pc))
+        return pred_dist, 0.0, 0.0, pc
+    else:
         print('PC     = {}'.format(pc))
         print('Sym-KL = {}'.format(pred_dist))
         print('BMR    = {}'.format(bmr))
 
-    return pred_dist, pc, bmr
+        return pred_dist, pc, bmr, 0.0
 
 def get_bmr(model, dataset):
     kwargs = {'num_workers': 4, 'pin_memory': True}
@@ -205,6 +205,10 @@ def make_log_name(args):
             log_name += '_test_alpha_pc'
         if args.test_beta2_pc:
             log_name += '_test_beta2_pc'
+        if args.test_set != 'original':
+            log_name += '_testset_{}'.format(args.test_set)
+        if args.test_pc_G is not None:
+            log_name += '_testpcG_{}'.format(args.test_pc_G)
 
     else:
         if args.pretrained:
@@ -268,6 +272,9 @@ def make_log_name(args):
 
         if 'celeba' in args.dataset:
             log_name += '_{}_{}'.format(args.target, args.sensitive)
+
+        if 'lfw' in args.dataset:
+            log_name += '_{}_{}'.format(args.target, args.sensitive)
         
         if 'cifar10_b' in args.dataset:
             log_name += '_skewed{}'.format(args.skew_ratio)
@@ -284,7 +291,7 @@ def make_log_name(args):
 
     return log_name
 
-def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
+def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, pc_g=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
 
     savepath = os.path.join(log_dir, log_name + '_{}_result'.format(dataset))
     result = {}
@@ -294,8 +301,9 @@ def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, deo_a=
     result['PC'] = pc
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
+    result['test_pc'] = pc_g
     result['args'] = args
-    print('accuracy: {}'.format(acc), 'BMR: {}'.format(bmr), 'pred_dist: {}'.format(pred_dist), 'PC: {}'.format(pc), 'DEO_A: {}'.format(deo_a), 'DEO_M: {}'.format(deo_m))
+    print('accuracy: {}'.format(acc), 'BMR: {}'.format(bmr), 'pred_dist: {}'.format(pred_dist), 'PC: {}'.format(pc), 'DEO_A: {}'.format(deo_a), 'DEO_M: {}'.format(deo_m), 'PC_G: {}'.format(pc_g))
     print('success', savepath)
     # save result as pickle
     with open(savepath, 'wb') as f:

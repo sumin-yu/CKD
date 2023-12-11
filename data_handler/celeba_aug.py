@@ -16,9 +16,25 @@ class CelebA_aug(CelebA):
         img_name = self.filename[index]
         X = PIL.Image.open(os.path.join(self.root, self.base_folder, "img_align_celeba", img_name)).convert('RGB')
         X = ImageOps.fit(X, (256, 256), method=Image.LANCZOS)
-        if self.split == 'train' or self.test_pair:
+        if self.split == 'train':
             X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.ctf_dir, img_name)).convert('RGB')
             X =  [X, X_edited]
+            target = self.attr[index, self.target_idx]
+            target = torch.Tensor([target, target])
+            sensitive = self.attr[index, self.sensi_idx]
+            sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
+        if self.test_pair:
+            if self.test_pc_G is not None:
+                X_G1 = PIL.Image.open(os.path.join(self.root, self.base_folder, self.G1_dir, img_name)).convert('RGB')
+                X_G1 = ImageOps.fit(X_G1, (256, 256), method=Image.LANCZOS)
+                X_G2 = PIL.Image.open(os.path.join(self.root, self.base_folder, self.G2_dir, img_name)).convert('RGB')
+                X_G2 = ImageOps.fit(X_G2, (256, 256), method=Image.LANCZOS)
+                X_G1.save('X_G1_celeba.png')
+                X_G2.save('X_G2_celeba.png')
+                X =  [X_G1, X_G2]
+            else:
+                X_edited = PIL.Image.open(os.path.join(self.root, self.base_folder, self.ctf_dir, img_name)).convert('RGB')
+                X =  [X, X_edited]
             target = self.attr[index, self.target_idx]
             target = torch.Tensor([target, target])
             sensitive = self.attr[index, self.sensi_idx]

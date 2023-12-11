@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False, test_pc_G=None):
 
         if name == "utkface":
             from data_handler.utkface import UTKFaceDataset
@@ -17,7 +17,7 @@ class DatasetFactory:
         elif name == "celeba":
             from data_handler.celeba import CelebA
             root='./data/'
-            return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set)
+            return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
         elif name == "celeba_pseudo":
             from data_handler.celeba_pseudo import CelebA_pseudo
             root='./data/'
@@ -25,7 +25,7 @@ class DatasetFactory:
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug, test_set=test_set)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug, test_set=test_set, test_pc_G=test_pc_G)
         elif name == "celeba_aug2":
             from data_handler.celeba_aug2 import CelebA_aug
             root='./data/'
@@ -46,6 +46,24 @@ class DatasetFactory:
             from data_handler.celeba_aug_filtered import CelebA_aug
             root='./data/'
             return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
+    
+        elif name == "celeba_hq":
+            from data_handler.celeba_hq import CelebA_HQ
+            root='./data_celebahq/'
+            return CelebA_HQ(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
+        elif name == "celeba_hq_aug":
+            from data_handler.celeba_hq_aug import CelebA_HQ_aug
+            root='./data_celebahq/'
+            return CelebA_HQ_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
+        
+        elif name == "lfw":
+            from data_handler.lfw import LFWPeople
+            root = './data/'
+            return LFWPeople(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive)
+        elif name == "lfw_aug":
+            from data_handler.lfw_aug import LFWPeople_aug
+            root = './data/'
+            return LFWPeople_aug(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive)
 
 
         
