@@ -23,7 +23,7 @@ class CelebA_aug(CelebA):
             target = torch.Tensor([target, target])
             sensitive = self.attr[index, self.sensi_idx]
             sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
-        if self.test_pair:
+        elif self.test_pair:
             if self.test_pc_G is not None:
                 X_G1 = PIL.Image.open(os.path.join(self.root, self.base_folder, self.G1_dir, img_name)).convert('RGB')
                 X_G1 = ImageOps.fit(X_G1, (256, 256), method=Image.LANCZOS)
@@ -45,7 +45,6 @@ class CelebA_aug(CelebA):
             sensitive = self.attr[index, self.sensi_idx]
 
         feature = self.attr[index, self.feature_idx]
-
         if self.transform is not None:
             if self.split == 'train':
                 if self.num_aug == 1:
