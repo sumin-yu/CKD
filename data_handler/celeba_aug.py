@@ -48,7 +48,6 @@ class CelebA_aug(CelebA):
             sensitive = self.attr[index, self.sensi_idx]
 
         feature = self.attr[index, self.feature_idx]
-
         if self.transform is not None:
             if self.split == 'train':
                 if self.num_aug == 1:
