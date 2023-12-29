@@ -38,6 +38,8 @@ class TrainerFactory:
             import trainer.kd_feature_pairing as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
+        elif method == 'kd_hinton_logit':
+            import trainer.kd_hinton_logit as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
         elif method == 'kd_hinton_aug':
@@ -218,6 +220,7 @@ class GenericTrainer:
         output_set = torch.tensor([])
         group_set = torch.tensor([], dtype=torch.long)
         target_set = torch.tensor([], dtype=torch.long)
+        # g_group_set = torch.tensor([], dtype=torch.long)
         intermediate_feature_set = torch.tensor([])
         alpha_set = torch.tensor([])
         alpha_ctf_set = torch.tensor([])
@@ -225,9 +228,11 @@ class GenericTrainer:
         with torch.no_grad():
             for i, data in enumerate(dataloader):
                 # Get the inputs
-                inputs, _, groups, targets, _ = data
+                inputs, g_groups, groups, targets, _ = data
                 labels = targets
                 groups = groups.long()
+                # g_groups, _ = g_groups
+                # g_groups = g_groups.long()
 
                 if self.cuda:
                     inputs = inputs.cuda(self.device)
@@ -241,6 +246,7 @@ class GenericTrainer:
 
                 group_set = torch.cat((group_set, groups))
                 target_set = torch.cat((target_set, targets))
+                # g_group_set = torch.cat((g_group_set, g_groups))
                 output_set = torch.cat((output_set, outputs.cpu()))
                 if self.get_inter:
                     intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
@@ -257,6 +263,7 @@ class GenericTrainer:
         predict_mat['group_set'] = group_set.numpy()
         predict_mat['target_set'] = target_set.numpy()
         predict_mat['output_set'] = output_set.numpy()
+        # predict_mat['g_group_set'] = g_group_set.numpy()
         if self.get_inter:
             predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
 

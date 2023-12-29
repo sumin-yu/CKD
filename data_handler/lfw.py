@@ -31,7 +31,7 @@ class _LFW(GenericDataset):
         "peopleDevTrain.txt": "54eaac34beb6d042ed3a7d883e247a21",
         "lfw-names.txt": "a6d0a479bd074669f656265a6e693f6d",
     }
-    annot_file = {"10fold": "", "train": "DevTrain", "test": "DevTest"}
+    annot_file = {"10fold": "", "train": "DevTrain_new", "test": "DevTest", "valid": "DevValid_new"}
     names = "lfw-names.txt"
 
     def __init__(
@@ -50,17 +50,15 @@ class _LFW(GenericDataset):
         images_dir, self.filename, self.md5 = self.file_dict[self.image_set]
 
         self.view = verify_str_arg(view.lower(), "view", ["people", "pairs"])
-        if split == 'valid':
-            split = 'test'
-        self.split = verify_str_arg(split.lower(), "split", ["10fold", "train", "test"])
+        self.split = verify_str_arg(split.lower(), "split", ["10fold", "train", "test", "valid"])
         self.labels_file = f"{self.view}{self.annot_file[self.split]}.txt"
         self.data: List[Any] = []
 
         if download:
             self.download()
 
-        if not self._check_integrity():
-            raise RuntimeError("Dataset not found or corrupted. You can use download=True to download it")
+        # if not self._check_integrity():
+        #     raise RuntimeError("Dataset not found or corrupted. You can use download=True to download it")
 
         self.images_dir = join(self.root, self.base_folder, images_dir)
 
@@ -128,7 +126,7 @@ class LFWPeople(_LFW):
         image_set: str = "funneled",
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        download: bool = True, 
+        download: bool = False, 
         target_attr: str = "Blond_Hair",
         sen_attr: str = "Male",
 

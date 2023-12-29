@@ -21,7 +21,7 @@ class LFWPeople_aug(LFWPeople):
         image_set: str = "funneled",
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
-        download: bool = True, 
+        download: bool = False, 
         target_attr: str = "Blond_Hair",
         sen_attr: str = "Male",
 

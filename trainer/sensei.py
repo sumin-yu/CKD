@@ -206,9 +206,9 @@ class LogisticRegSensitiveSubspace(nn.Module):
         self.device = device
         self.model = model
         self.dist_path = dist_path
-        self.iters = 100
-        self.dist_batch = 1000
-        self.load_num = 20000
+        self.iters = 8
+        self.dist_batch = 4
+        self.load_num = 30
     
     def fit(self, data_loader): 
         file_name = self.dist_path

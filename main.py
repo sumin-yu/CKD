@@ -113,11 +113,11 @@ def main():
     if args.evalset == 'all':
         # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        # pred_dist, pc, bmr = get_metric(model, val_loader.dataset)
-        save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
+        save_anal('val' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        # pred_dist, pc, bmr = get_metric(model, test_loader.dataset)
-        save_anal('test' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset)
+        save_anal('test' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
         print('here') 
     elif args.evalset == 'train':
         train_loader.dataset.test_mode = True
@@ -127,17 +127,16 @@ def main():
         # pred_dist, pc, bmr = get_metric(model, train_loader.dataset)
     elif args.evalset == 'val':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        # pred_dist, pc, bmr = get_metric(model, val_loader.dataset)
-        save_anal('val' ,args, acc, bmr, pc, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
+        save_anal('val' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
     else: # evalset == 'test'
         if args.test_set == 'pc_G':
             acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-            pred_dist, pc, bmr, pc_G = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering, True)
+            pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering, True)
         else:
             acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-            pred_dist, pc, bmr, pc_G = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering)
-
-        save_anal('test' ,args, acc, bmr, pred_dist, pc, pc_G, deo_a, deo_m, log_dir, log_name)
+            pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering)
+        save_anal('test' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
 
 
     print('Done!')

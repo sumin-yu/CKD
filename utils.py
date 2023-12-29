@@ -53,7 +53,7 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset, dataset_name, clip_filtering, is_pc_G=False):
+def get_metric(model, dataset, dataset_name, clip_filtering=False, is_pc_G=False):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
     bs = 1
@@ -72,8 +72,13 @@ def get_metric(model, dataset, dataset_name, clip_filtering, is_pc_G=False):
         num_as_pc_g = 0.
         pred_dist = 0.
         num_tot = 0.
+        pc_mat = np.zeros((2, 2))
+        num_tot_mat = np.zeros((2, 2))
+        # pc_correct_list = []
+        # pc_wrong_list = []
         for data in dataloader:
-            input, _, group, label , _ = data
+            input, _, group, label , identity = data
+            idx, img_name = identity
             group = group[0]
             num_tot += 1
             input = input.view(-1, *input.shape[2:])
@@ -98,21 +103,29 @@ def get_metric(model, dataset, dataset_name, clip_filtering, is_pc_G=False):
             
             # pc
             num_as_pc +=  (preds[0] == (preds[1])).sum()
+            # if preds[0] == preds[1]:
+            #     pc_correct_list.append(img_name[0])
+            # else:
+                # pc_wrong_list.append(img_name[0])
+            pc_mat[int(group[0].item()), int(label[0].item())] += (preds[0] == (preds[1])).sum()
+            num_tot_mat[int(group[0].item()), int(label[0].item())] += 1
 
         bmr = torch.tensor(-1) if num_hit_bmr == 0. else num_as_bmr / num_hit_bmr
         pred_dist /= num_tot
         pc = num_as_pc / num_tot
         pc_g = num_as_pc_g / num_tot
+        pc_mat /= num_tot_mat
 
     if is_pc_G:
         print('PC_G   = {}'.format(pc))
-        return pred_dist, 0.0, 0.0, pc
+        # return pred_dist, 0.0, 0.0, pc,  pc_correct_list, pc_wrong_list
+        return pred_dist, 0.0, 0.0, pc, pc_mat
     else:
         print('PC     = {}'.format(pc))
         print('Sym-KL = {}'.format(pred_dist))
         print('BMR    = {}'.format(bmr))
 
-        return pred_dist, pc, bmr, 0.0
+        return pred_dist, pc, bmr, 0.0, pc_mat
 
 def get_bmr(model, dataset):
     kwargs = {'num_workers': 4, 'pin_memory': True}
@@ -291,7 +304,7 @@ def make_log_name(args):
 
     return log_name
 
-def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, pc_g=0, deo_a=0, deo_m=0, log_dir="", log_name=""):
+def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, pc_g=0, pc_mat=[], deo_a=0, deo_m=0, log_dir="", log_name=""):
 
     savepath = os.path.join(log_dir, log_name + '_{}_result'.format(dataset))
     result = {}
@@ -302,8 +315,12 @@ def save_anal(dataset='test', args=None, acc=0, bmr=0, pred_dist=0, pc=0, pc_g=0
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
     result['test_pc'] = pc_g
+    result['PC_mat'] = pc_mat
+    # result['c_list'] = c_list
+    # result['w_list'] = w_list
     result['args'] = args
     print('accuracy: {}'.format(acc), 'BMR: {}'.format(bmr), 'pred_dist: {}'.format(pred_dist), 'PC: {}'.format(pc), 'DEO_A: {}'.format(deo_a), 'DEO_M: {}'.format(deo_m), 'PC_G: {}'.format(pc_g))
+    print('pc mat: {}'.format(pc_mat))
     print('success', savepath)
     # save result as pickle
     with open(savepath, 'wb') as f:
