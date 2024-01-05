@@ -34,6 +34,8 @@ class TrainerFactory:
             import trainer.feature_pairing as trainer
         elif method == 'kd_logit_pairing':
             import trainer.kd_logit_pairing as trainer
+        elif method == 'kd_logit_pairing_to_org':
+            import trainer.kd_logit_pairing_to_org as trainer
         elif method == 'kd_feature_pairing':
             import trainer.kd_feature_pairing as trainer
         elif method == 'kd_hinton':
