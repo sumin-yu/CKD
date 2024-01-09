@@ -24,9 +24,10 @@ class LFWPeople_aug(LFWPeople):
         download: bool = False, 
         target_attr: str = "Blond_Hair",
         sen_attr: str = "Male",
+        test_set: str = 'original'
 
     ) -> None:
-        super().__init__(root, split, image_set, transform, target_transform, download, target_attr, sen_attr)
+        super().__init__(root, split, image_set, transform, target_transform, download, target_attr, sen_attr, test_set)
 
         self.images_ctf_dir = join(self.root, self.base_folder, "lfw_funneled_Male")
         self.ctf_data = self._get_people_ctf()

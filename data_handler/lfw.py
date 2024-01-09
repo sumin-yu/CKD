@@ -129,6 +129,7 @@ class LFWPeople(_LFW):
         download: bool = False, 
         target_attr: str = "Blond_Hair",
         sen_attr: str = "Male",
+        test_set: str = 'original',
 
     ) -> None:
         super().__init__(root, split, image_set, "people", transform, target_transform, download)
@@ -136,8 +137,12 @@ class LFWPeople(_LFW):
 
         ######
         fn = partial(join, self.root, self.base_folder)
-        attr = pd.read_csv(fn("lfw_attributes_binary.txt"), sep='\t') 
-        # attr = attr[attr["imagenum"] == 1]
+        if test_set == 'original':
+            attr = pd.read_csv(fn("lfw_attributes_binary.txt"), sep='\t') 
+            # attr = attr[attr["imagenum"] == 1]
+        elif test_set == 'strong_f':
+            attr = pd.read_csv(fn("lfw_attributes_binary_test_strong_filter.txt"), sep='\t')
+            attr = attr[attr["imagenum"] == 1]
         self.filename = pd.read_csv(fn(self.labels_file), sep='\t').index.tolist()
         self.filename = [f.replace('_', ' ') for f in self.filename]
         attr = attr[attr["person"].isin(self.filename)]

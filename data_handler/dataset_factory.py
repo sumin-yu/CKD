@@ -59,11 +59,11 @@ class DatasetFactory:
         elif name == "lfw":
             from data_handler.lfw import LFWPeople
             root = './data/'
-            return LFWPeople(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive)
+            return LFWPeople(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set)
         elif name == "lfw_aug":
             from data_handler.lfw_aug import LFWPeople_aug
             root = './data/'
-            return LFWPeople_aug(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive)
+            return LFWPeople_aug(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set)
 
 
         

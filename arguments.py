@@ -56,7 +56,7 @@ def get_args():
                                  'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
-                                 'feature_pairing','feature_pairing_mmd',
+                                 'feature_pairing','feature_pairing_mmd', 'kd_feature_pairing_to_org',
                                  'kd_hinton', 'kd_fitnet', 'kd_at','cov','kd_feature_pairing', 'kd_hinton_logit',
                                  'scratch_mmd', 'kd_nst', 'adv_debiasing', 'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
                                  'ck_lp'])
@@ -73,6 +73,7 @@ def get_args():
     parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
     parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation for MFD_indiv')
+    parser.add_argument('--kd-lambf', default=1, type=float, help='feature distill strength hyperparameter for kd-lp loss')
 
     parser.add_argument('--model', default='', required=True, choices=['resnet', 'shufflenet', 'mlp', 'cifar_net', 'resnet152', 'cifar_net_v2'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
