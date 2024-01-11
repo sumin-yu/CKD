@@ -38,6 +38,8 @@ class TrainerFactory:
             import trainer.kd_logit_pairing_to_org as trainer
         elif method == 'logit_pairing_kd_logit_pairing':
             import trainer.logit_pairing_kd_logit_pairing as trainer
+        elif method == 'logit_pairing_kd_feature_pairing':
+            import trainer.logit_pairing_kd_feature_pairing as trainer
         elif method == 'kd_feature_pairing':
             import trainer.kd_feature_pairing as trainer
         elif method == 'kd_feature_pairing_to_org':
