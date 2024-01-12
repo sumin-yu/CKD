@@ -245,7 +245,7 @@ def make_log_name(args):
 
         elif 'logit_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
-            if args.method == 'logit_pairing_kd_logit_pairing':
+            if args.method == 'logit_pairing_kd_logit_pairing' or args.method == 'logit_pairing_kd_feature_pairing':
                 log_name += '_kd_lambf{}'.format(args.kd_lambf)
 
         elif 'feature_pairing' in args.method: 
