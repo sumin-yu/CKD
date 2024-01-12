@@ -28,6 +28,7 @@ class Trainer(trainer.GenericTrainer):
         self.eta = args.eta
         self.iteration = args.iter
         self.n_workers = args.num_workers
+        self.lambf = args.lambf
 
     def train(self, train_loader, val_loader, test_loader, epochs):        
         
@@ -91,13 +92,13 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
+            inputs, _, groups, labels, filter_indicator = data
             batch_size = inputs.shape[0]
             inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+            labels = torch.reshape(labels.permute((1,0)), (-1,)).type(torch.LongTensor)
             
             org_filtered_idx = torch.arange(batch_size)
 
@@ -109,12 +110,17 @@ class Trainer(trainer.GenericTrainer):
             groups = groups.long()
             labels = labels.long()
 
-            weights = self.weight_matrix[groups, labels].cuda()
-
+            weights = self.weight_matrix[groups[org_filtered_idx], labels[org_filtered_idx]].cuda()
             
             outputs = model(inputs)
 
             loss = torch.mean(weights * self.train_criterion(outputs, labels))
+
+            ft_logit = outputs[org_filtered_idx]
+            ctf_logit = outputs[batch_size:]
+            lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
+
+            loss += self.lambf * lp_loss
             
             self.optimizer.zero_grad()
             loss.backward()                
