@@ -55,15 +55,14 @@ class Trainer(trainer.GenericTrainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, filter_indicator = data
-            inputs = inputs.permute((1,0,2,3,4))
             batch_size = inputs.shape[0]
+            inputs = inputs.permute((1,0,2,3,4))
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
             
             labels = targets
-
             org_filtered_idx = torch.arange(batch_size)
             if self.cuda:
                 inputs = inputs.cuda(self.device)
@@ -74,12 +73,9 @@ class Trainer(trainer.GenericTrainer):
             outputs = model(inputs)
             t_outputs = teacher(t_inputs[org_filtered_idx])
             kd_loss = compute_hinton_loss(outputs[org_filtered_idx], t_outputs, kd_temp=self.kd_temp, device=self.device)
-
-            ft_logit = stu_logits[org_filtered_idx]
-            ctf_logit = stu_logits[batch_size:]
+            ft_logit = outputs[org_filtered_idx]
+            ctf_logit = outputs[batch_size:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
-
-            t_target_logit = (tea_logits[:batch_size] + tea_logits[batch_size:])/2
 
             loss = self.criterion(outputs, labels) + self.lambh * kd_loss +  self.lamb * lp_loss 
 
