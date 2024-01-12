@@ -95,14 +95,14 @@ class Trainer(trainer.GenericTrainer):
             
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
-                labels = labels.cuda(device=self.device)
+                targets = targets.cuda(device=self.device)
                 groups = groups.cuda(device=self.device)
 
             outputs = model(inputs)
-            loss = self.train_criterion(outputs[org_filtered_idx], labels[org_filtered_idx])
+            loss = self.train_criterion(outputs[org_filtered_idx], targets[org_filtered_idx])
 
             # calculate the groupwise losses
-            subgroups = groups * n_classes + labels
+            subgroups = groups * n_classes + targets
             group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
             group_count = group_map.sum(1)
             group_denom = group_count + (group_count==0).float() # avoid nans
@@ -124,7 +124,7 @@ class Trainer(trainer.GenericTrainer):
             self.optimizer.step()
 
             running_loss += loss.item()
-            running_acc += get_accuracy(outputs, labels)
+            running_acc += get_accuracy(outputs, targets)
             if i % self.term == self.term-1: # print every self.term mini-batches
                 avg_batch_time = time.time()-batch_start_time
                 print('[{}/{}, {:5d}] Method: {} Train Loss: {:.3f} Train Acc: {:.2f} '
