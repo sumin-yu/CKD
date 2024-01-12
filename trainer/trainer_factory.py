@@ -48,6 +48,8 @@ class TrainerFactory:
             import trainer.kd_hinton as trainer
         elif method == 'kd_hinton_logit':
             import trainer.kd_hinton_logit as trainer
+        elif method == 'logit_pairing_kd_hinton':
+            import trainer.logit_pairing_kd_hinton as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
         elif method == 'kd_hinton_aug':
@@ -96,8 +98,12 @@ class TrainerFactory:
             import trainer.fairdro as trainer
         elif method == 'groupdro':
             import trainer.groupdro as trainer
+        elif method == 'logit_pairing_groupdro':
+            import trainer.logit_pairing_groupdro as trainer
         elif method == 'lbc':
             import trainer.lbc as trainer
+        elif method == 'logit_pairing_lbc':
+            import trainer.logit_pairing_lbc as trainer
         elif method == 'sensei':
             import trainer.sensei as trainer
         elif method == 'sensei_2':
