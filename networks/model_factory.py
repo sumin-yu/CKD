@@ -19,7 +19,7 @@ class ModelFactory():
             return MLP(feature_size=img_size, hidden_dim=40, num_class=num_classes)
 
         elif target_model == 'resnet56':
-            model = resnet56(num_classes=num_classes)
+            return resnet56(num_classes=num_classes)
 
         elif target_model == 'resnet':
             if pretrained:
