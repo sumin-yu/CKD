@@ -5,6 +5,7 @@ from networks.shufflenet import shufflenet_v2_x1_0
 from networks.cifar_net import Net
 from networks.cifar_net_v2 import Net as Net_v2
 from networks.mlp import MLP
+from networks.resnet_cifar import resnet56
 
 
 class ModelFactory():
@@ -16,6 +17,9 @@ class ModelFactory():
 
         if target_model == 'mlp': 
             return MLP(feature_size=img_size, hidden_dim=40, num_class=num_classes)
+
+        elif target_model == 'resnet56':
+            model = resnet56(num_classes=num_classes)
 
         elif target_model == 'resnet':
             if pretrained:
