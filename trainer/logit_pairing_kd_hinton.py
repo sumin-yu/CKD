@@ -54,7 +54,7 @@ class Trainer(trainer.GenericTrainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs_, int_inputs_, _, groups_, targets, _ = data
+            inputs, _, groups, targets, filter_indicator = data
             inputs = inputs.permute((1,0,2,3,4))
             batch_size = inputs.shape[0]
             inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
