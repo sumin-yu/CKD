@@ -102,7 +102,7 @@ class Trainer(trainer.GenericTrainer):
             loss = self.train_criterion(outputs[org_filtered_idx], targets[org_filtered_idx])
 
             # calculate the groupwise losses
-            subgroups = groups * n_classes + targets
+            subgroups = groups[org_filtered_idx] * n_classes + targets[org_filtered_idx]
             group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
             group_count = group_map.sum(1)
             group_denom = group_count + (group_count==0).float() # avoid nans
