@@ -114,7 +114,7 @@ class Trainer(trainer.GenericTrainer):
             
             outputs = model(inputs)
 
-            loss = torch.mean(weights * self.train_criterion(outputs, labels))
+            loss = torch.mean(weights * self.train_criterion(outputs[org_filtered_idx], labels[org_filtered_idx]))
 
             ft_logit = outputs[org_filtered_idx]
             ctf_logit = outputs[batch_size:]
@@ -171,7 +171,7 @@ class Trainer(trainer.GenericTrainer):
                     targets = targets.cuda()
 
                 if model != None:
-                    outputs = model(inputs)
+                    outputs = model(inputs[org_filtered_idx])
                     pred_set.append(torch.argmax(outputs, dim=1))
                 total+= inputs.shape[0]
 
