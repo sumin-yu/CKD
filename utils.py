@@ -257,13 +257,13 @@ def make_log_name(args):
         elif 'fairdro' in args.method: 
             log_name += '_rho{}'.format(args.rho)
 
-        elif 'groupdro' in args.method: 
+        if 'groupdro' in args.method: 
             log_name += '_gamma{}'.format(args.gamma)
 
-        elif 'lbc' in args.method: 
+        if 'lbc' in args.method: 
             log_name += '_iter{}_eta{}'.format(args.iter, args.eta)
 
-        elif 'sensei' in args.method:
+        if 'sensei' in args.method:
             log_name += '_rho{}'.format(args.sensei_rho)
             log_name += '_eps{}'.format(args.sensei_eps)
             log_name += '_nsteps{}'.format(args.auditor_nsteps)
