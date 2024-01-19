@@ -40,7 +40,7 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            celoss = self.criterion(stu_logits[:self.bs], labels[:self.bs])
+            celoss = self.criterion(stu_logits, labels, tea_logits)
 
             t_target_logit = (tea_logits[:self.bs] + tea_logits[self.bs:])/2
 

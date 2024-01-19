@@ -54,10 +54,6 @@ class TrainerFactory:
             import trainer.logit_pairing_kd_hinton as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
-        elif method == 'kd_hinton_aug':
-            import trainer.kd_hinton_aug as trainer
-        elif method == 'kd_fitnet_aug':
-            import trainer.kd_fitnet_aug as trainer
         elif method == 'kd_mfd':
             import trainer.kd_mfd as trainer
         elif method == 'kd_mfd_balCE':
@@ -146,12 +142,19 @@ class GenericTrainer:
         else: 
             self.scheduler = ReduceLROnPlateau(self.optimizer)
 
-    def criterion(self, prediction, label):
-        celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'groupdro', 'lbc']) else nn.CrossEntropyLoss()
-        if self.aug_mode and not self.ce_aug:
-            return celoss(prediction[:self.bs], label[:self.bs])
-        else :
-            return celoss(prediction, label)
+    def criterion(self, predic, label, tea_predic):
+        if not self.filtering:
+            celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'groupdro', 'lbc']) else nn.CrossEntropyLoss()
+            if self.aug_mode and not self.ce_aug:
+                return celoss(predic[:self.bs], label[:self.bs])
+            else :
+                return celoss(predic, label)
+        else:
+            celoss_per_samples = nn.CrossEntropyLoss(reduction='none')(predic, label)
+            tea_predic = torch.argmax(tea_predic,1)
+            mask = tea_predic == label
+            mask[:self.bs] = True
+            return celoss_per_samples[mask].mean()
 
     def dim_change(self, data):
         inputs, _, groups, targets, filter_indicator = data
