@@ -26,19 +26,6 @@ class Trainer(hinton_Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = self.dim_change(data)            
-            org_filtered_idx = torch.arange(batch_size)
-            if self.clip_filtering:
-                
-                # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
-                ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
-                filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
-                inputs = inputs[filtered_idx,:,:,:]
-                groups = groups[filtered_idx]
-                targets = targets[filtered_idx]
-
-                org_filtered_idx = ctf_idx_.type(torch.LongTensor)
-                # ctf_filtered_idx = (ctf_idx_ + torch.ones(ctf_idx_.shape[0])*batch_size).type(torch.LongTensor)
-
             labels = targets 
 
             if self.cuda:
@@ -53,12 +40,12 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            celoss = self.criterion(stu_logits[:batch_size], labels[:batch_size])
+            celoss = self.criterion(stu_logits[:self.bs], labels[:self.bs])
 
-            t_target_logit = (tea_logits[:batch_size] + tea_logits[batch_size:])/2
+            t_target_logit = (tea_logits[:self.bs] + tea_logits[self.bs:])/2
 
-            ft_logit = stu_logits[org_filtered_idx]
-            ctf_logit = stu_logits[batch_size:]
+            ft_logit = stu_logits[:self.bs]
+            ctf_logit = stu_logits[self.bs:]
             pairing_loss1 = torch.mean((ft_logit-t_target_logit).pow(2))
             pairing_loss2 = torch.mean((ctf_logit-t_target_logit).pow(2))
 
