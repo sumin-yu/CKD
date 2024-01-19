@@ -285,6 +285,13 @@ def make_log_name(args):
         if args.clip_filtering:
             log_name += '_cfiltering'
 
+        if args.ce_aug:
+            log_name += '_ce_aug'
+
+        if args.filtering:
+            log_name += '_filtering'
+
+
         if 'celeba' in args.dataset:
             log_name += '_{}_{}'.format(args.target, args.sensitive)
 

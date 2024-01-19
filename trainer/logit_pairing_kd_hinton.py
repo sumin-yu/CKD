@@ -5,8 +5,8 @@ from trainer.loss_utils import compute_hinton_loss
 import trainer
 import torch
 
-
-class Trainer(trainer.GenericTrainer):
+import trainer.kd_hinton import Trainer as hinton_trainer
+class Trainer(hinton_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
         self.lambh = args.lambh

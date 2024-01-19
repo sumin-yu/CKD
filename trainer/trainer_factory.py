@@ -70,30 +70,8 @@ class TrainerFactory:
             import trainer.kd_mfd_ctf_ukn3 as trainer
         elif method == 'kd_mfd_logit_pairing':
             import trainer.kd_mfd_logit_pairing as trainer
-        elif method == 'kd_indiv':
-            import trainer.kd_indiv as trainer
-        elif method == 'kd_indiv_output':
-            import trainer.kd_indiv_output as trainer
-        elif method == 'kd_indiv_aug':
-            import trainer.kd_indiv_aug as trainer
-        elif method == 'kd_indiv_multi':
-            import trainer.kd_indiv_multi as trainer
-        elif method == 'kd_indiv_ukn1':
-            import trainer.kd_indiv_ukn1 as trainer
-        elif method == 'kd_indiv_ukn2':
-            import trainer.kd_indiv_ukn2 as trainer
-        elif method == 'kd_indiv_ukn3':
-            import trainer.kd_indiv_ukn3 as trainer
-        elif method == 'kd_indiv_logit_pairing':
-            import trainer.kd_indiv_logit_pairing as trainer
         elif method == 'scratch_mmd':
             import trainer.scratch_mmd as trainer
-        elif method == 'adv_debiasing':
-            import trainer.adv_debiasing as trainer
-        elif method == 'kd_at':
-            import trainer.kd_at as trainer
-        elif method == 'kd_nst':
-            import trainer.kd_nst as trainer
         elif method == 'fairdro':
             import trainer.fairdro as trainer
         elif method == 'groupdro':
@@ -137,11 +115,23 @@ class GenericTrainer:
         self.bs = args.batch_size
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        if 'sensei' in  args.method :
-            self.criterion = nn.CrossEntropyLoss(reduction='none')
-        else:
-            self.criterion=nn.CrossEntropyLoss()
+        # if 'sensei' in  args.method :
+        #     self.criterion = nn.CrossEntropyLoss(reduction='none')
+        # else:
+        #     self.criterion=nn.CrossEntropyLoss()
         self.scheduler = None
+
+        self.aug_mode = True if 'aug' in args.dataset else False
+        self.ce_aug = args.ce_aug
+        self.filtering = args.filtering
+
+        if self.ce_aug == True and not self.aug_mode:
+            print('set a dataset to the aug version')
+            raise ValueError
+        
+        if self.filtering == True and self.ce_aug == False:
+            print('set ce loss as True')
+            raise ValueError
 
         self.log_name = make_log_name(args)
         self.log_dir = os.path.join(args.log_dir, args.date, args.dataset, args.method)
@@ -153,6 +143,23 @@ class GenericTrainer:
             self.scheduler = ReduceLROnPlateau(self.optimizer)
         else: 
             self.scheduler = ReduceLROnPlateau(self.optimizer)
+
+    def criterion(self, prediction, label):
+        celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'groupdro', 'lbc']) else nn.CrossEntropyLoss()
+        if self.aug_mode and not self.ce_aug:
+            return celoss(prediction[:self.bs], label[:self.bs])
+        else :
+            return celoss(prediction, label)
+
+    def dim_change(self, data):
+        inputs, _, groups, targets, filter_indicator = data
+
+        inputs = inputs.permute((1,0,2,3,4))
+        inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+        groups = torch.reshape(groups.permute((1,0)), (-1,))
+        targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+        return (inputs, _, groups, targets, filter_indicator)
+
 
     def evaluate(self, model, loader, criterion, device=None, groupwise=False):
         model.eval()

@@ -26,15 +26,8 @@ class Trainer(hinton_Trainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-            
-            org_filtered_idx = torch.arange(batch_size)
+            inputs, _, groups, targets, filter_indicator = self.dim_change(data)            
+            org_filtered_idx = torch.arange(self.bs)
             if self.clip_filtering:
                 
                 # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
@@ -62,18 +55,18 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             t_features = t_outputs[-2]
 
-            celoss = self.criterion(stu_logits[:batch_size], labels[:batch_size])
+            celoss = self.criterion(stu_logits, labels)
 
             # logit pairing loss
             ft_logit = stu_logits[org_filtered_idx]
-            ctf_logit = stu_logits[batch_size:]
+            ctf_logit = stu_logits[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             # kd feature pairing loss
-            t_target_features = (t_features[:batch_size] + t_features[batch_size:])/2
+            t_target_features = (t_features[:self.bs] + t_features[self.bs:])/2
 
             ft_features = stu_features[org_filtered_idx]
-            ctf_features = stu_features[batch_size:]
+            ctf_features = stu_features[self.bs:]
             pairing_loss1 = torch.mean((ft_features-t_target_features).pow(2))
             pairing_loss2 = torch.mean((ctf_features-t_target_features).pow(2))
 

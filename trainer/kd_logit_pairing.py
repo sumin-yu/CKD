@@ -25,14 +25,7 @@ class Trainer(hinton_Trainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-            
+            inputs, _, groups, targets, _ = self.dim_change(data)            
             org_filtered_idx = torch.arange(batch_size)
             if self.clip_filtering:
                 

@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader
 class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.train_criterion = torch.nn.CrossEntropyLoss(reduction='none')
+        self.test_criterion = torch.nn.CrossEntropyLoss()
         self.eta = args.eta
         self.iteration = args.iter
         self.n_workers = args.num_workers
@@ -53,7 +53,7 @@ class Trainer(trainer.GenericTrainer):
                 eval_start_time = time.time()
                 eval_loss, eval_acc, eval_deom,  = self.evaluate(self.model, 
                                                                     test_loader, 
-                                                                    self.criterion,
+                                                                    self.test_criterion,
                                                                 )
                 eval_end_time = time.time()
                 print('[{}/{}] Method: {} '
@@ -91,7 +91,7 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, idx = data
+            inputs, _, groups, targets, _ = data if not self.aug_mode else self.dim_change(data)
             labels = targets
             
             if self.cuda:
@@ -140,7 +140,11 @@ class Trainer(trainer.GenericTrainer):
         total = 0
         with torch.no_grad():
             for i, data in enumerate(dataloader):
-                inputs, _, sen_attrs, targets, _ = data
+                inputs, _, sen_attrs, targets, _ = data if not self.aug_mode else self.dim_change(data)
+                if self.aug_mode and not self.ce_aug:
+                    targets = targets[:self.bs]
+                    sen_attrs = sen_attrs[:self.bs]
+                    inputs = inputs[:self.bs]
                 y_set.append(targets) # sen_attrs = -1 means no supervision for sensitive group
                 s_set.append(sen_attrs)
 

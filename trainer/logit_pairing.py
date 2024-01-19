@@ -24,25 +24,7 @@ class Trainer(trainer.vanilla_train.Trainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-
-            org_filtered_idx = torch.arange(batch_size)
-            # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
-            if self.clip_filtering:
-                ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
-                filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
-                inputs = inputs[filtered_idx,:,:,:]
-                groups = groups[filtered_idx]
-                targets = targets[filtered_idx]
-
-                org_filtered_idx = ctf_idx_.type(torch.LongTensor)
-                # ctf_filtered_idx = (ctf_idx_ + torch.ones(ctf_idx_.shape[0])*batch_size).type(torch.LongTensor)
+            inputs, _, groups, targets, filter_indicator = self.dim_change(data)
 
             labels = targets 
 
@@ -51,10 +33,10 @@ class Trainer(trainer.vanilla_train.Trainer):
                 labels = labels.cuda(device=self.device)
             
             outputs = model(inputs)
-            celoss = self.criterion(outputs[:batch_size], labels[:batch_size])
+            celoss = self.criterion(outputs, labels)
 
-            ft_logit = outputs[org_filtered_idx]
-            ctf_logit = outputs[batch_size:]
+            ft_logit = outputs[:self.bs]
+            ctf_logit = outputs[self.bs:]
             pairing_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             loss = celoss + self.lamb * pairing_loss

@@ -20,52 +20,12 @@ import torch
 import numpy as np
 
 from torch.utils.data import DataLoader
+from trainer.groupdro import Trainer as groupdro_trainer
 
-class Trainer(trainer.GenericTrainer):
+class Trainer(groupdro_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.train_criterion = torch.nn.CrossEntropyLoss(reduction='none')
         self.lambf = args.lambf
-        self.gamma = args.gamma
-                        
-    def train(self, train_loader, val_loader, test_loader, epochs):        
-        
-        global loss_set
-        model = self.model
-        model.train()
-        
-        n_classes = train_loader.dataset.num_classes
-        n_groups = train_loader.dataset.num_groups
-        
-        self.normal_loader = DataLoader(train_loader.dataset, 
-                                        batch_size=128, 
-                                        shuffle=False, 
-                                        num_workers=2, 
-                                        pin_memory=True, 
-                                        drop_last=False)
-        
-        self.adv_probs = torch.ones(n_groups*n_classes).cuda() / (n_groups*n_classes)
-
-        for epoch in range(epochs):
-            self._train_epoch(epoch, train_loader, model)            
-
-            eval_start_time = time.time()
-            eval_loss, eval_acc, eval_deom,  = self.evaluate(self.model, 
-                                                                test_loader, 
-                                                                self.criterion,
-                                                            )
-            eval_end_time = time.time()
-            print('[{}/{}] Method: {} '
-                  'Test Loss: {:.3f} Test Acc: {:.2f} Test DEOM {:.2f} [{:.2f} s]'.format
-                  (epoch + 1, epochs, self.method,
-                   eval_loss, eval_acc, eval_deom, (eval_end_time - eval_start_time)))
-
-            if self.scheduler != None and 'Reduce' in type(self.scheduler).__name__:
-                self.scheduler.step(eval_loss)
-            else:
-                self.scheduler.step()
-                  
-        print('Training Finished!')        
 
     def _train_epoch(self, epoch, train_loader, model):
 
@@ -83,26 +43,21 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-            
-            org_filtered_idx = torch.arange(batch_size)
-            
+            inputs, _, groups, targets, _ = self.dim_change(data)
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
                 targets = targets.cuda(device=self.device)
                 groups = groups.cuda(device=self.device)
 
             outputs = model(inputs)
-            loss = self.train_criterion(outputs[org_filtered_idx], targets[org_filtered_idx])
+            loss = self.criterion(outputs, targets)
+
+            if not self.ce_aug:
+                group = group[:self.bs]
+                target = target[:self.bs]
 
             # calculate the groupwise losses
-            subgroups = groups[org_filtered_idx] * n_classes + targets[org_filtered_idx]
+            subgroups = groups * n_classes + targets
             group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
             group_count = group_map.sum(1)
             group_denom = group_count + (group_count==0).float() # avoid nans
@@ -114,8 +69,8 @@ class Trainer(trainer.GenericTrainer):
 
             loss = group_loss @ self.adv_probs
 
-            ft_logit = outputs[org_filtered_idx]
-            ctf_logit = outputs[batch_size:]
+            ft_logit = outputs[:self.bs]
+            ctf_logit = outputs[:self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
             loss += lp_loss * self.lambf
 

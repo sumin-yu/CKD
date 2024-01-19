@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader
 class Trainer(trainer.GenericTrainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.train_criterion = torch.nn.CrossEntropyLoss(reduction='none')
+        self.test_criterion = torch.nn.CrossEntropyLoss()
         self.gamma = args.gamma
                         
     def train(self, train_loader, val_loader, test_loader, epochs):        
@@ -51,7 +51,7 @@ class Trainer(trainer.GenericTrainer):
             eval_start_time = time.time()
             eval_loss, eval_acc, eval_deom,  = self.evaluate(self.model, 
                                                                 test_loader, 
-                                                                self.criterion,
+                                                                self.test_criterion,
                                                             )
             eval_end_time = time.time()
             print('[{}/{}] Method: {} '
@@ -82,7 +82,7 @@ class Trainer(trainer.GenericTrainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, idx = data
+            inputs, _, groups, targets, _ = data if not self.aug_mode else self.dim_change(data)
             labels = targets
             
             if self.cuda:
@@ -91,7 +91,7 @@ class Trainer(trainer.GenericTrainer):
                 groups = groups.cuda(device=self.device)
 
             outputs = model(inputs)
-            loss = self.train_criterion(outputs, labels)
+            loss = self.criterion(outputs, labels)
 
             # calculate the groupwise losses
             subgroups = groups * n_classes + labels
