@@ -49,17 +49,15 @@ def get_args():
     
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch', 'scratch_aug',
-                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug', 'kd_indiv', 'kd_indiv_aug', 'kd_indiv_multi',
+                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug',
                                  'kd_mfd_logit_pairing', 'kd_mfd_balCE',
-                                 'kd_indiv_output','kd_logit_pairing', 'kd_logit_pairing_to_org',
-                                 'kd_indiv_logit_pairing',
-                                 'kd_indiv_ukn1', 'kd_indiv_ukn2','kd_indiv_ukn3',
+                                 'kd_logit_pairing', 'kd_logit_pairing_to_org',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro',
                                  'feature_pairing','feature_pairing_mmd', 'kd_feature_pairing_to_org', 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing', 'logit_pairing_kd_mfd',
-                                 'kd_hinton', 'kd_fitnet', 'kd_at','cov','kd_feature_pairing', 'kd_hinton_logit',
+                                 'kd_hinton', 'kd_fitnet', 'cov','kd_feature_pairing', 'kd_hinton_logit',
                                  'logit_pairing_kd_hinton',
-                                 'scratch_mmd', 'kd_nst', 'adv_debiasing', 'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
+                                 'scratch_mmd',  'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
                                  'logit_pairing_groupdro','logit_pairing_lbc',
                                  'ck_lp'])
 
