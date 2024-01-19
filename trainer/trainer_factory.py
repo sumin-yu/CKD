@@ -142,7 +142,7 @@ class GenericTrainer:
         else: 
             self.scheduler = ReduceLROnPlateau(self.optimizer)
 
-    def criterion(self, predic, label, tea_predic):
+    def criterion(self, predic, label, tea_predic=None):
         if not self.filtering:
             celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'groupdro', 'lbc']) else nn.CrossEntropyLoss()
             if self.aug_mode and not self.ce_aug:
