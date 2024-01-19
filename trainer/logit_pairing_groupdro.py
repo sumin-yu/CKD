@@ -70,7 +70,7 @@ class Trainer(groupdro_trainer):
             loss = group_loss @ self.adv_probs
 
             ft_logit = outputs[:self.bs]
-            ctf_logit = outputs[:self.bs:]
+            ctf_logit = outputs[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
             loss += lp_loss * self.lambf
 

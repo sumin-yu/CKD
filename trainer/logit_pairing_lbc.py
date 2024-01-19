@@ -57,7 +57,7 @@ class Trainer(lbc_trainer):
             loss = torch.mean(weights * self.criterion(outputs, labels))
 
             ft_logit = outputs[:self.bs]
-            ctf_logit = outputs[:self.bs]
+            ctf_logit = outputs[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             loss += self.lambf * lp_loss
