@@ -236,17 +236,17 @@ def make_log_name(args):
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
 
+        elif 'logit_pairing' in args.method: 
+            log_name += '_lambf{}'.format(args.lambf)
+            if args.method == 'logit_pairing_kd_logit_pairing' or args.method == 'logit_pairing_kd_feature_pairing' or args.method == 'logit_pairing_kd_mfd':
+                log_name += '_kd_lambf{}'.format(args.kd_lambf)
+
         elif 'kd_mfd' in args.method or 'kd_indiv' in args.method:
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_lambf{}'.format(args.lambf)
             if args.method == 'kd_indiv' and args.num_aug > 1:
                 log_name += f'_aug{args.num_aug}'
-
-        elif 'logit_pairing' in args.method: 
-            log_name += '_lambf{}'.format(args.lambf)
-            if args.method == 'logit_pairing_kd_logit_pairing' or args.method == 'logit_pairing_kd_feature_pairing':
-                log_name += '_kd_lambf{}'.format(args.kd_lambf)
 
         elif 'feature_pairing' in args.method: 
             log_name += '_lambf{}'.format(args.lambf)
