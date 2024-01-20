@@ -13,7 +13,7 @@ class Trainer(hinton_Trainer):
         self.lamb = args.lambf
         
         super().__init__(args=args, **kwargs)
-        self.reg_filtering = args.ref_filtering
+        self.reg_filtering = args.reg_filtering
 
     def _train_epoch(self, epoch, train_loader, model, teacher):
         model.train()
