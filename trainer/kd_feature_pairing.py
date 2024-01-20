@@ -13,7 +13,7 @@ class Trainer(hinton_Trainer):
         self.lamb = args.lambf
         
         super().__init__(args=args, **kwargs)
-        self.clip_filtering = args.clip_filtering
+        self.reg_filtering = args.ref_filtering
 
     def _train_epoch(self, epoch, train_loader, model, teacher):
         model.train()
@@ -41,8 +41,11 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             t_features = t_outputs[-2]
 
-            celoss = self.criterion(stu_logits, labels, t_outputs[-1])
-
+            if self.reg_filtering:
+                celoss, mask = self.criterion(stu_logits, labels, t_outputs[-1])
+            else:
+                celoss = self.criterion(stu_logits, labels, t_outputs[-1])
+                
             t_target_features = (t_features[:self.bs] + t_features[self.bs:])/2
 
             ft_features = stu_features[:self.bs]
