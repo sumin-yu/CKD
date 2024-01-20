@@ -288,9 +288,11 @@ def make_log_name(args):
         if args.ce_aug:
             log_name += '_ce_aug'
 
-        if args.filtering:
+        if args.filtering and not args.reg_filtering:
             log_name += '_filtering'
 
+        if args.filtering and args.reg_filtering:
+            log_name += '_filtering_w_r'
 
         if 'celeba' in args.dataset:
             log_name += '_{}_{}'.format(args.target, args.sensitive)
