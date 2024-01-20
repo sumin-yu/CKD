@@ -107,7 +107,7 @@ class Trainer(trainer.GenericTrainer):
             
             outputs = model(inputs)
 
-            loss = torch.mean(weights * self.train_criterion(outputs, labels))
+            loss = torch.mean(weights * self.criterion(outputs, labels))
             
             self.optimizer.zero_grad()
             loss.backward()                
