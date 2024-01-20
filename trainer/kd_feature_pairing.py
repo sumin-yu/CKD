@@ -45,15 +45,17 @@ class Trainer(hinton_Trainer):
                 celoss, mask = self.criterion(stu_logits, labels, t_outputs[-1])
             else:
                 celoss = self.criterion(stu_logits, labels, t_outputs[-1])
-                
+
             t_target_features = (t_features[:self.bs] + t_features[self.bs:])/2
 
             ft_features = stu_features[:self.bs]
             ctf_features = stu_features[self.bs:]
-            pairing_loss1 = torch.mean((ft_features-t_target_features).pow(2))
-            pairing_loss2 = torch.mean((ctf_features-t_target_features).pow(2))
+            pairing_loss1 = (ft_features-t_target_features).pow(2)
+            pairing_loss2 = (ctf_features-t_target_features).pow(2)
 
             pairing_loss = (pairing_loss1 + pairing_loss2) /2
+
+            pairing_loss = pairing_loss[mask].mean() if self.reg_filtering else pairing_loss.mean()
 
             loss = celoss + self.lamb * pairing_loss
 

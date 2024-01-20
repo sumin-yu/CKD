@@ -49,10 +49,12 @@ class Trainer(hinton_Trainer):
 
             ft_logit = stu_logits[:self.bs]
             ctf_logit = stu_logits[self.bs:]
-            pairing_loss1 = torch.mean((ft_logit-t_target_logit).pow(2))
-            pairing_loss2 = torch.mean((ctf_logit-t_target_logit).pow(2))
+            pairing_loss1 = (ft_logit-t_target_logit).pow(2)
+            pairing_loss2 = (ctf_logit-t_target_logit).pow(2)
 
             pairing_loss = (pairing_loss1 + pairing_loss2) /2
+
+            pairing_loss = pairing_loss[mask].mean() if self.reg_filtering else pairing_loss.mean()
 
             loss = celoss + self.lamb * pairing_loss
 

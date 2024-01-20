@@ -127,7 +127,11 @@ class GenericTrainer:
         if self.filtering == True and self.ce_aug == False:
             print('set ce loss as True')
             raise ValueError
-        
+
+        if self.reg_filtering == True and self.filtering == False:
+            print('set filtering as True')
+            raise ValueError
+
         self.log_name = make_log_name(args)
         self.log_dir = os.path.join(args.log_dir, args.date, args.dataset, args.method)
         self.save_dir = os.path.join(args.save_dir, args.date, args.dataset, args.method)
@@ -152,7 +156,7 @@ class GenericTrainer:
             mask = tea_predic == label
             mask[:self.bs] = True
             if self.reg_filtering:
-                return celoss_per_samples[mask].mean(), mask
+                return celoss_per_samples[mask].mean(), mask[self.bs:]
             else:
                 return celoss_per_samples[mask].mean()
 
