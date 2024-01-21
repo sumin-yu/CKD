@@ -30,15 +30,13 @@ class Trainer(trainer.vanilla_train.Trainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, filter_indicator = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
+            inputs, _, groups, targets, _ = self.dim_change(data)            
+            labels = targets 
             
             groups = torch.reshape(groups.permute((1,0)), (-1,))
             targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
 
-            org_filtered_idx = torch.arange(batch_size)
+            org_filtered_idx = torch.arange(self.bs)
 
             labels = targets 
 
@@ -47,10 +45,10 @@ class Trainer(trainer.vanilla_train.Trainer):
                 labels = labels.cuda(device=self.device)
             
             outputs = model(inputs)
-            celoss = self.criterion(outputs[:batch_size], labels[:batch_size])
+            celoss = self.criterion(outputs[:self.bs], labels[:self.bs])
 
             ft_logit = outputs[org_filtered_idx]
-            ctf_logit = outputs[batch_size:]
+            ctf_logit = outputs[self.bs:]
             pairing_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             loss = celoss + self.lamb * pairing_loss
