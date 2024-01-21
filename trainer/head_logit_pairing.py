@@ -19,7 +19,7 @@ class Trainer(trainer.vanilla_train.Trainer):
 
         # freeze the feature extractor
         for name, param in model.named_parameters():
-            if 'last' in name: # last linear layer
+            if 'fc' in name: # last linear layer
                 param.requires_grad = True
             else:
                 param.requires_grad = False
@@ -31,23 +31,16 @@ class Trainer(trainer.vanilla_train.Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = self.dim_change(data)            
-            labels = targets 
-            
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
-
-            org_filtered_idx = torch.arange(self.bs)
-
-            labels = targets 
+            labels = targets
 
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
                 labels = labels.cuda(device=self.device)
             
             outputs = model(inputs)
-            celoss = self.criterion(outputs[:self.bs], labels[:self.bs])
+            celoss = self.criterion(outputs, labels)
 
-            ft_logit = outputs[org_filtered_idx]
+            ft_logit = outputs[:self.bs]
             ctf_logit = outputs[self.bs:]
             pairing_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
