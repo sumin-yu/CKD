@@ -113,15 +113,12 @@ class GenericTrainer:
         self.bs = args.batch_size
         self.optim_type = args.optimizer
         self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
-        # if 'sensei' in  args.method :
-        #     self.criterion = nn.CrossEntropyLoss(reduction='none')
-        # else:
-        #     self.criterion=nn.CrossEntropyLoss()
         self.scheduler = None
 
         self.aug_mode = True if 'aug' in args.dataset else False
         self.ce_aug = args.ce_aug
         self.filtering = args.filtering
+        self.reg_filtering = args.reg_filtering
 
         if self.ce_aug == True and not self.aug_mode:
             print('set a dataset to the aug version')
@@ -129,6 +126,10 @@ class GenericTrainer:
         
         if self.filtering == True and self.ce_aug == False:
             print('set ce loss as True')
+            raise ValueError
+
+        if self.reg_filtering == True and self.filtering == False:
+            print('set filtering as True')
             raise ValueError
 
         self.log_name = make_log_name(args)
@@ -154,7 +155,10 @@ class GenericTrainer:
             tea_predic = torch.argmax(tea_predic,1)
             mask = tea_predic == label
             mask[:self.bs] = True
-            return celoss_per_samples[mask].mean()
+            if self.reg_filtering:
+                return celoss_per_samples[mask].mean(), mask[self.bs:]
+            else:
+                return celoss_per_samples[mask].mean()
 
     def dim_change(self, data):
         inputs, _, groups, targets, filter_indicator = data

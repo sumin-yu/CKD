@@ -40,16 +40,21 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            celoss = self.criterion(stu_logits, labels, tea_logits)
+            if self.reg_filtering:
+                celoss, mask = self.criterion(stu_logits, labels, t_outputs[-1])
+            else:
+                celoss = self.criterion(stu_logits, labels, t_outputs[-1])
 
             t_target_logit = (tea_logits[:self.bs] + tea_logits[self.bs:])/2
 
             ft_logit = stu_logits[:self.bs]
             ctf_logit = stu_logits[self.bs:]
-            pairing_loss1 = torch.mean((ft_logit-t_target_logit).pow(2))
-            pairing_loss2 = torch.mean((ctf_logit-t_target_logit).pow(2))
+            pairing_loss1 = (ft_logit-t_target_logit).pow(2)
+            pairing_loss2 = (ctf_logit-t_target_logit).pow(2)
 
             pairing_loss = (pairing_loss1 + pairing_loss2) /2
+
+            pairing_loss = pairing_loss[mask].mean() if self.reg_filtering else pairing_loss.mean()
 
             loss = celoss + self.lamb * pairing_loss
 

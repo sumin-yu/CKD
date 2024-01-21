@@ -41,7 +41,7 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            celoss = self.criterion(stu_logits, labels)
+            celoss = self.criterion(stu_logits, labels, tea_logits)
 
             # logit pairing loss
             ft_logit = stu_logits[:self.bs]

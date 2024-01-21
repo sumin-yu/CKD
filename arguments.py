@@ -113,6 +113,7 @@ def get_args():
 
     parser.add_argument('--ce-aug', default=False,action='store_true', help='use edited images in CE')
     parser.add_argument('--filtering', default=False, action='store_true', help='whether filer incorrected images using teach models')
+    parser.add_argument('--reg-filtering', default=False, action='store_true', help='whether filer incorrected images using teach models')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

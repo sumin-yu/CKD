@@ -14,7 +14,6 @@ class Trainer(hinton_Trainer):
         self.kd_lamb = args.kd_lambf
         
         super().__init__(args=args, **kwargs)
-        self.clip_filtering = args.clip_filtering
 
     def _train_epoch(self, epoch, train_loader, model, teacher):
         model.train()
@@ -55,7 +54,7 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             t_features = t_outputs[-2]
 
-            celoss = self.criterion(stu_logits, labels)
+            celoss = self.criterion(stu_logits, labels, t_outputs[-1])
 
             # logit pairing loss
             ft_logit = stu_logits[org_filtered_idx]
