@@ -59,11 +59,8 @@ class Trainer(hinton_Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, _ = data
-            batch_size = inputs.shape[0]
-            inputs = inputs.permute((1,0,2,3,4))
-            inputs = inputs.contiguous().view(-1, *inputs.shape[2:])
-            groups = torch.reshape(groups.permute((1,0)), (-1,))
-            targets = torch.reshape(targets.permute((1,0)), (-1,)).type(torch.LongTensor)
+            inputs, _, groups, targets, filter_indicator = self.dim_change(data)
+        
             labels = targets
 
             if self.cuda:
@@ -78,22 +75,22 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(stu_logits[:batch_size], t_outputs=tea_logits[:batch_size],
+            kd_loss = compute_hinton_loss(stu_logits[:self.bs], t_outputs=tea_logits[:self.bs],
                                           kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
 
-            loss = self.criterion(stu_logits[:batch_size], labels[:batch_size])
+            loss = self.criterion(stu_logits, labels)
 
             loss = loss + self.lambh * kd_loss
 
             f_s = outputs[-2]
             f_t = t_outputs[-2]
-            mmd_loss = distiller.forward(f_s[:batch_size], f_t[:batch_size], groups=groups[:batch_size], labels=labels[:batch_size])
+            mmd_loss = distiller.forward(f_s[:self.bs], f_t[:self.bs], groups=groups[:self.bs], labels=labels[:self.bs])
 
             loss = loss + mmd_loss
 
             # logit pairing loss
-            ft_logit = stu_logits[:batch_size]
-            ctf_logit = stu_logits[batch_size:]
+            ft_logit = stu_logits[:self.bs]
+            ctf_logit = stu_logits[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
             loss = loss + self.lambf * lp_loss
 
