@@ -31,7 +31,7 @@ class Trainer(hinton_trainer):
 
             outputs = model(inputs)
             t_outputs = teacher(t_inputs)
-            kd_loss = compute_hinton_loss(outputs, t_outputs, kd_temp=self.kd_temp, device=self.device)
+            kd_loss = compute_hinton_loss(outputs, t_outputs, kd_temp=self.kd_temp, device=self.device, is_logit=True)
             ft_logit = outputs[:self.bs]
             ctf_logit = outputs[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
