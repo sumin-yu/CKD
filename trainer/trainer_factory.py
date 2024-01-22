@@ -54,6 +54,8 @@ class TrainerFactory:
             import trainer.kd_hinton_logit as trainer
         elif method == 'logit_pairing_kd_hinton':
             import trainer.logit_pairing_kd_hinton as trainer
+        elif method == 'logit_pairing_kd_hinton_logit':
+            import trainer.logit_pairing_kd_hinton_logit as trainer
         elif method == 'kd_fitnet':
             import trainer.kd_fitnet as trainer
         elif method == 'kd_mfd':
