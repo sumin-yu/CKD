@@ -23,15 +23,20 @@ def compute_feature_loss(inputs, t_inputs, student, teacher, device=0):
     return fitnet_loss, stu_logits, tea_logits, f_s, f_t
 
 
-def compute_hinton_loss(outputs, t_outputs=None, teacher=None, t_inputs=None, kd_temp=3, device=0):
+def compute_hinton_loss(outputs, t_outputs=None, teacher=None, t_inputs=None, kd_temp=3, device=0, is_logit=False):
     if t_outputs is None:
         if (t_inputs is not None and teacher is not None):
             t_outputs = teacher(t_inputs)
         else:
             Exception('Nothing is given to compute hinton loss')
 
-    soft_label = F.softmax(t_outputs / kd_temp, dim=1).to(device).detach()
-    kd_loss = nn.KLDivLoss(reduction='batchmean')(F.log_softmax(outputs / kd_temp, dim=1),
+    if is_logit:
+        soft_label = t_outputs.to(device).detach() / kd_temp
+        kd_loss = nn.MSELoss()(outputs / kd_temp,
+                                                  soft_label) * (kd_temp * kd_temp)
+    else:
+        soft_label = F.softmax(t_outputs / kd_temp, dim=1).to(device).detach()
+        kd_loss = nn.KLDivLoss(reduction='batchmean')(F.log_softmax(outputs / kd_temp, dim=1),
                                                   soft_label) * (kd_temp * kd_temp)
 
     return kd_loss
