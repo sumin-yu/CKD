@@ -53,7 +53,8 @@ def main():
                                                         test_alpha_pc=args.test_alpha_pc,
                                                         test_beta2_pc=args.test_beta2_pc,
                                                         test_set=args.test_set,
-                                                        test_pc_G=args.test_pc_G
+                                                        test_pc_G=args.test_pc_G, 
+                                                        gamma=args.gamma
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp

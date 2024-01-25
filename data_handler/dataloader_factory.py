@@ -43,7 +43,10 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False, test_pc_G=None):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, 
+                       num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0,
+                         editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', 
+                         group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False, test_pc_G=None, gamma=0):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -144,6 +147,13 @@ class DataloaderFactory:
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
+        elif method == 'fairbatch':
+            from data_handler.fairbatch import FairBatch
+            sampler = FairBatch(train_dataset, batch_size, gamma=gamma, target_fairness='eo', seed=seed)
+            shuffle = False
+            train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
+                                          num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
+
         else:
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

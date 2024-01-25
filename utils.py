@@ -260,6 +260,9 @@ def make_log_name(args):
         if 'groupdro' in args.method: 
             log_name += '_gamma{}'.format(args.gamma)
 
+        if 'fairbatch' in args.method: 
+            log_name += '_gamma{}'.format(args.gamma)
+
         if 'lbc' in args.method: 
             log_name += '_iter{}_eta{}'.format(args.iter, args.eta)
 

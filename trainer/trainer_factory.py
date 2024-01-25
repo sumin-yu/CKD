@@ -78,6 +78,8 @@ class TrainerFactory:
             import trainer.fairdro as trainer
         elif method == 'groupdro':
             import trainer.groupdro as trainer
+        elif method == 'fairbatch':
+            import trainer.fairbatch as trainer
         elif method == 'logit_pairing_groupdro':
             import trainer.logit_pairing_groupdro as trainer
         elif method == 'lbc':
