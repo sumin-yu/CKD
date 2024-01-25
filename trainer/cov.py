@@ -16,7 +16,7 @@ class Trainer(trainer.vanilla_train.Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
         self.lamb = args.lambf
-        self.criterion_train = nn.CrossEntropyLoss(reduction='none')
+        # self.criterion_train = nn.CrossEntropyLoss(reduction='none')
         
     def _train_epoch(self, epoch, train_loader, model):
         model.train()
@@ -31,8 +31,7 @@ class Trainer(trainer.vanilla_train.Trainer):
         batch_start_time = time.time()
         for i, data in enumerate(train_loader):
             # Get the inputs
-        
-            inputs, _, groups, targets, idx = data
+            inputs, _, groups, targets, _ = data if not self.aug_mode else self.dim_change(data)
             labels = targets
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
@@ -41,9 +40,14 @@ class Trainer(trainer.vanilla_train.Trainer):
                 
             outputs = model(inputs)
                 
-            loss = self.criterion_train(outputs, labels).mean()
+            loss = self.criterion(outputs, labels).mean()
         
             def closure_FPR(inputs, groups, labels, outputs):
+                if self.aug_mode:
+                    inputs = inputs[:self.bs]
+                    groups = groups[:self.bs]
+                    labels = labels[:self.bs]
+                    outputs = outputs[:self.bs]
                 groups_onehot = torch.nn.functional.one_hot(groups.long(), num_classes=n_groups)
                 groups_onehot = groups_onehot.float() # n by g
 
@@ -56,6 +60,11 @@ class Trainer(trainer.vanilla_train.Trainer):
                 return loss
 
             def closure_FNR(inputs, groups, labels, outputs):
+                if self.aug_mode:
+                    inputs = inputs[:self.bs]
+                    groups = groups[:self.bs]
+                    labels = labels[:self.bs]
+                    outputs = outputs[:self.bs]
                 groups_onehot = torch.nn.functional.one_hot(groups.long(), num_classes=n_groups)
                 groups_onehot = groups_onehot.float() # n by g
 
