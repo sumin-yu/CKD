@@ -9,13 +9,13 @@ import torch
 import numpy as np
 
 from torch.utils.data import DataLoader
-
-class Trainer(trainer.GenericTrainer):
+from trainer.vanilla_train import Trainer as vanilla_trainer
+class Trainer(vanilla_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
         # self.gamma = args.gamma # learning rate of adv_probs
         self.rho = args.rho
-        self.train_criterion = torch.nn.CrossEntropyLoss(reduction='none')
+        self.test_criterion = torch.nn.CrossEntropyLoss()
         
     def train(self, train_loader, val_loader, test_loader, epochs):        
         
@@ -35,14 +35,12 @@ class Trainer(trainer.GenericTrainer):
         
         self.adv_probs_dict = {}
         for l in range(n_classes):
-            n_data = train_loader.dataset.n_data[:,l]
             self.adv_probs_dict[l] = torch.ones(n_groups).cuda(device=self.device) / n_groups
         
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, model)            
             _, _, _, _, train_subgroup_acc, train_subgroup_loss = self.evaluate_train(self.model, 
                                                                                     self.normal_loader,
-                                                                                    self.train_criterion, 
                                                                                     epoch,
                                                                                     train=True,
                                                                                     )
@@ -86,13 +84,11 @@ class Trainer(trainer.GenericTrainer):
         n_groups = train_loader.dataset.num_groups
         n_subgroups = n_classes * n_groups
         
-        
         idxs = np.array([i * n_classes for i in range(n_groups)])            
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, idx = data
-            labels = targets
+            inputs, _, groups, labels, _ = data if not self.aug_mode else self.dim_change(data)
             
             if self.cuda:
                 inputs = inputs.cuda(device=self.device)
@@ -103,8 +99,10 @@ class Trainer(trainer.GenericTrainer):
                 subgroups = groups * n_classes + labels
                 outputs = model(inputs)
 
-                loss = self.train_criterion(outputs, labels)
-            
+                loss = self.criterion(outputs, labels)
+                if self.aug_mode and self.ce_aug:
+                    ctf_loss = loss[self.bs:].mean()
+                    loss = loss[:self.bs]
                 # calculate the losses for each subgroup
                 group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
                 group_count = group_map.sum(1)
@@ -115,7 +113,11 @@ class Trainer(trainer.GenericTrainer):
                 for l in range(n_classes):
                     label_group_loss = group_loss[idxs+l]
                     robust_loss += label_group_loss @ self.adv_probs_dict[l]
-                robust_loss /= n_classes        
+                robust_loss /= n_classes      
+
+                if self.aug_mode and self.ce_aug: 
+                    robust_loss = (robust_loss + ctf_loss)/2
+                    
                 return outputs, robust_loss
             
             outputs, robust_loss = closure()
@@ -174,11 +176,12 @@ class Trainer(trainer.GenericTrainer):
             q = 1/n_groups + np.sqrt(2 * self.rho / n_groups)* (1/denom) * (losses - mean)
         return q
 
-    def evaluate_train(self, model, loader, criterion, epoch=0, train=False):
+    def evaluate_train(self, model, loader, epoch=0, train=False):
         if not train:
             model.eval()
         else:
             model.train()
+        criterion = torch.nn.CrossEntropyLoss(reduction='none')
         n_groups = loader.dataset.num_groups
         n_classes = loader.dataset.num_classes
         n_subgroups = n_groups * n_classes        
@@ -189,8 +192,11 @@ class Trainer(trainer.GenericTrainer):
 
         with torch.no_grad():
             for j, eval_data in enumerate(loader):
-                inputs, _, groups, classes, _ = eval_data
-                labels = classes 
+                inputs, _, groups, labels, _ = data if not self.aug_mode else self.dim_change(data)
+                if self.aug_mode:
+                    inputs = inputs[:self.bs]
+                    groups = groups[:self.bs]
+                    labels = labels[:self.bs]
 
                 if self.cuda:
                     inputs = inputs.cuda(self.device)

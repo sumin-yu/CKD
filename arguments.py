@@ -59,7 +59,7 @@ def get_args():
                                  'logit_pairing_kd_hinton', 'logit_pairing_kd_hinton_logit',
                                  'scratch_mmd',  'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
                                  'logit_pairing_groupdro','logit_pairing_lbc', 'head_logit_pairing',
-                                 'ck_lp'])
+                                 'ck_lp','dr'])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
