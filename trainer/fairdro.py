@@ -192,7 +192,7 @@ class Trainer(vanilla_trainer):
 
         with torch.no_grad():
             for j, eval_data in enumerate(loader):
-                inputs, _, groups, labels, _ = data if not self.aug_mode else self.dim_change(data)
+                inputs, _, groups, labels, _ = eval_data if not self.aug_mode else self.dim_change(eval_data)
                 if self.aug_mode:
                     inputs = inputs[:self.bs]
                     groups = groups[:self.bs]
