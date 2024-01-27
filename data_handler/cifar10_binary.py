@@ -77,7 +77,7 @@ class CIFAR_10S_binary(CIFAR_10S):
 
         self.num_data = data_count
         
-        self.features = [[int(s), int(l)] for s, l in zip(self.dataset['color'], self.dataset['label'])]
+        self.features = [[int(s), int(l), 0] for s, l in zip(self.dataset['color'], self.dataset['label'])]
         self.n_data, self.idxs_per_group = self._data_count(self.features, self.num_groups, self.num_classes)
 
     def _make_editing_bias(self, img, inv_img, color, num, tot_num):
