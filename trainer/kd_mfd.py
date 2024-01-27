@@ -57,7 +57,7 @@ class Trainer(hinton_Trainer):
 
         for i, data in enumerate(train_loader):
             # Get the inputs
-            inputs, _, groups, targets, _ = data
+            inputs, _, groups, targets, _ = data if not self.aug_mode else self.dim_change(data)
             labels = targets
 
             if self.cuda:
