@@ -26,19 +26,6 @@ class Trainer(hinton_Trainer):
         for i, data in enumerate(train_loader):
             # Get the inputs
             inputs, _, groups, targets, filter_indicator = self.dim_change(data)            
-            org_filtered_idx = torch.arange(self.bs)
-            if self.clip_filtering:
-                
-                # ctf_filtered_idx = torch.arange(batch_size, batch_size*2)
-                ctf_idx_ = (filter_indicator == 1).nonzero(as_tuple=True)[0]
-                filtered_idx = torch.cat((torch.arange(batch_size) , (ctf_idx_+torch.ones(ctf_idx_.shape[0])*batch_size))).type(torch.LongTensor)
-                inputs = inputs[filtered_idx,:,:,:]
-                groups = groups[filtered_idx]
-                targets = targets[filtered_idx]
-
-                org_filtered_idx = ctf_idx_.type(torch.LongTensor)
-                # ctf_filtered_idx = (ctf_idx_ + torch.ones(ctf_idx_.shape[0])*batch_size).type(torch.LongTensor)
-
             labels = targets 
 
             if self.cuda:
@@ -57,18 +44,17 @@ class Trainer(hinton_Trainer):
             celoss = self.criterion(stu_logits, labels, t_outputs[-1])
 
             # logit pairing loss
-            ft_logit = stu_logits[org_filtered_idx]
+            ft_logit = stu_logits[:self.bs]
             ctf_logit = stu_logits[self.bs:]
             lp_loss = torch.mean((ft_logit-ctf_logit).pow(2))
 
             # kd feature pairing loss
             t_target_features = (t_features[:self.bs] + t_features[self.bs:])/2
 
-            ft_features = stu_features[org_filtered_idx]
+            ft_features = stu_features[:self.bs]
             ctf_features = stu_features[self.bs:]
             pairing_loss1 = torch.mean((ft_features-t_target_features).pow(2))
             pairing_loss2 = torch.mean((ctf_features-t_target_features).pow(2))
-
             kd_fp_loss = (pairing_loss1 + pairing_loss2) /2
 
             loss = celoss + self.lamb * lp_loss + self.kd_lamb * kd_fp_loss
