@@ -103,6 +103,7 @@ class Trainer(vanilla_trainer):
                 if self.aug_mode and self.ce_aug:
                     ctf_loss = loss[self.bs:].mean()
                     loss = loss[:self.bs]
+                    subgroups = subgroups[:self.bs]
                 # calculate the losses for each subgroup
                 group_map = (subgroups == torch.arange(n_subgroups).unsqueeze(1).long().cuda()).float()
                 group_count = group_map.sum(1)
