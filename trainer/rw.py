@@ -145,6 +145,9 @@ class Trainer(trainer.GenericTrainer):
         with torch.no_grad():
             for i, data in enumerate(dataloader):
                 _, _, sen_attrs, targets, _ = data if not self.aug_mode else self.dim_change(data)
+                if self.aug_mode:
+                    targets = targets[:bs]
+                    sen_attrs = sen_attrs[:bs]
                 y_set.append(targets) 
                 s_set.append(sen_attrs)
 

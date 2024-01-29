@@ -74,6 +74,7 @@ def get_args():
     parser.add_argument('--q-step-size', default=0.001, type=float, help='q step size for GDRO epoch')
     parser.add_argument('--num-aug', default=1, type=int, help='the number of augmentation for MFD_indiv')
     parser.add_argument('--kd-lambf', default=1, type=float, help='feature distill strength hyperparameter for kd-lp loss')
+    parser.add_argument('--cov-lambf', default=0, type=float, help='cov lambda when COV+CP')
 
     parser.add_argument('--model', default='', required=True, choices=['resnet','resnet56', 'shufflenet', 'mlp', 'cifar_net', 'resnet152', 'cifar_net_v2'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
