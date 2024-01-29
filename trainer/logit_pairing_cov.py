@@ -15,7 +15,7 @@ from trainer.cov import Trainer as cov_trainer
 class Trainer(cov_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lamb = args.lambf
+        self.lambf = args.lambf
         self.cov_lambf = args.cov_lambf
         # self.criterion_train = nn.CrossEntropyLoss(reduction='none')
         
