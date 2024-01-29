@@ -108,7 +108,7 @@ class Trainer(trainer.GenericTrainer):
                 else:
                     # loss = self.criterion(outputs, labels).mean()
                     loss = self.train_criterion(outputs, labels)
-                    if self.aug_mode and self.ce_aug:
+                    if self.aug_mode:
                         loss = (torch.mean(weights[:self.bs] * loss[:self.bs]) + torch.mean(loss[self.bs:])) / 2
                     else:
                         loss = torch.mean(weights * loss)

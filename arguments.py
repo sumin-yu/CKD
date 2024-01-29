@@ -54,7 +54,7 @@ def get_args():
                                  'kd_logit_pairing', 'kd_logit_pairing_to_org',
                                  'kd_hinton_aug', 'kd_fitnet_aug',
                                  'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro','fairbatch',
-                                 'feature_pairing','feature_pairing_mmd', 'kd_feature_pairing_to_org', 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing', 'logit_pairing_kd_mfd',
+                                 'feature_pairing','feature_pairing_mmd', 'kd_feature_pairing_to_org', 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing', 'logit_pairing_kd_mfd', 'logit_pairing_cov', 'logit_pairing_rw',
                                  'kd_hinton', 'kd_fitnet', 'cov','kd_feature_pairing', 'kd_hinton_logit',
                                  'logit_pairing_kd_hinton', 'logit_pairing_kd_hinton_logit',
                                  'scratch_mmd',  'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
