@@ -85,10 +85,6 @@ class Trainer(trainer.GenericTrainer):
             labels = labels.long()
 
             weights = weight_matrix[groups, labels]
-            if self.aug_mode and self.ce_aug:
-                weights[self.bs:] = 0.5
-            elif self.aug_mode and not self.ce_aug:
-                raise ValueError('Not allowed')
             
             if self.cuda:
                 inputs = inputs.cuda()
@@ -112,7 +108,10 @@ class Trainer(trainer.GenericTrainer):
                 else:
                     # loss = self.criterion(outputs, labels).mean()
                     loss = self.train_criterion(outputs, labels)
-                    loss = torch.mean(weights * loss)
+                    if self.aug_mode and self.ce_aug:
+                        loss = (torch.mean(weights[:self.bs] * loss[:self.bs]) + torch.mean(loss[self.bs:])) / 2
+                    else:
+                        loss = torch.mean(weights * loss)
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
