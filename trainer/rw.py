@@ -86,7 +86,7 @@ class Trainer(trainer.GenericTrainer):
 
             weights = weight_matrix[groups, labels]
             if self.aug_mode and self.ce_aug:
-                weights[self.bs:] = 1.0
+                weights[self.bs:] = 0.5
             elif self.aug_mode and not self.ce_aug:
                 raise ValueError('Not allowed')
             
