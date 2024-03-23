@@ -48,6 +48,8 @@ class TrainerFactory:
             import trainer.logit_pairing_cov as trainer
         elif method == 'logit_pairing_rw':
             import trainer.logit_pairing_rw as trainer
+        elif method == 'logit_pairing_fairdro':
+            import trainer.logit_pairing_fairdro as trainer
         elif method == 'kd_feature_pairing':
             import trainer.kd_feature_pairing as trainer
         elif method == 'kd_feature_pairing_to_org':
