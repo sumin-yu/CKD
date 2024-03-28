@@ -79,7 +79,10 @@ class CelebA(GenericDataset):
             self.attr = torch.as_tensor(attr.values)
             self.filename = attr.index.values
         elif test_set == 'original':
-            attr = pandas.read_csv(fn("list_attr_celeba.txt"), delim_whitespace=True, header=1)
+            if self.target_attr == 'pseudo_hair_length':
+                attr = pandas.read_csv(fn("list_attr_celeba_with_pseudo_hair_length.txt"), delim_whitespace=True, header=1)
+            else:   
+                attr = pandas.read_csv(fn("list_attr_celeba.txt"), delim_whitespace=True, header=1)
             mask = slice(None) if split is None else (splits[1] == split)
             self.filename = splits[mask].index.values
             self.attr = torch.as_tensor(attr[mask].values)
