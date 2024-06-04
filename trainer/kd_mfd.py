@@ -85,7 +85,9 @@ class Trainer(hinton_Trainer):
                 f_t = f_t[:self.bs]
                 groups = groups[:self.bs]
                 labels_ = labels[:self.bs]
-            mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels_)
+                mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels_)
+            else:
+                mmd_loss = distiller.forward(f_s, f_t, groups=groups, labels=labels)
 
             loss = loss + mmd_loss
             running_loss += loss.item()
