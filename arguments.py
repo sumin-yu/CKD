@@ -65,7 +65,6 @@ def get_args():
                         choices=['SGD', 'Adam','AdamW'],
                         help='(default=%(default)s)')
 
-    parser.add_argument('--alpha-J', default=1, type=float, help='kd strenth hyperparameter for Junyi-Fair-KD')
     parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')
     parser.add_argument('--lambf', default=1, type=float, help='feature distill strength hyperparameter')
     parser.add_argument('--gamma', default=0, type=float, help='lopgitpairing strength hyperparameter for MFD-indiv')
