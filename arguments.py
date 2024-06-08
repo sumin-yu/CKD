@@ -19,22 +19,17 @@ def get_args():
     parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
 
     parser.add_argument('--dataset', required=True, default='',
-                        choices=['utkface', 'celeba', 'cifar10', 'cifar10_aug',
-                                 'cifar10_b', 'cifar10_b_aug', 'cifar10_b_same', 'cifar10_b_same_aug',
-                                 'Ccifar10_b', 'Ccifar10_b_aug', 'Ccifar10_b_same', 'Ccifar10_b_same_aug',
-                                 'celeba_aug','celeba_aug2','celeba_aug3', 'celeba_aug_ukn', 'celeba_aug_ukn_wo_org', 'celeba_aug_filtered',
-                                 'spucobirds', 'spucobirds_aug', 'spucobirds_aug_filtered',
-                                 'raf', 'raf_aug', 'celeba_pseudo', 'celeba_hq', 'celeba_hq_aug',
-                                 'lfw', 'lfw_aug'])
-    parser.add_argument('--skew-ratio', default=0.9, type=float, help='skew ratio for cifar-10s')
-    parser.add_argument('--group-bias-type', default='color', type=str, choices=['color', 'Contrast'], help='group bias type for cifar-10s')
-    parser.add_argument('--group-bias-degree', default=1, type=int, choices=[1,2,3,4,5], help='group bias degree for cifar-10s')
-    parser.add_argument('--domain-gap-degree', default=0, type=int, choices=[0, 1, 3, 5], help='domain gap degree for cifar-10s')
-    parser.add_argument('--editing-bias-beta', default=0, type=int, choices=[0,1,2,3, 4], help='editing bias degree for cifar-10s. degree0 means that ctf image is perfect <-> degree3 means that ctf image is made by overly biased editing model')
-    parser.add_argument('--editing-bias-alpha', default=0.0, type=float, help='editing bias alpha for cifar10-s')
-    parser.add_argument('--noise-degree', default=1, type=int, choices=[1,3,5], help='noise degree for cifar-10s')
-    parser.add_argument('--noise-type', default='Spatter', type=str, choices=['Gaussian_Noise', 'Zoom_Blur', 'Motion_Blur', 'Snow', 'Spatter', 'Elastic', 'Contrast'], help='noise type for cifar-10s')
-    parser.add_argument('--noise-corr', default='neg', type=str, choices=['pos', 'neg'], help='noise correlation for cifar-10s')
+                        choices=['celeba', 'cifar10_b_same', 'cifar10_b_same_aug', 'celeba_aug', 'lfw', 'lfw_aug'])
+           
+    parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio for cifar-10s')
+    parser.add_argument('--group-bias-type', default='Contrast', type=str, choices=['Contrast'], help='group bias type for cifar-10s')
+    parser.add_argument('--group-bias-degree', default=1, type=int, help='group bias degree for cifar-10s')
+    parser.add_argument('--domain-gap-degree', default=0, type=int, help='domain gap degree for cifar-10s')
+    parser.add_argument('--editing-bias-beta', default=0, type=int, help='editing bias degree for cifar-10s. degree0 means that ctf image is perfect <-> degree3 means that ctf image is made by overly biased editing model')
+    parser.add_argument('--editing-bias-alpha', default=0.8, type=float, help='editing bias alpha for cifar10-s')
+    parser.add_argument('--noise-degree', default=1, type=int, help='noise degree for cifar-10s')
+    parser.add_argument('--noise-type', default='Gaussian_Noise', type=str, choices=['Gaussian_Noise'], help='noise type for cifar-10s')
+    parser.add_argument('--noise-corr', default='pos', type=str, help='noise correlation for cifar-10s')
     parser.add_argument('--test-alpha-pc', default=False, action='store_true', help='evaluate pc w.r.t. alpha')
     parser.add_argument('--test-beta2-pc', default=False, action='store_true', help='evaluate pc with beta2 setting')
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
@@ -48,18 +43,12 @@ def get_args():
     parser.add_argument('--date', default='20xxxxxx', type=str, help='experiment date')
     
     parser.add_argument('--method', default='scratch', type=str, required=True,
-                        choices=['scratch', 'scratch_aug',
-                                 'kd_mfd', 'kd_mfd_ctf', 'kd_mfd_ctf_ukn', 'kd_mfd_ctf_ukn3', 'kd_mfd_aug',
-                                 'kd_mfd_logit_pairing', 'kd_mfd_balCE',
-                                 'kd_logit_pairing', 'kd_logit_pairing_to_org',
-                                 'kd_hinton_aug', 'kd_fitnet_aug',
-                                 'scratch_aug','logit_pairing','logit_pairing_ukn', 'logit_pairing_aug', 'group_dro','fairbatch',
-                                 'feature_pairing','feature_pairing_mmd', 'kd_feature_pairing_to_org', 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing', 'logit_pairing_kd_mfd', 'logit_pairing_cov', 'logit_pairing_rw', 'logit_pairing_fairdro',
-                                 'kd_hinton', 'kd_fitnet', 'cov','kd_feature_pairing', 'kd_hinton_logit',
-                                 'logit_pairing_kd_hinton', 'logit_pairing_kd_hinton_logit',
-                                 'scratch_mmd',  'fairdro','groupdro','lbc', 'sensei','sensei_2', 'group_predict','fairbatch','fairhsic',
-                                 'logit_pairing_groupdro','logit_pairing_lbc', 'head_logit_pairing',
-                                 'ck_lp','dr', 'rw'])
+                        choices=['scratch', 'scratch_aug','sensei',
+                                 'logit_pairing','feature_pairing',
+                                 'kd_logit_pairing', 'kd_feature_pairing',
+                                 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing',
+                                 'logit_pairing_kd_mfd', 'logit_pairing_cov', 'logit_pairing_rw', 'logit_pairing_lbc',
+                                 'kd_mfd', 'cov', 'lbc', 'rw', 'kd_hinton',])
 
     parser.add_argument('--optimizer', default='Adam', type=str, required=False,
                         choices=['SGD', 'Adam','AdamW'],
