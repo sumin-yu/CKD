@@ -15,7 +15,7 @@ from trainer.rw import Trainer as rw_trainer
 class Trainer(rw_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lambf = args.lambf
+        self.lambf = args.cp_lambf
                                                                           
     def _train_epoch(self, epoch, train_loader, model, weight_matrix, criterion=None):
         model.train()

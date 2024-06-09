@@ -43,10 +43,10 @@ class DataloaderFactory:
 
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
-                       target='Blond_Hair', sensitive='Male', skew_ratio=1., sampling='noBal', method=None, 
-                       num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0,
-                         editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', 
-                         group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False, test_pc_G=None, gamma=0):
+                       target='Blond_Hair', sensitive='Male', skew_ratio=0.8, sampling='noBal', method=None, 
+                       test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0,
+                         editing_bias_beta=0, noise_degree=0, noise_type='Gaussian_Noise', group_bias_type='Contrast', 
+                         group_bias_degree=1, noise_corr='pos', test_alpha_pc=False, test_pc_G=None):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -93,23 +93,6 @@ class DataloaderFactory:
                             #   transforms.RandomHorizontalFlip(),
                             #   transforms.Resize((32,32)),
                               transforms.ToTensor()])
-            
-        elif 'spucobirds' in name:
-            mean = [0.485, 0.456, 0.406]
-            std = [0.229, 0.224, 0.225]
-            train_transform = partial(custom_transform,
-                                      rand_crop=True, img_size=224,
-                                      flip_horizon=True,
-                                      normalize=True, mean=mean, std=std)
-            test_transform = partial(custom_transform,
-                                     resize=True, 
-                                      normalize=True, mean=mean, std=std)
-            valid_transform = test_transform
-        
-        elif 'raf' in name:
-            train_transform = partial(custom_transform, rand_crop=True, img_size=96, flip_horizon=True)
-            test_transform = partial(custom_transform, resize=True, img_size=96)
-            valid_transform = test_transform
         # else:
         #     transform_list = [transforms.Resize((256,256)),
         #                       transforms.RandomCrop(img_size),
@@ -130,10 +113,10 @@ class DataloaderFactory:
         # test_preprocessing = transforms.Compose(test_transform_list)
 
 
-        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc, test_pc_G=test_pc_G, test_set='original')
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, num_aug=num_aug, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc, test_pc_G=test_pc_G, test_set='original')
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_pc_G=test_pc_G, test_set='original')
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_pc_G=test_pc_G, test_set='original')
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc, test_pc_G=test_pc_G)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_pc_G=test_pc_G)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))
@@ -145,12 +128,6 @@ class DataloaderFactory:
             from torch.utils.data.sampler import WeightedRandomSampler
             weights = train_dataset.make_weights(dataset=name, method=method, sampling=sampling)
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
-            train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
-                                          num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
-        elif method == 'fairbatch':
-            from data_handler.fairbatch import FairBatch
-            sampler = FairBatch(train_dataset, batch_size, gamma=gamma, target_fairness='eo', seed=seed)
-            shuffle = False
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)
 

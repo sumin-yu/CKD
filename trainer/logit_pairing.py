@@ -10,7 +10,7 @@ class Trainer(trainer.vanilla_train.Trainer):
         if 'aug' not in args.dataset:
             raise ValueError
         
-        self.lamb = args.lambf
+        self.lamb = args.cp_lambf
         
         super().__init__(args=args, **kwargs)
         self.clip_filtering = args.clip_filtering

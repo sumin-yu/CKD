@@ -9,7 +9,7 @@ from trainer.kd_hinton import Trainer as hinton_trainer
 class Trainer(hinton_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lamb = args.lambf
+        self.lamb = args.cp_lambf
 
     def _train_epoch(self, epoch, train_loader, model, teacher, distiller=None, num_aug=1, num_groups=2):
 

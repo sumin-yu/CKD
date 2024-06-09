@@ -26,7 +26,7 @@ class Trainer(lbc_trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
         self.test_criterion = torch.nn.CrossEntropyLoss()
-        self.lambf = args.lambf
+        self.lambf = args.cp_lambf
 
     def _train_epoch(self, epoch, train_loader, model):
         model.train()

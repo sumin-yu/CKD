@@ -6,55 +6,16 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,num_aug=1, test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False, test_pc_G=None):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,  test_set='original', domain_gap_degree=0, editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0, noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_pc_G=None):
 
-        if name == "utkface":
-            from data_handler.utkface import UTKFaceDataset
-            root = './data/UTKFace'
-            return UTKFaceDataset(root=root, split=split, transform=transform,
-                                  sampling=sampling)
-
-        elif name == "celeba":
+        if name == "celeba":
             from data_handler.celeba import CelebA
             root='./data/'
             return CelebA(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
-        elif name == "celeba_pseudo":
-            from data_handler.celeba_pseudo import CelebA_pseudo
-            root='./data/'
-            return CelebA_pseudo(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
         elif name == "celeba_aug":
             from data_handler.celeba_aug import CelebA_aug
             root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive,num_aug=num_aug, test_set=test_set, test_pc_G=test_pc_G)
-        elif name == "celeba_aug2":
-            from data_handler.celeba_aug2 import CelebA_aug
-            root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-        elif name == "celeba_aug3":
-            from data_handler.celeba_aug3 import CelebA_aug
-            root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-        elif name == 'celeba_aug_ukn':
-            from data_handler.celeba_aug_ukn import CelebA_aug
-            root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, method=method)
-        elif name == 'celeba_aug_ukn_wo_org':
-            from data_handler.celeba_aug_ukn_wo_org import CelebA_aug
-            root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-        elif name == 'celeba_aug_filtered':
-            from data_handler.celeba_aug_filtered import CelebA_aug
-            root='./data/'
-            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive)
-    
-        elif name == "celeba_hq":
-            from data_handler.celeba_hq import CelebA_HQ
-            root='./data_celebahq/'
-            return CelebA_HQ(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
-        elif name == "celeba_hq_aug":
-            from data_handler.celeba_hq_aug import CelebA_HQ_aug
-            root='./data_celebahq/'
-            return CelebA_HQ_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
+            return CelebA_aug(root=root, split=split, transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set, test_pc_G=test_pc_G)
         
         elif name == "lfw":
             from data_handler.lfw import LFWPeople
@@ -65,79 +26,14 @@ class DatasetFactory:
             root = './data/'
             return LFWPeople_aug(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set)
 
-
-        
-        elif name == "cifar10":
-            from data_handler.cifar10 import CIFAR_10S
-            root = './data_cifar'
-            return CIFAR_10S(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-        elif name == "cifar10_aug":
-            from data_handler.cifar10_aug import CIFAR_10S_aug
-            root = './data_cifar'
-            return CIFAR_10S_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-        
-        elif name == "cifar10_b":
-            from data_handler.cifar10_binary import CIFAR_10S_binary
-            root = './data_cifar'
-            return CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc)
-        elif name == "cifar10_b_aug":
-            from data_handler.cifar10_binary_aug import CIFAR_10S_binary_aug
-            root = './data_cifar'
-            return CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc)
         elif name == "cifar10_b_same":
             from data_handler.cifar10_binary_same import CIFAR_10S_binary_same
             root = './data_cifar'
-            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr,   test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc)
+            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr,   test_alpha_pc=test_alpha_pc)
         elif name == "cifar10_b_same_aug":
             from data_handler.cifar10_binary_same_aug import CIFAR_10S_binary_same_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc, test_beta2_pc=test_beta2_pc)
-
-        elif name == "Ccifar10_b":
-            from data_handler.corrupted_cifar10_binary import Corrupted_CIFAR_10S_binary
-            root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-        elif name == "Ccifar10_b_aug":
-            from data_handler.corrupted_cifar10_binary_aug import Corrupted_CIFAR_10S_binary_aug
-            root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-        elif name == "Ccifar10_b_same":
-            from data_handler.corrupted_cifar10_binary_same import Corrupted_CIFAR_10S_binary_same
-            root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-        elif name == "Ccifar10_b_same_aug":
-            from data_handler.corrupted_cifar10_binary_same_aug import Corrupted_CIFAR_10S_binary_same_aug
-            root = './data_cifar'
-            return Corrupted_CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio)
-
-
-        elif name == "spucobirds":
-            from data_handler.spucobirds import SpuCoBirds
-            root = './data/spuco'
-            dataset =  SpuCoBirds(root=root, split=split, transform=transform)
-            dataset.initialize()
-            return dataset
-        elif name == 'spucobirds_aug':
-            from data_handler.spucobirds_aug import SpuCoBirds_aug
-            root = './data/spuco'
-            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform,num_aug=num_aug)
-            dataset.initialize()
-            return dataset
-        elif name == "spucobirds_aug_filtered":
-            from data_handler.spucobirds_aug_filtered import SpuCoBirds_aug
-            root = './data/spuco'
-            dataset = SpuCoBirds_aug(root=root, split=split, transform=transform)
-            dataset.initialize()
-            return dataset
-        
-        elif name =='raf':
-            from data_handler.raf import RAF
-            root = './data/rafdb'
-            return RAF(root=root, split=split, transform=transform)
-        elif name =='raf_aug':
-            from data_handler.raf_aug import RAF_aug
-            root = './data/rafdb'
-            return RAF_aug(root=root, split=split, transform=transform, num_aug=num_aug)
+            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, domain_gap_degree=domain_gap_degree, editing_bias_alpha=editing_bias_alpha, editing_bias_beta=editing_bias_beta, noise_degree=noise_degree, noise_type=noise_type, group_bias_type=group_bias_type, group_bias_degree=group_bias_degree, noise_corr=noise_corr, test_alpha_pc=test_alpha_pc)
 
 
 class GenericDataset(data.Dataset):

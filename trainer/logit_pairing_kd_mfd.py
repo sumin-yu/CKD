@@ -13,8 +13,8 @@ class Trainer(hinton_Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
         self.lambh = args.lambh
-        self.lambf = args.lambf
-        self.kd_lambf = args.kd_lambf
+        self.lambf = args.cp_lambf
+        self.kd_lambf = args.mfd_lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
 

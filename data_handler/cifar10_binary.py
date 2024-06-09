@@ -15,13 +15,12 @@ class CIFAR_10S_binary(CIFAR_10S):
                  seed=0, skewed_ratio=0.8,
                     domain_gap_degree=0,
                     editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0,
-                    noise_type='Spatter', group_bias_type='color', group_bias_degree=1, noise_corr='neg', test_alpha_pc=False, test_beta2_pc=False):
+                    noise_type='Gaussian_Noise', group_bias_type='Contrast', group_bias_degree=1, noise_corr='pos', test_alpha_pc=False):
         super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
         self.test_pair = False
         self.test_mode = False # mode change for training set (just get org image)
         self.test_alpha_pc = test_alpha_pc
-        self.test_beta2_pc = test_beta2_pc
         self.split = split
         self.seed = seed
 
@@ -40,14 +39,6 @@ class CIFAR_10S_binary(CIFAR_10S):
         if self.editing_bias_alpha != 0:
             if editing_bias_beta == 0:
                 self.editing_bias_beta = 0.0
-            elif editing_bias_beta == 1:
-                self.editing_bias_beta = self.editing_bias_alpha * 0.5
-            elif editing_bias_beta == 2:
-                self.editing_bias_beta = self.editing_bias_alpha
-            elif editing_bias_beta == 3:
-                self.editing_bias_beta = 1.0
-            else:
-                self.editing_bias_beta = editing_bias_beta # beta =4 for test 
 
         imgs, intervened_imgs, labels, colors, data_count, org_noise, inv_noise = self._make_skewed(split, seed, skewed_ratio)
 
@@ -83,54 +74,36 @@ class CIFAR_10S_binary(CIFAR_10S):
     def _make_editing_bias(self, img, inv_img, color, num, tot_num):
         org_noise = 0
         inv_noise = 0
-        if self.split == 'test' and self.test_beta2_pc:
-            self.editing_bias_beta = self.editing_bias_alpha
 
         if self.editing_bias_alpha != 0:
-            if (self.split != 'test' and self.editing_bias_beta != 0) or (self.split == 'test' and self.test_beta2_pc):
-                if color == 0: # org color is gray
-                    if num > tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) and num <= tot_num*(1-(1-self.editing_bias_alpha)*(1-self.editing_bias_beta)):
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                        inv_noise = 1
+            if self.test_alpha_pc:
+                if color == 0:
                     if num > tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
-                else: # org color is color
+                    else:
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+                        inv_noise = 1
+                else:
                     if num <= tot_num*self.editing_bias_alpha:
                         img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
                         org_noise = 1
-                    if num <= tot_num*self.editing_bias_alpha*(1-self.editing_bias_beta) or num > tot_num*(1-(1-self.editing_bias_alpha)*(1-self.editing_bias_beta)):
+                    else:
                         inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
                         inv_noise = 1
             else:
-                if self.test_alpha_pc:
-                    if color == 0:
-                        if num > tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                            org_noise = 1
-                        else:
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                            inv_noise = 1
-                    else:
-                        if num <= tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                            org_noise = 1
-                        else:
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                            inv_noise = 1
-                else:
-                    if color == 0: # org color is gray
-                        if num > tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                            org_noise = 1
-                            inv_noise = 1
-                    else: # org color is color
-                        if num <= tot_num*self.editing_bias_alpha:
-                            img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                            inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                            org_noise = 1
-                            inv_noise = 1
+                if color == 0: # org color is gray
+                    if num > tot_num*self.editing_bias_alpha:
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+                        org_noise = 1
+                        inv_noise = 1
+                else: # org color is color
+                    if num <= tot_num*self.editing_bias_alpha:
+                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+                        org_noise = 1
+                        inv_noise = 1
         return img, inv_img, org_noise, inv_noise
 
     def _make_domain_gap(self, img):

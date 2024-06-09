@@ -20,24 +20,12 @@ class TrainerFactory:
             import trainer.vanilla_train_aug as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
-        elif method == 'head_logit_pairing':
-            import trainer.head_logit_pairing as trainer
-        elif method == 'cov':
-            import trainer.cov as trainer
-        elif method == 'feature_pairing':
-            import trainer.feature_pairing as trainer
-        elif method == 'feature_pairing_mmd':
-            import trainer.feature_pairing_mmd as trainer
-        elif method == 'logit_pairing_ukn':
-            import trainer.logit_pairing_ukn as trainer
-        elif method == 'logit_pairing_aug':
-            import trainer.logit_pairing_aug as trainer
         elif method == 'feature_pairing':
             import trainer.feature_pairing as trainer
         elif method == 'kd_logit_pairing':
             import trainer.kd_logit_pairing as trainer
-        elif method == 'kd_logit_pairing_to_org':
-            import trainer.kd_logit_pairing_to_org as trainer
+        elif method == 'kd_feature_pairing':
+            import trainer.kd_feature_pairing as trainer
         elif method == 'logit_pairing_kd_logit_pairing':
             import trainer.logit_pairing_kd_logit_pairing as trainer
         elif method == 'logit_pairing_kd_feature_pairing':
@@ -48,66 +36,23 @@ class TrainerFactory:
             import trainer.logit_pairing_cov as trainer
         elif method == 'logit_pairing_rw':
             import trainer.logit_pairing_rw as trainer
-        elif method == 'logit_pairing_fairdro':
-            import trainer.logit_pairing_fairdro as trainer
-        elif method == 'kd_feature_pairing':
-            import trainer.kd_feature_pairing as trainer
-        elif method == 'kd_feature_pairing_to_org':
-            import trainer.kd_feature_pairing_to_org as trainer
-        elif method == 'kd_hinton':
-            import trainer.kd_hinton as trainer
-        elif method == 'kd_hinton_logit':
-            import trainer.kd_hinton_logit as trainer
-        elif method == 'logit_pairing_kd_hinton':
-            import trainer.logit_pairing_kd_hinton as trainer
-        elif method == 'logit_pairing_kd_hinton_logit':
-            import trainer.logit_pairing_kd_hinton_logit as trainer
-        elif method == 'kd_fitnet':
-            import trainer.kd_fitnet as trainer
-        elif method == 'kd_mfd':
-            import trainer.kd_mfd as trainer
-        elif method == 'kd_mfd_balCE':
-            import trainer.kd_mfd_balCE as trainer
-        elif method == 'kd_mfd_aug':
-            import trainer.kd_mfd_aug as trainer
-        elif method == 'kd_mfd_ctf':
-            import trainer.kd_mfd_ctf as trainer
-        elif method == 'kd_mfd_ctf_ukn':
-            import trainer.kd_mfd_ctf_ukn as trainer
-        elif method == 'kd_mfd_ctf_ukn3':
-            import trainer.kd_mfd_ctf_ukn3 as trainer
-        elif method == 'kd_mfd_logit_pairing':
-            import trainer.kd_mfd_logit_pairing as trainer
-        elif method == 'scratch_mmd':
-            import trainer.scratch_mmd as trainer
-        elif method == 'fairdro':
-            import trainer.fairdro as trainer
-        elif method == 'groupdro':
-            import trainer.groupdro as trainer
-        elif method == 'dr':
-            import trainer.dr as trainer
-        elif method == 'fairbatch':
-            import trainer.fairbatch as trainer
-        elif method == 'logit_pairing_groupdro':
-            import trainer.logit_pairing_groupdro as trainer
-        elif method == 'lbc':
-            import trainer.lbc as trainer
         elif method == 'logit_pairing_lbc':
             import trainer.logit_pairing_lbc as trainer
+        elif method == 'kd_hinton':
+            import trainer.kd_hinton as trainer
         elif method == 'sensei':
             import trainer.sensei as trainer
-        elif method == 'sensei_2':
-            import trainer.sensei_2 as trainer
-        elif method == 'group_predict':
-            import trainer.group_predict as trainer
-        elif method == 'ck_lp':
-            import trainer.check_lp as trainer
+        elif method == 'cov':
+            import trainer.cov as trainer
+        elif method == 'kd_mfd':
+            import trainer.kd_mfd as trainer
+        elif method == 'lbc':
+            import trainer.lbc as trainer
         elif method == 'rw':
             import trainer.rw as trainer
         else:
             raise Exception('Not allowed method')
         return trainer.Trainer(**kwargs)
-
 
 class GenericTrainer:
     '''
@@ -133,19 +78,9 @@ class GenericTrainer:
 
         self.aug_mode = True if 'aug' in args.dataset else False
         self.ce_aug = args.ce_aug
-        self.filtering = args.filtering
-        self.reg_filtering = args.reg_filtering
 
         if self.ce_aug == True and not self.aug_mode:
             print('set a dataset to the aug version')
-            raise ValueError
-        
-        if self.filtering == True and self.ce_aug == False:
-            print('set ce loss as True')
-            raise ValueError
-
-        if self.reg_filtering == True and self.filtering == False:
-            print('set filtering as True')
             raise ValueError
 
         self.log_name = make_log_name(args)
@@ -160,21 +95,11 @@ class GenericTrainer:
             self.scheduler = ReduceLROnPlateau(self.optimizer)
 
     def criterion(self, predic, label, tea_predic=None):
-        if not self.filtering:
-            celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'fairdro','dr','groupdro', 'lbc']) else nn.CrossEntropyLoss()
-            if self.aug_mode and not self.ce_aug:
-                return celoss(predic[:self.bs], label[:self.bs])
-            else :
-                return celoss(predic, label)
-        else:
-            celoss_per_samples = nn.CrossEntropyLoss(reduction='none')(predic, label)
-            tea_predic = torch.argmax(tea_predic,1)
-            mask = tea_predic == label
-            mask[:self.bs] = True
-            if self.reg_filtering:
-                return celoss_per_samples[mask].mean(), mask[self.bs:]
-            else:
-                return celoss_per_samples[mask].mean()
+        celoss = nn.CrossEntropyLoss(reduction='none') if any(ele in self.method for ele in ['sensei', 'fairdro','dr','groupdro', 'lbc']) else nn.CrossEntropyLoss()
+        if self.aug_mode and not self.ce_aug:
+            return celoss(predic[:self.bs], label[:self.bs])
+        else :
+            return celoss(predic, label)
 
     def dim_change(self, data):
         inputs, _, groups, targets, filter_indicator = data

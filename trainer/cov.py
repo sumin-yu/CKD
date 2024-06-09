@@ -15,7 +15,7 @@ import trainer.vanilla_train
 class Trainer(trainer.vanilla_train.Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lamb = args.lambf
+        self.lamb = args.cov_lambf
         # self.criterion_train = nn.CrossEntropyLoss(reduction='none')
         
     def _train_epoch(self, epoch, train_loader, model):

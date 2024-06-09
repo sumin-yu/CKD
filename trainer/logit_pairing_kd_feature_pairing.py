@@ -10,7 +10,7 @@ class Trainer(hinton_Trainer):
         if 'aug' not in args.dataset:
             raise ValueError
         
-        self.lamb = args.lambf
+        self.lamb = args.cp_lambf
         self.kd_lamb = args.kd_lambf
         
         super().__init__(args=args, **kwargs)

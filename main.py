@@ -10,7 +10,7 @@ from utils import check_log_dir, make_log_name, set_seed
 from arguments import get_args
 import time
 import os 
-from utils import get_metric, get_bmr, get_pc, save_anal
+from utils import get_metric, save_anal
 
 args = get_args()
 
@@ -41,7 +41,6 @@ def main():
                                                         skew_ratio=args.skew_ratio,
                                                         sampling=args.sampling,
                                                         method=args.method,
-                                                        num_aug=args.num_aug,
                                                         domain_gap_degree=args.domain_gap_degree,
                                                         editing_bias_alpha=args.editing_bias_alpha,
                                                         editing_bias_beta=args.editing_bias_beta,
@@ -51,10 +50,8 @@ def main():
                                                         group_bias_degree=args.group_bias_degree,
                                                         noise_corr=args.noise_corr,
                                                         test_alpha_pc=args.test_alpha_pc,
-                                                        test_beta2_pc=args.test_beta2_pc,
                                                         test_set=args.test_set,
-                                                        test_pc_G=args.test_pc_G, 
-                                                        gamma=args.gamma
+                                                        test_pc_G=args.test_pc_G
                                                         )
     val_loader = None
     num_classes, num_groups, train_loader, val_loader, test_loader = tmp
@@ -109,35 +106,35 @@ def main():
         model_to_load = args.modelpath
         trainer_.model.load_state_dict(torch.load(model_to_load))
         print('Trained model loaded successfully')
-    acc, deo_a, deo_m, bmr, pc, pred_dist = 0., 0., 0., 0., 0., 0.
+    acc, deo_a, deo_m, pc, pred_dist = 0., 0., 0., 0., 0.
     pc_G = 0.
     if args.evalset == 'all':
         # trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
-        save_anal('val' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
+        save_anal('val' ,args, acc, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset)
-        save_anal('test' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset)
+        save_anal('test' ,args, acc, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
         print('here') 
     elif args.evalset == 'train':
         train_loader.dataset.test_mode = True
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('train', train_loader.dataset.num_classes, train_loader, log_dir, log_name)
-        pred_dist, pc, bmr = get_metric(model, train_loader.dataset, args.dataset, args.clip_filtering)
-        save_anal('train' ,args, acc, bmr, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
-        # pred_dist, pc, bmr = get_metric(model, train_loader.dataset)
+        pred_dist, pc = get_metric(model, train_loader.dataset, args.dataset, args.clip_filtering)
+        save_anal('train' ,args, acc, pred_dist, pc, deo_a, deo_m, log_dir, log_name)
+        # pred_dist, pc = get_metric(model, train_loader.dataset)
     elif args.evalset == 'val':
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
-        pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
-        save_anal('val' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
+        pred_dist, pc, pc_G, pc_mat = get_metric(model, val_loader.dataset, args.dataset)
+        save_anal('val' ,args, acc, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
     else: # evalset == 'test'
         if args.test_set == 'pc_G':
             acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-            pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering, True)
+            pred_dist, pc, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering, True)
         else:
             acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-            pred_dist, pc, bmr, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering)
-        save_anal('test' ,args, acc, bmr, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
+            pred_dist, pc, pc_G, pc_mat = get_metric(model, test_loader.dataset, args.dataset, args.clip_filtering)
+        save_anal('test' ,args, acc, pred_dist, pc, pc_G, pc_mat, deo_a, deo_m, log_dir, log_name)
 
 
     print('Done!')
