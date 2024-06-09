@@ -51,9 +51,8 @@ def get_args():
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
     
     parser.add_argument('--method', default='scratch', type=str, required=True,
-                        choices=['scratch',
-                                 'scratch_aug','sensei',
-                                 'logit_pairing',
+                        choices=['scratch'
+                                 ,'sensei', 'logit_pairing',
                                  'kd_mfd', 'cov', 'lbc', 'rw', 'kd_hinton',
                                  'logit_pairing_kd_mfd', 'logit_pairing_cov', 'logit_pairing_rw', 'logit_pairing_lbc',
                                  'kd_logit_pairing', 'kd_feature_pairing',
