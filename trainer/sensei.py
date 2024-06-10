@@ -32,8 +32,6 @@ class Trainer(trainer.GenericTrainer):
         self.distance_y = SquaredEuclideanDistance(self.device)
         self.auditor = SenSeIAuditor(self.distance_x, self.distance_y, self.auditor_nsteps, self.auditor_lr)
 
-        # if dataset.
-
     def train(self, train_loader, val_loader, test_lodaer, epochs):
         self.model.train()
 
