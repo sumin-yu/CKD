@@ -154,7 +154,7 @@ def make_log_name(args):
         if 'celeba' in args.dataset or 'lfw' in args.dataset:
             log_name += '_{}_{}'.format(args.target, args.sensitive)
 
-        if 'cifar10_b' in args.dataset:
+        if 'cifar_10b' in args.dataset:
             log_name += '_skewed{}'.format(args.skew_ratio)
             if args.editing_bias_alpha != 0.0:
                 log_name += '_editbias_alpha{}'.format(args.editing_bias_alpha)

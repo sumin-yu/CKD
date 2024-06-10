@@ -63,7 +63,7 @@ class GenericTrainer:
         self.optimizer = optimizer
         self.bs = args.batch_size
         self.optim_type = args.optimizer
-        self.img_size = args.img_size if not 'cifar10' in args.dataset else 32
+        self.img_size = args.img_size if not 'cifar' in args.dataset else 32
         self.scheduler = None
 
         self.aug_mode = True if 'aug' in args.dataset else False

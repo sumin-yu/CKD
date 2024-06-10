@@ -16,7 +16,7 @@ def get_args():
 
     parser.add_argument('--mode', default='train', choices=['train', 'eval'])
     parser.add_argument('--modelpath', default=None)
-    parser.add_argument('--evalset', default='all', choices=['all', 'train', 'test', 'val'])
+    parser.add_argument('--evalset', default='test', choices=['all', 'train', 'test', 'val'])
 
     parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--wd', default=1e-4, type=float, help='weight decay')
@@ -39,13 +39,13 @@ def get_args():
     
     # CIFAR-10B 
     parser.add_argument('--skew-ratio', default=0.8, type=float, help='skew ratio (gamma) for cifar-10s')
-    parser.add_argument('--editing-bias-alpha', default=0.8, type=float, help='editing bias alpha for cifar10-s')
+    parser.add_argument('--editing-bias-alpha', default=0.8, type=float, help='editing bias alpha for cifar_10b')
     
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch'
                                  ,'sensei', 'cp',
                                  'kd_mfd', 'cov', 'lbc', 'rw', 'kd_hinton',
-                                #  'kd_mfd_cp', 'cov_cp', 'rw_cp', 'lbc_cp',
+                                 'kd_mfd_cp', 'cov_cp', 'rw_cp', 'lbc_cp',
                                  'ckd'])
     parser.add_argument('--model', default='', required=True, choices=['resnet','resnet56'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')

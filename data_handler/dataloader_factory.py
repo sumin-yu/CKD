@@ -77,11 +77,11 @@ class DataloaderFactory:
         
             valid_transform = test_transform
             
-        elif 'cifar10' in name:
+        elif 'cifar_10b' in name:
             train_transform = transforms.Compose([transforms.ToPILImage(),
                               transforms.ToTensor()])
 
-        if 'cifar10' in name:
+        if 'cifar_10b' in name:
             test_transform = transforms.Compose([transforms.ToTensor()])
             valid_transform = test_transform
 
