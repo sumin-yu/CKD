@@ -26,7 +26,7 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
         - download
             - the dataset (images, txt files): [link](https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8?resourcekey=0-5BR16BdXnb8hVj6CNHKzLg&usp=sharing)
                 (Anno/list_attr_celeba.txt, Eval/list_eval_partition.txt, Img/img_align_celeba.zip)
-            - CTF image dataset: [link]
+            - CTF image dataset: You should generate ctf images for training dataset (e.g. by IP2P) and the folder name should be "img_align_celeba_edited_Male"
 
         - move them to **./data/celeba/**
 
@@ -37,7 +37,7 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
         - download
             - images: [link](http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz)
             - txt files: [link](https://github.com/ckd-ip2p/ckd-ip2p.github.io/blob/5a0bc13961a9764258ffb1fbd33814760fa3cd73/lfw.zip)
-            - CTF image dataset: [link]
+            - CTF image dataset: You should generate ctf images for training dataset (e.g., by IP2P) and the folder name sould be "lfw_funneled_Male"
 
         - move them to **./data/lfw-py/**
 
