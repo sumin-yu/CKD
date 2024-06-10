@@ -140,7 +140,7 @@ class LFWPeople(_LFW):
         if test_set == 'original':
             attr = pd.read_csv(fn("lfw_attributes_binary.txt"), sep='\t') 
             # attr = attr[attr["imagenum"] == 1]
-        elif test_set == 'strong_f':
+        elif test_set == 'cd':
             attr = pd.read_csv(fn("lfw_attributes_binary_test_strong_filter.txt"), sep='\t')
             attr = attr[attr["imagenum"] == 1]
         self.filename = pd.read_csv(fn(self.labels_file), sep='\t').index.tolist()
@@ -171,7 +171,8 @@ class LFWPeople(_LFW):
         print('num data is {}'.format(len(self.data)))
         
         #######
-        self.test_pair = False
+        self.test_pair = True if test_set == 'cd' else False
+        print('test pair is {}'.format(self.test_pair))
         self.images_ctf_dir = join(self.root, self.base_folder, "lfw_funneled_Male")
         self.ctf_data = self._get_people_ctf()
     

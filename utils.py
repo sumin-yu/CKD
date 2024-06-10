@@ -4,6 +4,7 @@ import random
 import os
 import torch.nn.functional as F
 import pickle
+import data_handler
 
 def list_files(root, suffix, prefix=False):
     root = os.path.expanduser(root)
@@ -49,26 +50,31 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset, dataset_name, is_pc_G=False):
+def get_cd(model, args):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
-    bs = 1
-    dataset.test_pair = True
-    dataloader = torch.utils.data.DataLoader(dataset, bs, drop_last=False,
-                                             shuffle=False, **kwargs)
-    num_classes = dataset.num_classes
+    _,_,_,_,dataloader = data_handler.DataloaderFactory.get_dataloader(args.dataset, img_size=args.img_size,
+                                                            batch_size=1, seed=args.seed,
+                                                            num_workers=args.num_workers,
+                                                            target=args.target,
+                                                            sensitive=args.sensitive,
+                                                            skew_ratio=args.skew_ratio,
+                                                            sampling=args.sampling,
+                                                            method=args.method,
+                                                            editing_bias_alpha=args.editing_bias_alpha,
+                                                            test_alpha_pc=True,
+                                                            test_set='cd',
+                                                            )
     model.eval()
 
     with torch.no_grad():
         num_as_pc = 0.
-        num_as_pc_g = 0.
         pred_dist = 0.
         num_tot = 0.
         pc_mat = np.zeros((2, 2))
         num_tot_mat = np.zeros((2, 2))
         for data in dataloader:
             input, _, group, label , identity = data
-            idx, img_name = identity
             group = group[0]
             num_tot += 1
             input = input.view(-1, *input.shape[2:])
@@ -79,7 +85,6 @@ def get_metric(model, dataset, dataset_name, is_pc_G=False):
 
             output = model(input, get_inter=True)
             logits = output[-1]
-            features = output[-2]
 
             preds = torch.argmax(logits, 1)
 
@@ -96,16 +101,8 @@ def get_metric(model, dataset, dataset_name, is_pc_G=False):
 
         pred_dist /= num_tot
         pc = num_as_pc / num_tot
-        pc_g = num_as_pc_g / num_tot
-        pc_mat /= num_tot_mat
 
-    if is_pc_G:
-        print('PC_G   = {}'.format(pc))
-        return pred_dist, 0.0, pc, pc_mat
-    else:
-        print('PC     = {}'.format(pc))
-        print('Sym-KL = {}'.format(pred_dist))
-        return pred_dist, pc, 0.0, pc_mat
+    return pred_dist, pc, pc_mat
 
 def make_log_name(args):
     log_name = args.model
@@ -114,13 +111,6 @@ def make_log_name(args):
         log_name = args.modelpath.split('/')[-1]
         # remove .pt from name
         log_name = log_name[:-3]
-        if args.test_alpha_pc:
-            log_name += '_test_alpha_pc'
-        if args.test_set != 'original':
-            log_name += '_testset_{}'.format(args.test_set)
-        if args.test_pc_G is not None:
-            log_name += '_testpcG_{}'.format(args.test_pc_G)
-
     else:
         if args.pretrained:
             log_name += '_pretrained'
@@ -166,33 +156,24 @@ def make_log_name(args):
 
         if 'cifar10_b' in args.dataset:
             log_name += '_skewed{}'.format(args.skew_ratio)
-            log_name += '_group{}_{}'.format(args.group_bias_type, args.group_bias_degree)
-            if args.editing_bias_alpha == 0:
-                log_name += '_domgap_{}_{}'.format(args.noise_type, args.domain_gap_degree)
             if args.editing_bias_alpha != 0.0:
                 log_name += '_editbias_alpha{}'.format(args.editing_bias_alpha)
-                log_name += '_beta{}'.format(args.editing_bias_beta)
-                log_name += '_{}_{}'.format(args.noise_type, args.noise_degree)
-                log_name += '_corr{}'.format(args.noise_corr)
-            if args.test_alpha_pc:
-                log_name += '_test_alpha_pc'
 
     return log_name
 
-def save_anal(dataset='test', args=None, acc=0, pred_dist=0, pc=0, pc_g=0, pc_mat=[], deo_a=0, deo_m=0, log_dir="", log_name=""):
+def save_anal(dataset='test', args=None, acc=0, deo_a=0, deo_m=0, pred_dist=0, pc=0, pc_mat=[], log_dir="", log_name=""):
 
     savepath = os.path.join(log_dir, log_name + '_{}_result'.format(dataset))
     result = {}
     result['acc'] = acc
-    result['pred_dist'] = pred_dist
-    result['PC'] = pc
     result['DEO_A'] = deo_a
     result['DEO_M'] = deo_m
-    result['test_pc'] = pc_g
-    result['PC_mat'] = pc_mat
+    if dataset == 'test':
+        result['pred_dist'] = pred_dist
+        result['PC'] = pc.item()
+        result['PC_mat'] = pc_mat
     result['args'] = args
-    print('accuracy: {}'.format(acc), 'pred_dist: {}'.format(pred_dist), 'PC: {}'.format(pc), 'DEO_A: {}'.format(deo_a), 'DEO_M: {}'.format(deo_m), 'PC_G: {}'.format(pc_g))
-    print('pc mat: {}'.format(pc_mat))
+    print('accuracy: {}'.format(100*acc),  'CD: {}'.format(100-100*pc), 'DEO_M: {}'.format(100*deo_m))
     print('success', savepath)
     # save result as pickle
     with open(savepath, 'wb') as f:

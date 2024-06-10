@@ -13,12 +13,10 @@ from data_handler.cifar10 import CIFAR10, CIFAR_10S
 class CIFAR_10S_binary(CIFAR_10S):
     def __init__(self, root, split='train', transform=None,
                  seed=0, skewed_ratio=0.8,
-                    domain_gap_degree=0,
-                    editing_bias_alpha=0.0, editing_bias_beta=0, noise_degree=0,
-                    noise_type='Gaussian_Noise', group_bias_type='Contrast', group_bias_degree=1, noise_corr='pos', test_alpha_pc=False):
+                    editing_bias_alpha=0.0, test_alpha_pc=False):
         super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
-        self.test_pair = False
+        self.test_pair = True if test_alpha_pc else False
         self.test_mode = False # mode change for training set (just get org image)
         self.test_alpha_pc = test_alpha_pc
         self.split = split
@@ -27,18 +25,12 @@ class CIFAR_10S_binary(CIFAR_10S):
         self.num_classes = 2
         self.num_groups = 2
 
-        self.noise_injection = CORRUPTED_CIFAR10_PROTOCOL[noise_type]
-        self.domain_gap_degree = domain_gap_degree
+        self.noise_injection = CORRUPTED_CIFAR10_PROTOCOL['Gaussian_Noise']
         self.editing_bias_alpha = editing_bias_alpha
-        self.noise_degree = noise_degree
-        self.noise_corr = noise_corr
+        self.noise_degree = 1
 
-        self.group_bias_type=group_bias_type
-        self.group_bias_degree=group_bias_degree
-
-        if self.editing_bias_alpha != 0:
-            if editing_bias_beta == 0:
-                self.editing_bias_beta = 0.0
+        self.group_bias_type='Contrast'
+        self.group_bias_degree= 1
 
         imgs, intervened_imgs, labels, colors, data_count, org_noise, inv_noise = self._make_skewed(split, seed, skewed_ratio)
 
@@ -49,20 +41,6 @@ class CIFAR_10S_binary(CIFAR_10S):
         self.dataset['inv_image'] = np.array(intervened_imgs)
         self.dataset['org_noise'] = np.array(org_noise)
         self.dataset['inv_noise'] = np.array(inv_noise)
-
-        ### save 10 images as 1 image for test if there is no saved image file ###
-        if self.domain_gap_degree != 0:
-            if not os.path.exists('./data_cifar/domain_gap_{}_{}.png'.format(noise_type, domain_gap_degree)):
-                for i in range(10): 
-                    if i == 0:
-                        img = imgs[i]
-                        inv_img = intervened_imgs[i]
-                    else:
-                        img = np.concatenate((img, imgs[i]), axis=1)
-                        inv_img = np.concatenate((inv_img, intervened_imgs[i]), axis=1)
-                img = np.concatenate((img, inv_img), axis=0)
-                img = Image.fromarray(img)
-                img.save('./data_cifar/domain_gap_{}_{}.png'.format(noise_type, domain_gap_degree))
 
         self._get_label_list()
 
@@ -106,47 +84,22 @@ class CIFAR_10S_binary(CIFAR_10S):
                         inv_noise = 1
         return img, inv_img, org_noise, inv_noise
 
-    def _make_domain_gap(self, img):
-        if self.domain_gap_degree != 0:
-            domain_gap_img = self.noise_injection(img, severity=self.domain_gap_degree, seed=self.seed)
-            domain_gap_img =  domain_gap_img.astype(np.uint8)
-        else:
-            domain_gap_img = img
-        return domain_gap_img
-
     def _set_data(self, img, group):
-        if self.noise_corr == 'neg':
-            if self.split != 'test':
-                if group==1:    
-                    return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
-                elif group==0:
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
-            elif self.test_alpha_pc == False:
-                if group==1:    
-                    return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-                elif group==0:
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
-            else:
-                if group==1:
-                    return np.array(img), np.array(img), group
-                elif group==0:
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-        elif self.noise_corr == 'pos':
-            if self.split != 'test':
-                if group==1:    
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._make_domain_gap(np.array(img)), group
-                elif group==0:
-                    return np.array(img), self._make_domain_gap(self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree)), group
-            elif self.test_alpha_pc == False:   
-                if group==1:    
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
-                elif group==0:
-                    return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-            else:
-                if group==1:
-                    return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-                elif group==0:
-                    return np.array(img), np.array(img), group
+        if self.split != 'test':
+            if group==1:    
+                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
+            elif group==0:
+                return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
+        elif self.test_alpha_pc == False:   
+            if group==1:    
+                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
+            elif group==0:
+                return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
+        else:
+            if group==1:
+                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
+            elif group==0:
+                return np.array(img), np.array(img), group
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 
