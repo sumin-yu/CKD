@@ -101,7 +101,7 @@ def main():
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('val', val_loader.dataset.num_classes, val_loader, log_dir, log_name)
         save_anal('val' ,args, acc, deo_a, deo_m, log_dir, log_name)
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        pred_dist, pc, pc_mat = get_cd(model, args)
+        pred_dist, pc, pc_mat = get_cd(model, args, test_loader.dataset.n_data)
         save_anal('test' ,args, acc, deo_a, deo_m, pred_dist, pc, pc_mat, log_dir, log_name)
         print('here') 
     elif args.evalset == 'train':
@@ -113,7 +113,7 @@ def main():
         save_anal('val' ,args, acc, deo_a, deo_m, log_dir, log_name)
     else: # evalset == 'test'
         acc, deo_a, deo_m = trainer_.compute_confusion_matix('test', test_loader.dataset.num_classes, test_loader, log_dir, log_name)
-        pred_dist, pc, pc_mat = get_cd(model, args)
+        pred_dist, pc, pc_mat = get_cd(model, args, test_loader.dataset.n_data)
         save_anal('test' ,args, acc, deo_a, deo_m, pred_dist, pc, pc_mat, log_dir, log_name)
 
 

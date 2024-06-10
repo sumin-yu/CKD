@@ -50,7 +50,7 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_cd(model, args):
+def get_cd(model, args, n_data):
     _,_,_,_,dataloader = data_handler.DataloaderFactory.get_dataloader(args.dataset, img_size=args.img_size,
                                                             batch_size=1, seed=args.seed,
                                                             num_workers=args.num_workers,
@@ -64,7 +64,7 @@ def get_cd(model, args):
                                                             test_set='cd',
                                                             )
     model.eval()
-
+    cd_n_data = dataloader.dataset.n_data
     with torch.no_grad():
         num_as_pc = 0.
         pred_dist = 0.
@@ -99,6 +99,9 @@ def get_cd(model, args):
 
         pred_dist /= num_tot
         pc = num_as_pc / num_tot
+        pc_mat = pc_mat / num_tot_mat
+        print('our CD: ', 100 - 100* ((((pc_mat[0,0] * (n_data[0,0]/cd_n_data[0,0]) + pc_mat[1,0] * (n_data[1,0]/cd_n_data[1,0])) / ((n_data[0,0]/cd_n_data[0,0]) + (n_data[1,0]/cd_n_data[1,0])) )
+                                       + ((pc_mat[1,1] * (n_data[1,1]/cd_n_data[1,1]) + pc_mat[0,1] * (n_data[0,1]/cd_n_data[0,1])) / ((n_data[1,1]/cd_n_data[1,1]) + (n_data[0,1]/cd_n_data[0,1])))) / 2) )
 
     return pred_dist, pc, pc_mat
 
