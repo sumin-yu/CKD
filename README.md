@@ -4,9 +4,9 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
 
 # Real-img-CF datasets for CD evaluation
 
-- CelebA-CF: [link](https://drive.google.com/file/d/10COH6_mVzy6JgZ6Es2HyFtL4IC-ciHs4/view?usp=sharing)
+- CelebA-CF: [link](https://figshare.com/s/b5e04d2005ef7ef2407f)
 
-- LFW-CF: [link](https://drive.google.com/file/d/1RqVwjss9jjSjdmnY1-ljCujGTJKcP-Xl/view?usp=share_link)
+- LFW-CF: [link](https://figshare.com/s/487daa6c36b13c53ea72)
 
 # CKD implementation
 
@@ -37,7 +37,7 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
 
         - download
             - images: [link](http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz)
-            - txt files: [link](https://drive.google.com/file/d/1I49GG6Jvl1jUzv8aKLb2SdOvE8oS6XKG/view?usp=sharing)
+            - txt files: [link](https://figshare.com/s/8ee3107511f07af6aa5c)
 
         - You should generate ctf images for training dataset (e.g., by IP2P) and place them in the folder named "lfw_funneled_Male"
 
