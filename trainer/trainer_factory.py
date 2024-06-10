@@ -16,12 +16,8 @@ class TrainerFactory:
     def get_trainer(method, **kwargs):
         if method == 'scratch':
             import trainer.vanilla_train as trainer
-        elif method == 'scratch_aug':
-            import trainer.vanilla_train_aug as trainer
         elif method == 'logit_pairing':
             import trainer.logit_pairing as trainer
-        elif method == 'feature_pairing':
-            import trainer.feature_pairing as trainer
         elif method == 'kd_logit_pairing':
             import trainer.kd_logit_pairing as trainer
         elif method == 'kd_feature_pairing':
