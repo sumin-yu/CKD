@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, sampling='noBal', method=None,  test_set='original', editing_bias_alpha=0.0, test_alpha_pc=False):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, test_set='original', editing_bias_alpha=0.0, test_alpha_pc=False):
 
         if name == "celeba":
             from data_handler.celeba import CelebA

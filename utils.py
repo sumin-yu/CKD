@@ -51,8 +51,6 @@ def check_log_dir(log_dir):
 
 
 def get_cd(model, args):
-    kwargs = {'num_workers': 4, 'pin_memory': True}
-
     _,_,_,_,dataloader = data_handler.DataloaderFactory.get_dataloader(args.dataset, img_size=args.img_size,
                                                             batch_size=1, seed=args.seed,
                                                             num_workers=args.num_workers,

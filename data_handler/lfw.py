@@ -221,7 +221,7 @@ class LFWPeople(_LFW):
             img_edited = self._loader(self.ctf_data[index])
             img = [img, img_edited]
             target = torch.Tensor([target, target])
-            sensitive = torch.Tensor([sensitive, 0 if sensitive ==1 else 1])
+            sensitive = torch.Tensor([sensitive, 0 if sensitive == 1 else 1])
         else:
             img = [img]
         

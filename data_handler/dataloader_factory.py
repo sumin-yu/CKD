@@ -44,7 +44,7 @@ class DataloaderFactory:
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
                        target='Blond_Hair', sensitive='Male', skew_ratio=0.8, sampling='noBal', method=None, 
-                       test_set='original', editing_bias_alpha=0.0, test_alpha_pc=False):
+                       editing_bias_alpha=0.0, test_alpha_pc=False, test_set='original'):
 
         # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                     #  std=[0.229, 0.224, 0.225])
@@ -112,9 +112,9 @@ class DataloaderFactory:
 
 
         val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set='original')
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, method=method, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set='original')
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set='original')
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, test_set=test_set, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set=test_set)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))
