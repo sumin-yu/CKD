@@ -37,13 +37,13 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
 
         - download
             - images: [link](http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz)
-            - txt files: [link](https://github.com/ckd-ip2p/ckd-ip2p.github.io/blob/5a0bc13961a9764258ffb1fbd33814760fa3cd73/lfw.zip)
+            - txt files: [link](https://drive.google.com/file/d/1I49GG6Jvl1jUzv8aKLb2SdOvE8oS6XKG/view?usp=share_link)
 
         - You should generate ctf images for training dataset (e.g., by IP2P) and place them in the folder named "lfw_funneled_Male"
 
         - move them to **./data/lfw-py/**
 
-        - You must also place "lfw_attributes_cd_eval.txt" to **./data/lfw-py/** to properly evaluate CD.
+        - You must also place "lfw_attributes_binary_cd_eval.txt" to **./data/lfw-py/** to properly evaluate CD.
 
 ## Training commands
 

@@ -141,7 +141,7 @@ class LFWPeople(_LFW):
             attr = pd.read_csv(fn("lfw_attributes_binary.txt"), sep='\t') 
             # attr = attr[attr["imagenum"] == 1]
         elif test_set == 'cd':
-            attr = pd.read_csv(fn("lfw_attributes_binary_test_strong_filter.txt"), sep='\t')
+            attr = pd.read_csv(fn("lfw_attributes_binary_cd_eval.txt"), sep='\t')
             attr = attr[attr["imagenum"] == 1]
         self.filename = pd.read_csv(fn(self.labels_file), sep='\t').index.tolist()
         self.filename = [f.replace('_', ' ') for f in self.filename]
