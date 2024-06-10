@@ -49,7 +49,7 @@ def check_log_dir(log_dir):
         print("Failed to create directory!!")
 
 
-def get_metric(model, dataset, dataset_name, clip_filtering=False, is_pc_G=False):
+def get_metric(model, dataset, dataset_name, is_pc_G=False):
     kwargs = {'num_workers': 4, 'pin_memory': True}
 
     bs = 1
@@ -126,19 +126,22 @@ def make_log_name(args):
             log_name += '_pretrained'
         log_name += '_seed{}_epochs{}_bs{}_lr{}'.format(args.seed, args.epochs, args.batch_size, args.lr)
 
-        if args.method == 'logit_pairing_kd_logit_pairing' or args.method == 'logit_pairing_kd_feature_pairing':
-            log_name += '_cp{}'.format(args.cp_lambf)
-            log_name += '_ckd{}'.format(args.kd_lambf)
-        elif 'logit_pairing' in args.method:
+        if args.method == 'ckd' :
+            if args.cp_lambf != 0.0:
+                log_name += '_cp{}'.format(args.cp_lambf)
+            log_name += '_ckd_f{}'.format(args.kd_lambf) if args.rep == 'feature' else '_ckd_l{}'.format(args.kd_lambf)
+        
+        if 'cp' in args.method:
             log_name += '_cp{}'.format(args.cp_lambf)
 
         if 'kd_mfd' in args.method:
             log_name += '_{}'.format(args.kernel)
             log_name += '_sigma{}'.format(args.sigma) if args.kernel == 'rbf' else ''
             log_name += '_mfd{}'.format(args.mfd_lambf)
-
-        # if 'feature_pairing' in args.method: 
-        #     log_name += '_lambf{}'.format(args.cp_lambf)
+        
+        if args.method == 'kd_hinton':
+            log_name += '_temp{}'.format(args.kd_temp)
+            log_name += '_hinton{}'.format(args.lambh)
             
         if 'cov' in args.method: 
             log_name += '_cov{}'.format(args.cov_lambf)
@@ -151,10 +154,6 @@ def make_log_name(args):
             log_name += '_eps{}'.format(args.sensei_eps)
             log_name += '_nsteps{}'.format(args.auditor_nsteps)
             log_name += '_auditorlr{}'.format(args.auditor_lr)
-
-        if args.teacher_path is not None:
-            log_name += '_temp{}'.format(args.kd_temp)
-            log_name += '_lambh{}'.format(args.lambh)
 
         if args.sampling != 'noBal':
             log_name += f'_{args.sampling}'

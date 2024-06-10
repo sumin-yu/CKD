@@ -13,19 +13,19 @@ class Trainer(trainer.GenericTrainer):
         for epoch in range(epochs):
             self._train_epoch(epoch, train_loader, self.model)
 
-            val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
+            val_loss, val_acc = self.evaluate(self.model, val_loader, self.criterion)
             print('[{}/{}] Method: {} '
-                    'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
+                    'Val Loss: {:.3f} Val Acc: {:.2f}'.format
                     (epoch + 1, epochs, self.method,
-                    val_loss, val_acc, val_deopp))
+                    val_loss, val_acc))
                     
             eval_start_time = time.time()
-            eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
+            eval_loss, eval_acc = self.evaluate(self.model, test_loader, self.criterion)
             eval_end_time = time.time()
             print('[{}/{}] Method: {} '
-                  'Test Loss: {:.3f} Test Acc: {:.2f} Test DEopp {:.2f} [{:.2f} s]'.format
+                  'Test Loss: {:.3f} Test Acc: {:.2f} [{:.2f} s]'.format
                   (epoch + 1, epochs, self.method, 
-                   eval_loss, eval_acc, eval_deopp, (eval_end_time - eval_start_time)))
+                   eval_loss, eval_acc, (eval_end_time - eval_start_time)))
 
             if self.scheduler != None and 'Multi' not in type(self.scheduler).__name__:
                 self.scheduler.step(eval_loss)

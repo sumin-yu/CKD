@@ -22,7 +22,7 @@ class LFWPeople_aug(LFWPeople):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         download: bool = False, 
-        target_attr: str = "Blond_Hair",
+        target_attr: str = "Smiling",
         sen_attr: str = "Male",
         test_set: str = 'original'
 
@@ -46,6 +46,10 @@ class LFWPeople_aug(LFWPeople):
         
         if self.transform is not None:
             img = self.transform(img)
+            # save img
+            if img_name == 'Aaron_Patterson':
+                img[0].save(f'./lfwlfw{img_name}.jpg')
+                img[1].save(f'./lfwctf{img_name}.jpg') 
             img = torch.stack(img) if (self.test_pair or self.split == 'train') else img[0]
 
         return img, 0, sensitive, target, (index, img_name)

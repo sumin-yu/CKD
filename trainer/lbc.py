@@ -51,15 +51,15 @@ class Trainer(trainer.GenericTrainer):
                 self._train_epoch(epoch, train_loader, model)            
 
                 eval_start_time = time.time()
-                eval_loss, eval_acc, eval_deom,  = self.evaluate(self.model, 
+                eval_loss, eval_acc  = self.evaluate(self.model, 
                                                                     test_loader, 
                                                                     self.test_criterion,
                                                                 )
                 eval_end_time = time.time()
                 print('[{}/{}] Method: {} '
-                    'Test Loss: {:.3f} Test Acc: {:.2f} Test DEOM {:.2f} [{:.2f} s]'.format
+                    'Test Loss: {:.3f} Test Acc: {:.2f} [{:.2f} s]'.format
                     (epoch + 1, epochs, self.method,
-                    eval_loss, eval_acc, eval_deom, (eval_end_time - eval_start_time)))
+                    eval_loss, eval_acc, (eval_end_time - eval_start_time)))
 
                 if self.scheduler != None and 'Reduce' in type(self.scheduler).__name__:
                     self.scheduler.step(eval_loss)
@@ -141,10 +141,10 @@ class Trainer(trainer.GenericTrainer):
         with torch.no_grad():
             for i, data in enumerate(dataloader):
                 inputs, _, sen_attrs, targets, _ = data if not self.aug_mode else self.dim_change(data)
-                if self.aug_mode and not self.ce_aug:
-                    targets = targets[:self.bs]
-                    sen_attrs = sen_attrs[:self.bs]
-                    inputs = inputs[:self.bs]
+                # if self.aug_mode and not self.ce_aug:
+                #     targets = targets[:self.bs]
+                #     sen_attrs = sen_attrs[:self.bs]
+                #     inputs = inputs[:self.bs]
                 y_set.append(targets) # sen_attrs = -1 means no supervision for sensitive group
                 s_set.append(sen_attrs)
 

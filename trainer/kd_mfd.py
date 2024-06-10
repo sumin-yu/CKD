@@ -12,7 +12,6 @@ from trainer.loss_utils import compute_hinton_loss
 class Trainer(hinton_Trainer):
     def __init__(self, args, **kwargs):
         super().__init__(args=args, **kwargs)
-        self.lambh = args.lambh
         self.lambf = args.mfd_lambf
         self.sigma = args.sigma
         self.kernel = args.kernel
@@ -28,19 +27,19 @@ class Trainer(hinton_Trainer):
         for epoch in range(self.epochs):
             self._train_epoch(epoch, train_loader, self.model, self.teacher, distiller=distiller)
 
-            val_loss, val_acc, val_deopp = self.evaluate(self.model, val_loader, self.criterion)
+            val_loss, val_acc = self.evaluate(self.model, val_loader, self.criterion)
             print('[{}/{}] Method: {} '
-                    'Val Loss: {:.3f} Val Acc: {:.2f} Val DEopp {:.2f}'.format
+                    'Val Loss: {:.3f} Val Acc: {:.2f}'.format
                     (epoch + 1, epochs, self.method,
-                    val_loss, val_acc, val_deopp))
+                    val_loss, val_acc))
 
             eval_start_time = time.time()
-            eval_loss, eval_acc, eval_deopp = self.evaluate(self.model, test_loader, self.criterion)
+            eval_loss, eval_acc = self.evaluate(self.model, test_loader, self.criterion)
             eval_end_time = time.time()
             print('[{}/{}] Method: {} '
-                  'Test Loss: {:.3f} Test Acc: {:.2f} Test DEopp {:.2f} [{:.2f} s]'.format
+                  'Test Loss: {:.3f} Test Acc: {:.2f} [{:.2f} s]'.format
                   (epoch + 1, epochs, self.method,
-                   eval_loss, eval_acc, eval_deopp, (eval_end_time - eval_start_time)))
+                   eval_loss, eval_acc, (eval_end_time - eval_start_time)))
 
             if self.scheduler != None:
                 self.scheduler.step(eval_loss)
@@ -72,11 +71,7 @@ class Trainer(hinton_Trainer):
             t_outputs = teacher(t_inputs, get_inter=True)
             tea_logits = t_outputs[-1]
 
-            kd_loss = compute_hinton_loss(stu_logits, t_outputs=tea_logits,
-                                          kd_temp=self.kd_temp, device=self.device) if self.lambh != 0 else 0
-
             loss = self.criterion(stu_logits, labels)
-            loss = loss + self.lambh * kd_loss
 
             f_s = outputs[-2]
             f_t = t_outputs[-2]
@@ -107,10 +102,6 @@ class Trainer(hinton_Trainer):
                 running_loss = 0.0
                 running_acc = 0.0
                 batch_start_time = time.time()
-
-        # if not self.no_annealing:
-        #     self.lambh = self.lambh - 3 / (self.epochs - 1)
-
 
 class MMDLoss(nn.Module):
     def __init__(self, w_m, sigma, num_groups, num_classes, kernel):

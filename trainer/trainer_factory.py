@@ -16,24 +16,18 @@ class TrainerFactory:
     def get_trainer(method, **kwargs):
         if method == 'scratch':
             import trainer.vanilla_train as trainer
-        elif method == 'logit_pairing':
-            import trainer.logit_pairing as trainer
-        elif method == 'kd_logit_pairing':
-            import trainer.kd_logit_pairing as trainer
-        elif method == 'kd_feature_pairing':
-            import trainer.kd_feature_pairing as trainer
-        elif method == 'logit_pairing_kd_logit_pairing':
-            import trainer.logit_pairing_kd_logit_pairing as trainer
-        elif method == 'logit_pairing_kd_feature_pairing':
-            import trainer.logit_pairing_kd_feature_pairing as trainer
-        elif method == 'logit_pairing_kd_mfd':
-            import trainer.logit_pairing_kd_mfd as trainer
-        elif method == 'logit_pairing_cov':
-            import trainer.logit_pairing_cov as trainer
-        elif method == 'logit_pairing_rw':
-            import trainer.logit_pairing_rw as trainer
-        elif method == 'logit_pairing_lbc':
-            import trainer.logit_pairing_lbc as trainer
+        elif method == 'cp':
+            import trainer.cp as trainer
+        elif method == 'ckd':
+            import trainer.ckd as trainer
+        elif method == 'kd_mfd_cp':
+            import trainer.kd_mfd_cp as trainer
+        elif method == 'cov_cp':
+            import trainer.cov_cp as trainer
+        elif method == 'rw_cp':
+            import trainer.rw_cp as trainer
+        elif method == 'lbc_cp':
+            import trainer.lbc_cp as trainer
         elif method == 'kd_hinton':
             import trainer.kd_hinton as trainer
         elif method == 'sensei':
@@ -163,10 +157,11 @@ class GenericTrainer:
             eval_loss = eval_loss / eval_data_count.sum() if not groupwise else eval_loss / eval_data_count
             eval_acc = eval_acc / eval_data_count.sum() if not groupwise else eval_acc / eval_data_count
             eval_eopp_list = eval_eopp_list / eval_data_count
-            eval_max_eopp = torch.max(eval_eopp_list, dim=0)[0] - torch.min(eval_eopp_list, dim=0)[0]
-            eval_max_eopp = torch.max(eval_max_eopp).item()
+            # eval_max_eopp = torch.max(eval_eopp_list, dim=0)[0] - torch.min(eval_eopp_list, dim=0)[0]
+            # eval_max_eopp = torch.max(eval_max_eopp).item()
         model.train()
-        return eval_loss, eval_acc, eval_max_eopp
+        # return eval_loss, eval_acc, eval_max_eopp
+        return eval_loss, eval_acc
     
     def save_model(self, save_dir, log_name="", model=None):
         model_to_save = self.model if model is None else model

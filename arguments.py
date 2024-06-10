@@ -52,11 +52,10 @@ def get_args():
     
     parser.add_argument('--method', default='scratch', type=str, required=True,
                         choices=['scratch'
-                                 ,'sensei', 'logit_pairing',
+                                 ,'sensei', 'cp',
                                  'kd_mfd', 'cov', 'lbc', 'rw', 'kd_hinton',
-                                 'logit_pairing_kd_mfd', 'logit_pairing_cov', 'logit_pairing_rw', 'logit_pairing_lbc',
-                                 'kd_logit_pairing', 'kd_feature_pairing',
-                                 'logit_pairing_kd_logit_pairing', 'logit_pairing_kd_feature_pairing',])
+                                #  'kd_mfd_cp', 'cov_cp', 'rw_cp', 'lbc_cp',
+                                 'ckd'])
     parser.add_argument('--model', default='', required=True, choices=['resnet','resnet56'])
     parser.add_argument('--parallel', default=False, action='store_true', help='data parallel')
     parser.add_argument('--pretrained', default=False, action='store_true', help='load imagenet pretrained model')
@@ -66,17 +65,16 @@ def get_args():
     # sampling option
     parser.add_argument('--sampling', default='noBal', type=str, choices=['noBal', 'gBal','cBal', 'gcBal'], help='balanced sampling')
     # +aug option
-    parser.add_argument('--ce-aug', default=False,action='store_true', help='use edited images in CE')
+    parser.add_argument('--ce-aug', default=False,action='store_true', help='use ctf images in CE loss')
     # KD teacher model path
     parser.add_argument('--teacher-path', default=None, help='teacher model path')
-    
 
     # CKD param
-    parser.add_argument('--kd-lambf', default=1, type=float, help='distillation strength hyperparameter for kd-lp loss')
+    parser.add_argument('--kd-lambf', default=0.0, type=float, help='CKD distillation strength hyperparameter')
+    parser.add_argument('--rep', default=None, type=str, choices=['logit', 'feature'], help='representation vector type for CKD')
 
     # CP param
-    parser.add_argument('--cp_lambf', default=1, type=float, help='feature distill strength hyperparameter')
-    parser.add_argument('--kd-temp', default=3, type=float, help='temperature for KD')
+    parser.add_argument('--cp-lambf', default=0.0, type=float, help='CP distillation strength hyperparameter')
     # SenSeI param
     parser.add_argument('--sensei-rho', default=5.0, type=float, help='rho for SenSeI')
     parser.add_argument('--sensei-eps', default=0.1, type=float, help='epsilon for SenSeI')
@@ -85,15 +83,17 @@ def get_args():
     parser.add_argument('--epochs-dist', default=10, type=int, help='epochs for distance metric learning')
     parser.add_argument('--sensei-dist-path', type=str, help='mahalanobis distance file path')
     # COV param
-    parser.add_argument('--cov-lambf', default=0, type=float, help='cov lambda when COV+CP')
+    parser.add_argument('--cov-lambf', default=0, type=float, help='cov hyperparameter')
     # LBC param
     parser.add_argument('--eta', default=0.0003, type=float, help='adversary training learning rate or lbc parameter')
     parser.add_argument('--iter', default=5, type=int, help='# of iteraion for lbc')
     # MFD param
-    parser.add_argument('--mfd-lambf', default=1, type=float, help='feature distill strength hyperparameter')
-    parser.add_argument('--lambh', default=0, type=float, help='kd strength hyperparameter')
+    parser.add_argument('--mfd-lambf', default=1, type=float, help='mfd feature distill strength hyperparameter')
     parser.add_argument('--sigma', default=1.0, type=float, help='sigma for rbf kernel')
     parser.add_argument('--kernel', default='rbf', type=str, choices=['rbf', 'poly', 'linear'], help='kernel for mmd')
+    # HKD param
+    parser.add_argument('--lambh', default=0, type=float, help='kd_Hinton distillation strength hyperparameter')
+    parser.add_argument('--kd-temp', default=3, type=float, help='temperature for kd_Hinton')
 
     # target / sensitive attribute
     parser.add_argument('--target', default='Blond_Hair', type=str, help='target attribute for celeba')
@@ -115,6 +115,9 @@ def get_args():
     if args.mode == 'train' and (args.method.startswith('kd')):
         if args.teacher_path is None:
             raise Exception('A teacher model path is not specified.')
+    if args.method == 'ckd':
+        if args.rep is None:
+            raise Exception('Representation type is not specified.')
 
     if args.mode == 'eval' and args.modelpath is None:
         raise Exception('Model path to load is not specified!')

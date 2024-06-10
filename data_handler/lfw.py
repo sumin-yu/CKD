@@ -127,7 +127,7 @@ class LFWPeople(_LFW):
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         download: bool = False, 
-        target_attr: str = "Blond_Hair",
+        target_attr: str = "Smiling",
         sen_attr: str = "Male",
         test_set: str = 'original',
 
