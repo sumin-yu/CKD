@@ -1,12 +1,16 @@
-# <p align="center">Do Counterfactually Fair Image Classifiers Satisfy Group Fairness?<br/>– A Theoretical and Empirical Study</p>
+# <p align="center">Do Counterfactually Fair Image Classifiers Satisfy Group Fairness?</p>
 
-## CTF image datasets for CD evaluation
+paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study"
+
+# Real-img-CF datasets for CD evaluation
 
 - CelebA-CF: [link]
 
 - LFW-CF: [link]
 
-## Prerequisite
+# CKD implementation
+
+## Prerequisites
 
 - Environment
 
