@@ -34,7 +34,7 @@ def get_args():
 
     # dataset
     parser.add_argument('--dataset', required=True, default='',
-                        choices=['celeba', 'cifar10_b_same', 'cifar10_b_same_aug', 'celeba_aug', 'lfw', 'lfw_aug'])
+                        choices=['celeba', 'cifar_10b', 'cifar_10b_aug', 'celeba_aug', 'lfw', 'lfw_aug'])
     parser.add_argument('--img-size', default=224, type=int, help='img size for preprocessing')
     
     # CIFAR-10B 
@@ -91,15 +91,8 @@ def get_args():
     parser.add_argument('--sensitive', default='Male', type=str, help='sensitive attribute for celeba')
 
     parser.add_argument('--test-set', default='original', type=str, choices=['original', 'cd'], help='test set for celeba lfw')
-    parser.add_argument('--test-img-cfg', default=2.0, type=float, help='test ctf image cfg')
     parser.add_argument('--get-inter', default=False, action='store_true',
                         help='get penultimate features for TSNE visualization')
-
-    # parser.add_argument('--teacher-type', default=None, choices=['resnet', 'shufflenet', 'cifar_net', 'cifar_net_v2'])
-    # parser.add_argument('--gamma', default=0, type=float, help='lopgitpairing strength hyperparameter for MFD-indiv')
-    # parser.add_argument('--rho', default=0.5, type=float, help='the radioi of chi divergence ball')
-    # parser.add_argument('--adv-lambda', default=2.0, type=float, help='adversary loss strength')
-    # parser.add_argument('--test-pc-G', default=None, type=str, help='test pc w.r.t. G, celeba (Hair_Length)')
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()

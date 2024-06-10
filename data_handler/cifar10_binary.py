@@ -13,12 +13,12 @@ from data_handler.cifar10 import CIFAR10, CIFAR_10S
 class CIFAR_10S_binary(CIFAR_10S):
     def __init__(self, root, split='train', transform=None,
                  seed=0, skewed_ratio=0.8,
-                    editing_bias_alpha=0.0, test_alpha_pc=False):
+                    editing_bias_alpha=0.8, test_set='original'):
         super(CIFAR_10S, self).__init__(root, split=split, transform=transform, seed=seed)
 
-        self.test_pair = True if test_alpha_pc else False
+        self.test_pair = True if test_set == 'cd' else False
         self.test_mode = False # mode change for training set (just get org image)
-        self.test_alpha_pc = test_alpha_pc
+        self.test_set = test_set
         self.split = split
         self.seed = seed
 
@@ -54,34 +54,34 @@ class CIFAR_10S_binary(CIFAR_10S):
         inv_noise = 0
 
         if self.editing_bias_alpha != 0:
-            if self.test_alpha_pc:
-                if color == 0:
-                    if num > tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                        org_noise = 1
-                    else:
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                        inv_noise = 1
-                else:
-                    if num <= tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                        org_noise = 1
-                    else:
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                        inv_noise = 1
-            else:
-                if color == 0: # org color is gray
-                    if num > tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                        org_noise = 1
-                        inv_noise = 1
-                else: # org color is color
-                    if num <= tot_num*self.editing_bias_alpha:
-                        img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
-                        inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
-                        org_noise = 1
-                        inv_noise = 1
+            # if self.test_alpha_pc == True:
+            #     if color == 0:
+            #         if num > tot_num*self.editing_bias_alpha:
+            #             img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+            #             org_noise = 1
+            #         else:
+            #             inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+            #             inv_noise = 1
+            #     else:
+            #         if num <= tot_num*self.editing_bias_alpha:
+            #             img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+            #             org_noise = 1
+            #         else:
+            #             inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+            #             inv_noise = 1
+            # else:
+            if color == 0: # org color is gray
+                if num > tot_num*self.editing_bias_alpha:
+                    img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                    inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+                    org_noise = 1
+                    inv_noise = 1
+            else: # org color is color
+                if num <= tot_num*self.editing_bias_alpha:
+                    img = self.noise_injection(img, severity=self.noise_degree, seed=self.seed)
+                    inv_img = self.noise_injection(inv_img, severity=self.noise_degree, seed=self.seed)
+                    org_noise = 1
+                    inv_noise = 1
         return img, inv_img, org_noise, inv_noise
 
     def _set_data(self, img, group):
@@ -90,16 +90,16 @@ class CIFAR_10S_binary(CIFAR_10S):
                 return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
             elif group==0:
                 return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-        elif self.test_alpha_pc == False:   
+        # elif self.test_alpha_pc == True:
+        #     if group==1:
+        #         return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
+        #     elif group==0:
+        #         return np.array(img), np.array(img), group
+        else:
             if group==1:    
                 return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), np.array(img), group
             elif group==0:
                 return np.array(img), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-        else:
-            if group==1:
-                return self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), self._perturbing(img, bias_type=self.group_bias_type, degree=self.group_bias_degree), group
-            elif group==0:
-                return np.array(img), np.array(img), group
 
     def _make_skewed(self, split='train', seed=0, skewed_ratio=0.8, num_classes=2):
 
@@ -128,8 +128,6 @@ class CIFAR_10S_binary(CIFAR_10S):
         num_skewed_train_data = int((num_data * skewed_ratio) // 10)
         if skewed_ratio == 0.8:
             off_set = int((num_data * 0.2) // 10)
-        elif skewed_ratio == 0.9:
-            off_set = int((num_data * 0.1) // 10)
         else:
             raise ValueError('skewed_ratio should be 0.8 or 0.9')
 

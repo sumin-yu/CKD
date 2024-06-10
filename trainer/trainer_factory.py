@@ -112,8 +112,6 @@ class GenericTrainer:
         eval_eopp_list = torch.zeros(num_groups, num_classes).cuda(device)
         eval_data_count = torch.zeros(num_groups, num_classes).cuda(device)
         n_subgroups = num_classes * num_groups
-        group_count = torch.zeros(n_subgroups).cuda()
-        group_acc = torch.zeros(num_groups, num_classes).cuda(device)
         
         if 'Custom' in type(loader).__name__:
             loader = loader.generate()
@@ -121,7 +119,6 @@ class GenericTrainer:
             for j, eval_data in enumerate(loader):
                 # Get the inputs
                 inputs, _, groups, classes, _ = eval_data
-                #
                 labels = classes 
                 if self.cuda:
                     inputs = inputs.cuda(device)
@@ -156,7 +153,7 @@ class GenericTrainer:
 
             eval_loss = eval_loss / eval_data_count.sum() if not groupwise else eval_loss / eval_data_count
             eval_acc = eval_acc / eval_data_count.sum() if not groupwise else eval_acc / eval_data_count
-            eval_eopp_list = eval_eopp_list / eval_data_count
+            # eval_eopp_list = eval_eopp_list / eval_data_count
             # eval_max_eopp = torch.max(eval_eopp_list, dim=0)[0] - torch.min(eval_eopp_list, dim=0)[0]
             # eval_max_eopp = torch.max(eval_max_eopp).item()
         model.train()
@@ -182,10 +179,7 @@ class GenericTrainer:
         output_set = torch.tensor([])
         group_set = torch.tensor([], dtype=torch.long)
         target_set = torch.tensor([], dtype=torch.long)
-        # g_group_set = torch.tensor([], dtype=torch.long)
         intermediate_feature_set = torch.tensor([])
-        alpha_set = torch.tensor([])
-        alpha_ctf_set = torch.tensor([])
         
         with torch.no_grad():
             for i, data in enumerate(dataloader):
@@ -193,14 +187,10 @@ class GenericTrainer:
                 inputs, g_groups, groups, targets, _ = data
                 labels = targets
                 groups = groups.long()
-                # g_groups, _ = g_groups
-                # g_groups = g_groups.long()
 
                 if self.cuda:
                     inputs = inputs.cuda(self.device)
                     labels = labels.cuda(self.device)
-
-                # forward
 
                 outputs = self.model(inputs)
                 if self.get_inter:
@@ -208,7 +198,6 @@ class GenericTrainer:
 
                 group_set = torch.cat((group_set, groups))
                 target_set = torch.cat((target_set, targets))
-                # g_group_set = torch.cat((g_group_set, g_groups))
                 output_set = torch.cat((output_set, outputs.cpu()))
                 if self.get_inter:
                     intermediate_feature_set = torch.cat((intermediate_feature_set, intermediate_feature.cpu()))
@@ -225,7 +214,6 @@ class GenericTrainer:
         predict_mat['group_set'] = group_set.numpy()
         predict_mat['target_set'] = target_set.numpy()
         predict_mat['output_set'] = output_set.numpy()
-        # predict_mat['g_group_set'] = g_group_set.numpy()
         if self.get_inter:
             predict_mat['intermediate_feature_set'] = intermediate_feature_set.numpy()
 

@@ -44,10 +44,8 @@ class DataloaderFactory:
     @staticmethod
     def get_dataloader(name, img_size=224, batch_size=256, seed = 0, num_workers=4,
                        target='Blond_Hair', sensitive='Male', skew_ratio=0.8, sampling='noBal', method=None, 
-                       editing_bias_alpha=0.0, test_alpha_pc=False, test_set='original'):
+                       editing_bias_alpha=0.8, test_set='original'):
 
-        # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                    #  std=[0.229, 0.224, 0.225])
         train_transform = None
         valid_transform = None
         test_transform = None
@@ -65,11 +63,6 @@ class DataloaderFactory:
                                      normalize=True, mean=mean, std=std)
         
             valid_transform = test_transform
-            # transform_list = [transforms.RandomResizedCrop(img_size),
-            #                   transforms.RandomHorizontalFlip(),
-            #                   transforms.ToTensor(),
-            #                   normalize
-            #                  ]
 
         elif 'lfw' in name:
             mean = [0.485, 0.456, 0.406]
@@ -86,35 +79,17 @@ class DataloaderFactory:
             
         elif 'cifar10' in name:
             train_transform = transforms.Compose([transforms.ToPILImage(),
-                            #   transforms.Resize((38,38)),
-                            #   transforms.RandomApply([transforms.RandomRotation(30),transforms.CenterCrop(32)], p=1.0),
-                            #   transforms.RandomHorizontalFlip(),
-                            #   transforms.Resize((32,32)),
                               transforms.ToTensor()])
-        # else:
-        #     transform_list = [transforms.Resize((256,256)),
-        #                       transforms.RandomCrop(img_size),
-        #                       transforms.RandomHorizontalFlip(),
-        #                       transforms.ToTensor(),
-        #                       normalize
-        #                      ]
 
         if 'cifar10' in name:
             test_transform = transforms.Compose([transforms.ToTensor()])
             valid_transform = test_transform
-        # else:
-        #     test_transform_list = [transforms.Resize((img_size,img_size)),
-        #                           transforms.ToTensor(),
-        #                           normalize]
-            
-        # preprocessing = transforms.Compose(transform_list)
-        # test_preprocessing = transforms.Compose(test_transform_list)
 
 
-        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set='original')
-        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set='original')
+        val_dataset = DatasetFactory.get_dataset(name, transform=valid_transform, split='valid', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_set='original')
+        train_dataset = DatasetFactory.get_dataset(name, transform=train_transform, split='train', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_set='original')
             
-        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc, test_set=test_set)
+        test_dataset = DatasetFactory.get_dataset(name, transform=test_transform, split='test', target=target, sensitive=sensitive, seed=seed, skew_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_set=test_set)
 
         def _init_fn(worker_id):
             np.random.seed(int(seed))
@@ -124,7 +99,7 @@ class DataloaderFactory:
 
         if sampling != 'noBal':
             from torch.utils.data.sampler import WeightedRandomSampler
-            weights = train_dataset.make_weights(dataset=name, method=method, sampling=sampling)
+            weights = train_dataset.make_weights(sampling=sampling)
             sampler = WeightedRandomSampler(weights, len(weights), replacement=True)
             train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler,
                                           num_workers=num_workers, worker_init_fn=_init_fn, pin_memory=True, drop_last=True)

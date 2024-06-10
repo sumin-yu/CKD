@@ -6,7 +6,7 @@ class DatasetFactory:
         pass
 
     @staticmethod
-    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, test_set='original', editing_bias_alpha=0.0, test_alpha_pc=False):
+    def get_dataset(name, transform=None, split='train', target='Blond_Hair', sensitive='Male', seed=0, skew_ratio=0.9, test_set='original', editing_bias_alpha=0.0):
 
         if name == "celeba":
             from data_handler.celeba import CelebA
@@ -26,14 +26,14 @@ class DatasetFactory:
             root = './data/'
             return LFWPeople_aug(root=root, split=split, image_set='funneled', transform=transform, target_attr=target, sen_attr=sensitive, test_set=test_set)
 
-        elif name == "cifar10_b_same":
-            from data_handler.cifar10_binary_same import CIFAR_10S_binary_same
+        elif name == "cifar_10b":
+            from data_handler.cifar_10b import CIFAR_10B
             root = './data_cifar'
-            return CIFAR_10S_binary_same(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc)
-        elif name == "cifar10_b_same_aug":
-            from data_handler.cifar10_binary_same_aug import CIFAR_10S_binary_same_aug
+            return CIFAR_10B(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_set=test_set)
+        elif name == "cifar_10b_aug":
+            from data_handler.cifar_10b_aug import CIFAR_10B_aug
             root = './data_cifar'
-            return CIFAR_10S_binary_same_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_alpha_pc=test_alpha_pc)
+            return CIFAR_10B_aug(root=root, split=split, transform=transform, seed=seed, skewed_ratio=skew_ratio, editing_bias_alpha=editing_bias_alpha, test_set=test_set)
 
 
 class GenericDataset(data.Dataset):
@@ -68,7 +68,6 @@ class GenericDataset(data.Dataset):
         return data_count, idxs_per_group
             
     def _make_data(self, features, n_groups, n_classes):
-        # if the original dataset not is divided into train / test set, this function is used
         import copy
         min_cnt = 100
         data_count = np.zeros((n_groups, n_classes), dtype=int)
@@ -85,19 +84,15 @@ class GenericDataset(data.Dataset):
         return train_data, test_data
     
 
-    def make_weights(self, method='kd_mfd', dataset='spucobirds', sampling='noBal'):
-        if 'spucobirds' in dataset :
-            weights = [1/self.group_weights[g,l] for g,l in zip(self.spurious, self.labels)]
-        else:
-            # if method == 'fairhsic' or 'kd_indiv_ukn3' or 'kd_mfd_ctf_ukn3':
-            if sampling == 'cBal':
-                group_weights = len(self) / self.n_data.sum(axis=0)
-                weights = [group_weights[int(feature[1])] for feature in self.features]
-            elif sampling == 'gcBal':
-                group_weights = len(self) / self.n_data
-                weights = [group_weights[int(feature[0]),int(feature[1])] for feature in self.features]
-            if sampling == 'gBal':
-                group_weights = len(self) / self.n_data.sum(axis=1)
-                weights = [group_weights[int(feature[0])] for feature in self.features]
+    def make_weights(self, sampling='noBal'):
+        if sampling == 'cBal':
+            group_weights = len(self) / self.n_data.sum(axis=0)
+            weights = [group_weights[int(feature[1])] for feature in self.features]
+        elif sampling == 'gcBal':
+            group_weights = len(self) / self.n_data
+            weights = [group_weights[int(feature[0]),int(feature[1])] for feature in self.features]
+        if sampling == 'gBal':
+            group_weights = len(self) / self.n_data.sum(axis=1)
+            weights = [group_weights[int(feature[0])] for feature in self.features]
         return weights 
     

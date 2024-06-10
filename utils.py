@@ -60,7 +60,6 @@ def get_cd(model, args, n_data):
                                                             sampling=args.sampling,
                                                             method=args.method,
                                                             editing_bias_alpha=args.editing_bias_alpha,
-                                                            test_alpha_pc=True,
                                                             test_set='cd',
                                                             )
     model.eval()
