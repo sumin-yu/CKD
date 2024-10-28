@@ -1,6 +1,6 @@
 # <p align="center">Do Counterfactually Fair Image Classifiers Satisfy Group Fairness?</p>
 
-paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study"
+Official Implementation of the paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study" (NeurIPS 2024)
 
 # Real-img-CF datasets for CD evaluation
 
