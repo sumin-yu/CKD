@@ -4,9 +4,9 @@ paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A
 
 # Real-img-CF datasets for CD evaluation
 
-- CelebA-CF: [link](https://figshare.com/s/b5e04d2005ef7ef2407f)
+- CelebA-CF: [link](https://figshare.com/s/62b6f7f69d0eab9c3c71)
 
-- LFW-CF: [link](https://figshare.com/s/487daa6c36b13c53ea72)
+- LFW-CF: [link](https://figshare.com/s/39f2daac58148e10e5fe)
 
 # CKD implementation
 
