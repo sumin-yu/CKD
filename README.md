@@ -1,6 +1,15 @@
-# <p align="center">Do Counterfactually Fair Image Classifiers Satisfy Group Fairness?</p>
+# <p align="center">Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study (NeurIPS 2024)</p>
 
-Official Implementation of the paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study" (NeurIPS 2024)
+Official Pytorch Implementation of the paper: "Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study" (NeurIPS 2024) | [Paper]
+
+[Sangwon Jung](https://scholar.google.com/citations?user=WdC_a5IAAAAJ&hl=ko)<sup>1</sup> [Sumin Yu](https://sites.google.com/view/sumin-yu)<sup>1</sup> [Sanghyuk Chun](https://sanghyukchun.github.io/home/)<sup>2</sup> [Taesup Moon](https://scholar.google.com/citations?user=lQlioBoAAAAJ&hl=ko)<sup>1, 3</sup>
+
+<sup>1</sup><sub>Department of Electrical and Computer Engineering, Seoul National University<br>
+<sup>2</sup><sub>[NAVER AI LAB](https://naver-career.gitbook.io/en/teams/clova-cic)</sub><br>
+<sup>3</sup><sub>ASRI/INMC/IPAI/AIIS, Seoul National University
+
+The notion of algorithmic fairness has been actively explored from various aspects of fairness, such as counterfactual fairness (CF) and group fairness (GF). However, the exact relationship between CF and GF remains to be not clearly understood, especially in image classification tasks; we often cannot collect counterfactual samples regarding a sensitive attribute, essential for evaluating CF, from the existing images (\eg, a photo of the same person but with different secondary sex characteristics). In this paper, we construct new image datasets for evaluating CF by using a high-quality image editing method and carefully labeling with human annotators. Our datasets, \oursceleb and \ourslfw, build upon the popular image GF benchmarks; hence, we can evaluate CF and GF simultaneously. We empirically observe that CF does not imply GF in image classification, whereas previous studies on tabular datasets observed the opposite. We theoretically show that it could be due to a latent attribute $G$ correlated with, but not caused by, the sensitive attribute (\eg, secondary sex characteristics are highly correlated with hair length). From this observation, we propose a simple baseline Counterfactual Knowledge Distillation (CKD) to mitigate the problem. Extensive experimental results on \oursceleb and \ourslfw demonstrate that CF-achieving models satisfy GF if we successfully reduce the reliance to $G$ (\eg, using CKD). 
+
 
 # Real-img-CF datasets for CD evaluation
 
@@ -215,3 +224,13 @@ Official Implementation of the paper: "Do Counterfactually Fair Image Classifier
 
 
     ```
+## How to cite
+
+```
+@inproceedings{jung2024ckd,
+    title={Do Counterfactually Fair Image Classifiers Satisfy Group Fairness? – A Theoretical and Empirical Study}, 
+    author={Sangwon Jung and Sumin Yu and Sanghyuk Chun and Taesup Moon},
+    year={2024},
+    booktitle={Conference on Neural Information Processing Systems (NeurIPS)},
+}
+```
